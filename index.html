@@ -218,6 +218,19 @@ textarea#export-text { width: 100%; min-height: 150px; background: var(--ink); c
 .field label { font-size: .82rem; color: var(--muted); }
 .field input, .field select { width: 100%; min-height: 46px; background: var(--ink); color: var(--cream); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 16px; }
 .panel a { color: var(--gold); }
+.sub-h { margin: 6px 0 0; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.key-list { display: flex; flex-direction: column; gap: 10px; }
+.key-row { background: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+.key-head { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--muted); }
+.key-badge { color: #6fcf97; font-weight: 600; }
+.key-text { font: .84rem/1.45 ui-monospace, Menlo, Consolas, monospace; color: var(--cream); overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+.key-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.sm { min-height: 36px; padding: 6px 14px; font-size: .82rem; }
+.bar { width: min(240px, 72%); height: 6px; border-radius: 99px; background: rgba(244,236,220,.14); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--gold); transition: width .35s ease; }
+.end .count { font-size: .86rem; font-variant-numeric: tabular-nums; }
+#genline { position: absolute; z-index: 15; left: 0; right: 0; top: env(safe-area-inset-top, 0px); height: 3px; background: rgba(244,236,220,.08); }
+#genline i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .35s ease; }
 [hidden] { display: none !important; }
 
 /* ---------- Tabs ---------- */
@@ -374,8 +387,9 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             </div>
             <div class="actions">
               <button type="button" class="btn solid" id="key-save">Save key</button>
-              <button type="button" class="btn" id="key-remove" hidden>Remove key</button>
             </div>
+            <h3 class="sub-h">Saved keys</h3>
+            <div class="key-list" id="key-list"></div>
             <div class="field">
               <label for="model">Model</label>
               <select id="model"></select>
@@ -384,7 +398,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
               <button type="button" class="btn" id="test-btn">Test connection</button>
               <span class="note" id="test-result" role="status"></span>
             </div>
-            <p>Each key is kept only in this browser on this device and is sent only to its own provider, Anthropic or Google. New ideas are billed to the key in use. Anyone who can open this browser can use the key, so use it on your own phone only.</p>
+            <p>Each key is kept only in this browser on this device and is sent only to its own provider, Anthropic or Google. New ideas are billed to the key in use. Every key you save is listed above, and Show reveals it in full. Anyone who can open this browser can see and use these keys, so use it on your own phone only.</p>
           </div>
 
           <div class="panel">
@@ -414,7 +428,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 1.3</p>
+            <p>Version 1.4</p>
           </div>
         </div>
       </div>
@@ -432,6 +446,8 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       </div>
     </div>
   </div>
+
+  <div id="genline" hidden aria-hidden="true"><i></i></div>
 
   <div class="toast" id="toast" role="status"></div>
 
@@ -556,6 +572,28 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     memKey[p] = k;
     try { if (k) localStorage.setItem(KEY_API + "." + p, k); else localStorage.removeItem(KEY_API + "." + p); } catch (e) {}
   }
+  var KEY_LIST = "wisdomscroll.keys", memList = [], shownKeys = {};
+  function loadKeys() {
+    try {
+      var a = JSON.parse(localStorage.getItem(KEY_LIST) || "[]");
+      return Array.isArray(a) ? a.filter(function (x) { return x && x.k && PROVIDER[x.p]; }) : [];
+    } catch (e) { return memList; }
+  }
+  function storeKeys(a) {
+    memList = a;
+    try { localStorage.setItem(KEY_LIST, JSON.stringify(a)); } catch (e) {}
+  }
+  function rememberKey(k, p) {
+    var a = loadKeys();
+    if (a.some(function (x) { return x.k === k && x.p === p; })) return;
+    a.unshift({ p: p, k: k, t: Date.now() });
+    storeKeys(a);
+  }
+  function forgetKey(k, p) {
+    storeKeys(loadKeys().filter(function (x) { return !(x.k === k && x.p === p); }));
+    if (getKey(p) === k) setKey("", p);
+  }
+  function maskKey(k) { return k.length > 14 ? k.slice(0, 7) + "\u2026" + k.slice(-4) : "\u2026" + k.slice(-4); }
   function guessProvider(k) {
     if (/^sk-ant/i.test(k)) return "anthropic";
     if (/^AIza/.test(k)) return "gemini";
@@ -568,6 +606,53 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     return res.json().catch(function () { return {}; }).then(function (b) {
       throw { status: res.status, message: (b && b.error && b.error.message) || "" };
     });
+  }
+  // Reads a server-sent-event stream and hands each JSON "data:" payload to onData.
+  function readSSE(res, onData) {
+    if (!res.ok) return okJson(res);
+    if (!res.body || !res.body.getReader) return Promise.reject({ nostream: true });
+    var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
+    var line = function (ln) {
+      if (ln.indexOf("data:") !== 0) return;
+      var d = ln.slice(5).trim();
+      if (!d || d === "[DONE]") return;
+      var obj = null;
+      try { obj = JSON.parse(d); } catch (e) { return; }
+      onData(obj);
+    };
+    var pump = function () {
+      return reader.read().then(function (r) {
+        if (r.done) { if (buf) line(buf); return; }
+        buf += dec.decode(r.value, { stream: true });
+        var parts = buf.split(/\r?\n/);
+        buf = parts.pop();
+        parts.forEach(line);
+        return pump();
+      });
+    };
+    return pump();
+  }
+  // Finished card objects inside a JSON answer that is still being written.
+  function extractObjects(text) {
+    var out = [], stack = [], inStr = false, esc = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (ch === "\\") esc = true;
+        else if (ch === '"') inStr = false;
+        continue;
+      }
+      if (ch === '"') inStr = true;
+      else if (ch === "{") {
+        if (stack.length) stack[stack.length - 1].child = true;
+        stack.push({ at: i, child: false });
+      } else if (ch === "}" && stack.length) {
+        var o = stack.pop();
+        if (!o.child) out.push(text.slice(o.at, i + 1));
+      }
+    }
+    return out;
   }
   var providers = {
     anthropic: {
@@ -592,6 +677,22 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
           body: JSON.stringify({ model: model, max_tokens: maxTokens, messages: [{ role: "user", content: prompt }] })
         }).then(okJson).then(function (d) {
           return (d.content || []).filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join("");
+        });
+      },
+      stream: function (key, model, prompt, wantJson, onText) {
+        var text = "", failure = null;
+        return fetch(this.base + "/v1/messages", {
+          method: "POST",
+          headers: this.headers(key),
+          body: JSON.stringify({ model: model, max_tokens: 3000, stream: true, messages: [{ role: "user", content: prompt }] })
+        }).then(function (res) {
+          return readSSE(res, function (ev) {
+            if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { text += ev.delta.text; onText(text); }
+            else if (ev.type === "error") failure = { status: 500, message: (ev.error && ev.error.message) || "" };
+          });
+        }).then(function () {
+          if (failure && !text) throw failure;
+          return text;
         });
       }
     },
@@ -629,6 +730,28 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             var why = (d.promptFeedback && d.promptFeedback.blockReason) || (c && c.finishReason) || "";
             throw { status: 200, message: "The model returned no text" + (why ? " (" + why + ")." : ".") };
           }
+          return text;
+        });
+      },
+      stream: function (key, model, prompt, wantJson, onText) {
+        var text = "", why = "";
+        var body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+        if (wantJson) body.generationConfig = { responseMimeType: "application/json" };
+        return fetch(this.base + "/models/" + encodeURIComponent(model) + ":streamGenerateContent?alt=sse", {
+          method: "POST",
+          headers: this.headers(key),
+          body: JSON.stringify(body)
+        }).then(function (res) {
+          return readSSE(res, function (d) {
+            var c = (d.candidates || [])[0];
+            var add = ((c && c.content && c.content.parts) || []).filter(function (p) { return p && p.text && !p.thought; })
+              .map(function (p) { return p.text; }).join("");
+            if (add) { text += add; onText(text); }
+            why = (d.promptFeedback && d.promptFeedback.blockReason) || (c && c.finishReason) || why;
+            if (d.error) why = d.error.message || why;
+          });
+        }).then(function () {
+          if (!text) throw { status: 200, message: "The model returned no text" + (why ? " (" + why + ")." : ".") };
           return text;
         });
       }
@@ -1154,14 +1277,25 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function unseenCount() { return state.cards.filter(function (c) { return !c.seen; }).length; }
 
   /* ---------- end-of-feed status card ---------- */
-  function setStatus(s, detail) { gen.status = s; gen.detail = detail || ""; renderEnd(); renderSettings(); }
+  function setStatus(s, detail) { gen.status = s; gen.detail = detail || ""; renderEnd(); renderSettings(); renderProgress(); }
+  // The percentage is ideas finished out of ideas requested in this batch.
+  function renderProgress() {
+    var total = gen.total || 0, done = Math.min(gen.done || 0, total);
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var line = $("genline");
+    if (line) { line.hidden = !gen.busy; line.firstChild.style.width = (gen.busy ? Math.max(pct, 3) : 0) + "%"; }
+    if (!endEl) return;
+    var fill = endEl.querySelector(".bar i"), cnt = endEl.querySelector(".count");
+    if (fill) fill.style.width = pct + "%";
+    if (cnt) cnt.textContent = !gen.started ? "0% \u00b7 waiting for the AI to start" : pct + "% \u00b7 " + done + " of " + total + " ideas written";
+  }
   function renderEnd() {
     if (!endEl) return;
     endEl.textContent = "";
     var title, text, action = null, go = function () { maybeRefill(true); }, busy = false;
     var toSettings = function () { show("prefs"); };
     switch (gen.status) {
-      case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books for you. This can take up to a minute."; break;
+      case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books for you. New ideas appear as each one is finished."; break;
       case "limit": title = "That is today's " + state.settings.limit + " ideas"; text = "Come back tomorrow, or raise the daily limit in Settings."; break;
       case "nokey": title = "Add your API key"; text = "New ideas are written by AI through your own API key, from Anthropic or Google. Add it in Settings to keep the feed going."; action = "Open Settings"; go = toSettings; break;
       case "auth": title = "Your API key was rejected"; text = "Check the key and the provider in Settings, then try again."; action = "Open Settings"; go = toSettings; break;
@@ -1172,6 +1306,13 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     if (busy) endEl.appendChild(el("div", "pulse"));
     endEl.appendChild(el("h2", null, title));
     endEl.appendChild(el("p", null, text));
+    if (busy) {
+      var bar = el("div", "bar");
+      bar.appendChild(el("i"));
+      endEl.appendChild(bar);
+      endEl.appendChild(el("p", "count"));
+      renderProgress();
+    }
     if (action) {
       var b = el("button", "btn", action);
       b.type = "button";
@@ -1295,23 +1436,51 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     var key = getKey();
     if (!key) { setStatus("nokey"); return; }
     gen.busy = true;
+    gen.total = n; gen.done = 0; gen.started = false;
     setStatus("busy");
-    ai().complete(key, curModel(), buildPrompt(n), 3000, true).then(function (text) {
-      var fresh = accept(parseJson(text));
-      if (!fresh.length) { setStatus("error", "The AI answered, but none of the ideas were usable. Try again."); return; }
+    var seen = 0, added = 0, prompt = buildPrompt(n), p = ai(), who = PROVIDER[prov()].who;
+    var take = function (items) {
+      var fresh = accept(items);
+      if (!fresh.length) return;
       addCards(fresh);
+      added += fresh.length;
       state.usage.count += fresh.length;
       persist();
+    };
+    var onText = function (text) {
+      gen.started = true;
+      var objs = extractObjects(text);
+      if (objs.length > seen) {
+        var items = objs.slice(seen).map(function (o) { try { return JSON.parse(o); } catch (e) { return null; } });
+        seen = objs.length;
+        take(items);
+      }
+      gen.done = Math.min(n, seen);
+      renderProgress();
+    };
+    var run = p.stream
+      ? p.stream(key, curModel(), prompt, true, onText).catch(function (e) {
+          // a browser that cannot read a stream gets the answer in one piece instead
+          if (e && e.nostream) return p.complete(key, curModel(), prompt, 3000, true).then(function (t) { onText(t); return t; });
+          throw e;
+        })
+      : p.complete(key, curModel(), prompt, 3000, true).then(function (t) { onText(t); return t; });
+    run.then(function (text) {
+      if (!seen) take(parseJson(text)); // the answer was not shaped as expected: read it whole
+      gen.done = n;
+      if (!added) { setStatus("error", "The AI answered, but none of the ideas were usable. Try again."); return; }
       setStatus("idle");
     }).catch(function (e) {
-      var st = e && e.status;
+      if (added) { setStatus("idle"); return; } // interrupted part-way: keep what arrived
+      var st = e && e.status, m = (e && e.message) || "";
       if (isAuthError(e)) setStatus("auth");
+      else if (/credit balance|purchase credits|billing|exceeded your current quota|quota/i.test(m)) setStatus("error", "Your " + who + " API account has no usable credit or quota. Add credit or check billing with " + who + ", or switch provider in Settings." + tail(e));
       else if (st === 429) setStatus("rate");
       else if (st === 400 || st === 403 || st === 404) setStatus("error", "The request was refused. Check the model chosen in Settings." + tail(e));
       else if (st >= 500) setStatus("error", "The AI service is overloaded or unavailable right now. Try again shortly.");
-      else if (st) setStatus("error", (e.message || "The AI returned an empty answer.") + " Try again.");
-      else setStatus("error", "Could not reach " + PROVIDER[prov()].who + ". Check your internet connection. Some networks cannot reach this service at all.");
-    }).then(function () { gen.busy = false; });
+      else if (st) setStatus("error", (m || "The AI returned an empty answer.") + " Try again.");
+      else setStatus("error", "Could not reach " + who + ". Check your internet connection. Some networks cannot reach this service at all.");
+    }).then(function () { gen.busy = false; renderProgress(); });
   }
 
   /* ---------- saved ---------- */
@@ -1377,7 +1546,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     else if (gen.status === "auth" || tested[p] === false) { dot.classList.add("bad"); st.textContent = info.who + " key saved, but it was rejected"; }
     else if (tested[p] === true) { dot.classList.add("ok"); st.textContent = "Connected to " + info.name + ". Key ends in " + key.slice(-4); }
     else { st.textContent = info.who + " key saved on this device. Ends in " + key.slice(-4); }
-    $("key-remove").hidden = !key;
+    renderKeys();
     var sel = $("model"), cur = curModel();
     var list = (state.models[p] && state.models[p].length ? state.models[p] : DEFAULT_MODELS[p]).slice();
     if (!list.some(function (m) { return m[0] === cur; })) list.unshift([cur, cur]);
@@ -1414,6 +1583,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     var g = guessProvider(v), switched = false;
     if (g && g !== prov()) { state.settings.provider = g; persist(); switched = true; }
     setKey(v);
+    rememberKey(v, prov());
     $("api-key").value = "";
     tested[prov()] = undefined;
     releaseHold();
@@ -1422,11 +1592,48 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     renderEnd();
     maybeRefill(false);
   }
-  function removeKey() {
-    setKey("");
-    tested[prov()] = undefined;
-    $("test-result").textContent = "Key removed.";
-    renderSettings();
+  function smallBtn(label, onClick, cls) {
+    var b = el("button", "btn sm" + (cls ? " " + cls : ""), label);
+    b.type = "button";
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function renderKeys() {
+    var box = $("key-list"), keys = loadKeys();
+    box.textContent = "";
+    if (!keys.length) { box.appendChild(el("p", "note", "No keys saved yet. A key you save appears here.")); return; }
+    keys.forEach(function (x) {
+      var id = x.p + ":" + x.k;
+      var active = getKey(x.p) === x.k, inUse = active && prov() === x.p;
+      var row = el("div", "key-row");
+      var head = el("div", "key-head");
+      head.appendChild(el("span", null, PROVIDER[x.p].name));
+      if (inUse) head.appendChild(el("span", "key-badge", tested[x.p] === false ? "In use, rejected" : tested[x.p] === true ? "In use, connected" : "In use"));
+      else if (active) head.appendChild(el("span", null, "Selected for " + PROVIDER[x.p].who));
+      row.appendChild(head);
+      row.appendChild(el("code", "key-text", shownKeys[id] ? x.k : maskKey(x.k)));
+      var acts = el("div", "key-actions");
+      acts.appendChild(smallBtn(shownKeys[id] ? "Hide" : "Show", function () { shownKeys[id] = !shownKeys[id]; renderKeys(); }));
+      acts.appendChild(smallBtn("Copy", function () {
+        try { navigator.clipboard.writeText(x.k).then(function () { toast("Key copied"); }, function () { toast("Copy is not allowed here"); }); }
+        catch (e) { toast("Copy is not allowed here"); }
+      }));
+      if (!inUse) acts.appendChild(smallBtn("Use", function () {
+        setKey(x.k, x.p);
+        setProvider(x.p);
+        $("test-result").textContent = "Now using this " + PROVIDER[x.p].who + " key.";
+        maybeRefill(false);
+      }));
+      acts.appendChild(smallBtn("Remove", function () {
+        forgetKey(x.k, x.p);
+        delete shownKeys[id];
+        if (active) tested[x.p] = undefined;
+        renderSettings();
+        renderEnd();
+      }, "danger"));
+      row.appendChild(acts);
+      box.appendChild(row);
+    });
   }
   function testConnection() {
     var out = $("test-result"), btn = $("test-btn"), p = prov(), key = getKey(), who = PROVIDER[p].who;
@@ -1511,6 +1718,8 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     try { localStorage.removeItem(KEY); } catch (e) {}
     setKey("", "anthropic");
     setKey("", "gemini");
+    storeKeys([]);
+    shownKeys = {};
     tested = {};
     state = freshState();
     gen.status = "idle";
@@ -1548,6 +1757,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
         localStorage.removeItem(KEY_API);
       }
     } catch (e) {}
+    ["anthropic", "gemini"].forEach(function (pp) { var kk = getKey(pp); if (kk) rememberKey(kk, pp); });
     if (state.cards.length > MAX_CARDS) {
       var drop = state.cards.length - MAX_CARDS;
       state.cards = state.cards.filter(function (c) { return !(c.seen && c.id !== state.pos && drop-- > 0); });
@@ -1565,7 +1775,6 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     $("model").addEventListener("change", function () { state.settings.models[prov()] = $("model").value; persist(); });
     $("provider").addEventListener("change", function () { setProvider($("provider").value); });
     $("key-save").addEventListener("click", saveKey);
-    $("key-remove").addEventListener("click", removeKey);
     $("test-btn").addEventListener("click", testConnection);
     $("export-btn").addEventListener("click", doDownload);
     $("copy-btn").addEventListener("click", doCopy);
