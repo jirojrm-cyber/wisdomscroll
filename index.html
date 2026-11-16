@@ -570,7 +570,7 @@ html[data-motion="reduced"] .burst { display: none; }
                 <div class="pname" id="acct-name"></div>
                 <div class="note" id="acct-sub"></div>
               </div>
-              <p class="note">Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open.</p>
+              <p class="note">Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open. Your API keys belong to this sign-in: signing out removes them from this device, and signing in brings them back.</p>
               <div class="actions">
                 <button type="button" class="btn" id="acct-sync">Sync now</button>
                 <button type="button" class="btn" id="acct-signout">Sign out</button>
@@ -2974,10 +2974,29 @@ html[data-motion="reduced"] .burst { display: none; }
       renderAccount();
     }
   }
+  // API keys belong to the account: signing out takes them off this device, after a last sync so nothing is lost.
   async function signOut() {
+    if (!session) return;
+    var yes = await confirmBox("Sign out?", "Your API keys are removed from this device. They stay in your account and return when you sign in again. Your ideas and saved cards stay here.", "Sign out");
+    if (!yes) return;
+    var stored = false;
+    try {
+      if (vault) vault.dirty = true;
+      for (var i = 0; i < 40 && syncing; i++) await new Promise(function (r) { setTimeout(r, 150); });
+      await syncNow(true);
+      stored = acct.mood === "ok";
+    } catch (e) {}
     try { if (session) await sb("/auth/v1/logout", { method: "POST" }, true); } catch (e) {}
-    signOutLocal("Signed out. Your keys stay on this device.");
-    renderSettings();
+    if (stored) {
+      setKey("", "anthropic"); setKey("", "gemini");
+      storeKeys([]);
+      shownKeys = {}; tested = {};
+      if (HOLD.indexOf(gen.status) >= 0) gen.status = "idle";
+      signOutLocal("Signed out. Your API keys were removed from this device and are kept in your account.");
+    } else {
+      signOutLocal("Signed out. The account could not be reached, so your API keys were left on this device to avoid losing them.");
+    }
+    renderSettings(); renderEnd();
   }
   async function initAccount() {
     session = lsGet(KEY_SESSION);
