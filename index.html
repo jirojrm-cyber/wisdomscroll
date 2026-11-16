@@ -535,7 +535,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 2.2</p>
+            <p>Version 2.3</p>
           </div>
         </div>
       </div>
@@ -1471,7 +1471,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     });
   }
   /* ---------- reading one topic at a time ---------- */
-  function fitsFocus(c) { return !state.focus || c.seen || c.category === state.focus || c.id === currentId || c.id === state.pos; }
+  function fitsFocus(c) { return !state.focus || c.category === state.focus || c.id === currentId || c.id === state.pos; }
   function unseenCount() { return state.cards.filter(function (c) { return !c.seen && fitsFocus(c); }).length; }
   // Unread cards from other topics are set aside, not deleted: they come back when the mix is chosen again.
   function applyFocus() {
@@ -2733,26 +2733,24 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     $("test-result").textContent = "";
   }
 
-  /* ---------- refresh: a new order for the unread ideas, back to the front, and more on the way ---------- */
+  /* ---------- refresh: every idea already in the app comes round again, in a new random order ---------- */
   var lastRefresh = 0;
   function refreshFeed() {
     if (Date.now() - lastRefresh < 800) return;
     lastRefresh = Date.now();
-    var read = state.cards.filter(function (c) { return c.seen; });
-    var unread = state.cards.filter(function (c) { return !c.seen; });
-    // shuffle the unread ideas, then space out the topics so no two neighbours match
-    for (var j = unread.length - 1; j > 0; j--) { var m = Math.floor(Math.random() * (j + 1)); var tmp = unread[j]; unread[j] = unread[m]; unread[m] = tmp; }
-    var ordered = [], rest = unread.slice(), last = read.length ? read[read.length - 1].category : "";
+    var all = state.cards.slice(), here = currentCard();
+    for (var j = all.length - 1; j > 0; j--) { var m = Math.floor(Math.random() * (j + 1)); var tmp = all[j]; all[j] = all[m]; all[m] = tmp; }
+    // space out the topics so no two neighbours match, and do not open on the card that was just on screen
+    var ordered = [], rest = all, last = here ? here.category : "";
     while (rest.length) {
-      var i = rest.findIndex(function (c) { return c.category !== last; });
+      var i = rest.findIndex(function (c) { return c.category !== last && !(ordered.length === 0 && here && c.id === here.id); });
       if (i < 0) i = 0;
       var c = rest.splice(i, 1)[0];
       ordered.push(c);
       last = c.category;
     }
-    state.cards = read.concat(ordered);
-    var first = ordered.find(function (c) { return fitsFocus(c) || !state.focus; });
-    if (state.focus) first = ordered.find(function (c) { return c.category === state.focus; });
+    state.cards = ordered;
+    var first = ordered.find(function (c) { return !state.focus || c.category === state.focus; });
     state.pos = first ? first.id : null;
     currentId = null;
     lastSoundId = null;
@@ -2766,9 +2764,9 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     tab.classList.add("spin");
     renderFeed();
     if (!first) { requestAnimationFrame(function () { feed.scrollTop = endEl.offsetTop; }); }
-    // write a fresh batch too, unless plenty is already waiting or a batch is on its way
-    if (!gen.busy && unseenCount() < 30) maybeRefill(true);
-    toast(gen.busy ? "Refreshed. New ideas are being written" : "Feed refreshed");
+    var n = ordered.filter(function (c) { return !state.focus || c.category === state.focus; }).length;
+    toast("Shuffled " + n + (n === 1 ? " idea" : " ideas"));
+    maybeRefill(false); // new ideas are still written when the unread ones run low
   }
 
   /* ---------- navigation ---------- */
