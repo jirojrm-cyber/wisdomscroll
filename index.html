@@ -232,6 +232,9 @@ textarea#export-text { width: 100%; min-height: 150px; background: var(--ink); c
 #music-embed iframe { display: block; width: 100%; height: 152px; border: 0; border-radius: 12px; }
 #music-embed:empty { display: none; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-btn { min-height: 38px; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); font-size: .84rem; font-weight: 600; color: var(--muted); }
+.chip-btn[aria-pressed="true"] { color: var(--gold); border-color: rgba(220,181,108,.6); background: rgba(220,181,108,.09); }
 .profile { display: flex; align-items: center; gap: 14px; }
 .avatar { flex: none; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(145deg, #ecd197, #b98d3f); color: #1b1407; font-family: var(--serif); font-size: 1.7rem; line-height: 1; }
 .pname { font-size: 1.2rem; font-weight: 700; color: var(--cream); overflow-wrap: anywhere; }
@@ -385,7 +388,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>Account</h2>
             <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
             <div class="stack" id="acct-out">
-              <p>Choose a username and password to have your API keys on all your devices. They are locked with your password before they leave this device. There is no password reset, so keep the password somewhere safe.</p>
+              <p>Choose a username and password to have your saved ideas, likes, topics and API keys on all your devices. Everything is locked with your password before it leaves this device. There is no password reset, so keep the password somewhere safe.</p>
               <div class="field">
                 <label for="acct-email">Username</label>
                 <input type="text" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -407,7 +410,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
                   <div class="note" id="acct-sub"></div>
                 </div>
               </div>
-              <p>Your API keys, the key in use, and your provider and model choice sync between your devices.</p>
+              <p>Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open.</p>
               <div class="actions">
                 <button type="button" class="btn" id="acct-sync">Sync now</button>
                 <button type="button" class="btn" id="acct-signout">Sign out</button>
@@ -428,8 +431,13 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
           </div>
 
           <div class="panel">
-            <h2>For You</h2>
+            <h2>Topics</h2>
+            <p>Choose what your feed draws from. Every topic that is on gets an equal turn, with a light lean toward what you like and save.</p>
+            <div class="chips" id="topic-list"></div>
+            <p class="note"><span id="topic-count"></span> <span id="topic-note"></span></p>
             <p id="taste-line"></p>
+            <label class="switch" for="check-toggle"><input type="checkbox" id="check-toggle"><span>Double-check every idea against its book</span></label>
+            <p>A second AI pass and a book-catalogue lookup remove ideas that do not clearly belong to the named book. It uses one extra AI request per batch. No check is perfect, so a wrong card can still appear now and then.</p>
           </div>
 
           <div class="panel">
@@ -514,7 +522,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 1.8</p>
+            <p>Version 2.0</p>
           </div>
         </div>
       </div>
@@ -554,7 +562,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
 (function () {
   "use strict";
 
-  var CATS = ["Psychology", "Self-confidence", "Personal Growth", "Philosophy", "Discipline", "Productivity", "Leadership", "Business", "Communication", "Relationships", "History", "Science", "Finance", "Creativity"];
+  var CATS = ["Psychology", "Self-confidence", "Personal Growth", "Philosophy", "Discipline", "Productivity", "Leadership", "Business", "Communication", "Relationships", "History", "Science", "Finance", "Creativity", "Health", "Technology", "Economics", "Biography"];
 
   // Starter cards so the feed works before the AI writes anything.
   var SEEDS = [
@@ -593,7 +601,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   };
 
   var KEY = "wisdomscroll.v1", KEY_API = "wisdomscroll.key";
-  var BATCH = 10, LOW_STOCK = 10, MAX_CARDS = 300;
+  var BATCH = 12, LOW_STOCK = 15, MAX_CARDS = 300;
   var state, currentId = null, memKey = {};
   var gen = { busy: false, status: "idle", detail: "" };
 
@@ -606,12 +614,33 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
   function uid() { return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  // Fills in everything newer versions keep, so older saved data keeps working.
+  function normalizeState(s) {
+    var arr = function (v) { return Array.isArray(v) ? v : []; };
+    if (!Array.isArray(s.liked)) {
+      s.liked = s.cards.filter(function (c) { return c.liked; }).map(function (c) {
+        return { id: c.id, category: c.category, text: c.text, book: c.book, author: c.author, t: Date.now() };
+      });
+    }
+    s.gone = s.gone && typeof s.gone === "object" ? s.gone : {};
+    s.gone.saved = s.gone.saved && typeof s.gone.saved === "object" ? s.gone.saved : {};
+    s.gone.liked = s.gone.liked && typeof s.gone.liked === "object" ? s.gone.liked : {};
+    s.concepts = arr(s.concepts);
+    s.memo = arr(s.memo);
+    s.deck = arr(s.deck);
+    s.authors = Array.isArray(s.authors) ? s.authors : s.cards.map(function (c) { return c.author; }).slice(-40);
+    s.angleIx = s.angleIx && typeof s.angleIx === "object" ? s.angleIx : {};
+    s.stamp = s.stamp && typeof s.stamp === "object" ? s.stamp : { keys: 0, prefs: 0 };
+    s.settings.topics = s.settings.topics && typeof s.settings.topics === "object" ? s.settings.topics : {};
+    s.settings.check = s.settings.check !== false;
+    return s;
+  }
   function freshState() {
     var g = Math.floor(Math.random() * 6);
     var cards = SEEDS.map(function (s, i) {
       return { id: "seed" + i, category: s[0], text: s[1], book: s[2], author: s[3], g: (g + i * 5) % 6, seen: false };
     });
-    return { v: 2, cards: cards, saved: [], books: SEEDS.map(function (s) { return s[2]; }), covers: {}, models: {}, settings: { limit: 50, sound: false, music: null, provider: "anthropic", models: { anthropic: FIRST_MODEL.anthropic, gemini: FIRST_MODEL.gemini } }, usage: { day: today(), count: 0 }, taste: {}, pos: null };
+    return normalizeState({ v: 2, cards: cards, saved: [], books: SEEDS.map(function (s) { return s[2]; }), covers: {}, models: {}, settings: { limit: 50, sound: false, music: null, provider: "anthropic", models: { anthropic: FIRST_MODEL.anthropic, gemini: FIRST_MODEL.gemini } }, usage: { day: today(), count: 0 }, taste: {}, pos: null });
   }
   function loadState() {
     try {
@@ -633,7 +662,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
           if (Array.isArray(s.models)) s.models = { anthropic: s.models };
           else if (!s.models || typeof s.models !== "object") s.models = {};
           s.settings.limit = s.settings.limit || 50;
-          return s;
+          return normalizeState(s);
         }
       }
     } catch (e) {}
@@ -645,6 +674,10 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     saveTimer = setTimeout(function () {
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     }, 200);
+  }
+  function persistNow() {
+    clearTimeout(saveTimer);
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
   }
   function rollDay() {
     if (state.usage.day !== today()) { state.usage = { day: today(), count: 0 }; }
@@ -891,6 +924,21 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       return olSearch({ title: t }).then(function (docs2) { return pickCover(docs2, t, true); });
     });
   }
+  // Does Open Library know this book at all? true, false, or null when it could not be asked.
+  function bookExists(book, author) {
+    var t = mainTitle(book), a = firstAuthor(author), k = norm(t);
+    if (state.covers[k] > 0) return Promise.resolve(true);
+    var ask = olSearch({ title: t, author: a }).then(function (docs) {
+      if (docs.length) { var id = pickCover(docs, t, false); if (id) state.covers[k] = id; return true; }
+      return olSearch({ title: t }).then(function (d2) {
+        var exact = d2.filter(function (d) { return d && norm(mainTitle(d.title)) === k; });
+        if (exact.length) { var id2 = pickCover(d2, t, true); if (id2) state.covers[k] = id2; }
+        return exact.length > 0;
+      });
+    }).catch(function () { return null; });
+    var giveUp = new Promise(function (res) { setTimeout(function () { res(null); }, 6000); });
+    return Promise.race([ask, giveUp]);
+  }
   function putCover(node, id) {
     if (!node || node.querySelector("img")) return;
     var img = new Image();
@@ -1007,20 +1055,49 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     if (withHint) a.appendChild(el("div", "hint", "Swipe up for the next idea. Double-tap to like."));
     return a;
   }
-  /* ---------- likes, taste, copy ---------- */
-  function bumpTaste(cat, d) {
-    state.taste[cat] = Math.max(0, (state.taste[cat] || 0) + d);
+  /* ---------- likes, saves, taste ---------- */
+  // Saved and liked ideas are kept as full items with a time, plus a record of removals, so two
+  // devices can always be merged without losing or resurrecting anything.
+  function has(list, id) { return list.some(function (x) { return x.id === id; }); }
+  function itemOf(id) {
+    var c = state.cards.find(function (x) { return x.id === id; }) || state.saved.find(function (x) { return x.id === id; }) || state.liked.find(function (x) { return x.id === id; });
+    return c ? { id: c.id, category: c.category, text: c.text, book: c.book, author: c.author } : null;
+  }
+  function recomputeTaste() {
+    var t = {};
+    state.saved.forEach(function (c) { t[c.category] = (t[c.category] || 0) + 3; });
+    state.liked.forEach(function (c) { t[c.category] = (t[c.category] || 0) + 2; });
+    state.taste = t;
+  }
+  function refreshMarks() {
+    state.cards.forEach(function (c) { c.liked = has(state.liked, c.id); });
+    Array.prototype.forEach.call(feed.querySelectorAll(".card"), function (node) {
+      var id = node.dataset.id, like = node.querySelector('[data-act="like"]'), save = node.querySelector('[data-act="save"]');
+      if (like) setLikeState(like, has(state.liked, id));
+      if (save) setSaveState(save, isSaved(id));
+    });
   }
   function toggleLike(id, forceOn) {
-    var c = state.cards.find(function (x) { return x.id === id; });
-    if (!c) return;
-    var on = forceOn ? true : !c.liked;
-    var btn = feed.querySelector('[data-id="' + id + '"] [data-act="like"]');
-    if (on !== !!c.liked) {
-      c.liked = on;
-      bumpTaste(c.category, on ? 2 : -2);
-      persist();
+    var was = has(state.liked, id), on = forceOn ? true : !was;
+    if (on !== was) {
+      if (on) {
+        var it = itemOf(id);
+        if (!it) return;
+        it.t = Date.now();
+        state.liked.unshift(it);
+        if (state.liked.length > 300) state.liked.length = 300;
+        delete state.gone.liked[id];
+      } else {
+        state.liked = state.liked.filter(function (x) { return x.id !== id; });
+        state.gone.liked[id] = Date.now();
+      }
+      var c = state.cards.find(function (x) { return x.id === id; });
+      if (c) c.liked = on;
+      recomputeTaste();
+      persistNow();
+      touchSync("data");
     }
+    var btn = feed.querySelector('[data-id="' + id + '"] [data-act="like"]');
     if (btn) { setLikeState(btn, on); if (on) pop(btn); }
   }
   var HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.7a4.2 4.2 0 0 1 7.5 2.5c0 5.700-7.500 10.300-7.500 10.300z"/></svg>';
@@ -1373,7 +1450,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     "Creativity": "bright", "Personal Growth": "bright", "Self-confidence": "bright",
     "Productivity": "focus", "Discipline": "focus", "Science": "focus",
     "History": "warm", "Communication": "warm", "Leadership": "warm",
-    "Business": "cool", "Finance": "cool"
+    "Business": "cool", "Finance": "cool", "Economics": "cool", "Health": "calm", "Technology": "focus", "Biography": "warm"
   };
   // root = MIDI note, chord = semitones above it. Kept in the middle register (about 260 to 1300 Hz),
   // because phone speakers barely reproduce anything lower.
@@ -1548,6 +1625,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   function setMusic(m, msg) {
     state.settings.music = m;
+    touchSync("prefs");
     persist();
     $("music-result").textContent = msg || "";
     renderMusic();
@@ -1592,14 +1670,13 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function setStatus(s, detail) { gen.status = s; gen.detail = detail || ""; renderEnd(); renderSettings(); renderProgress(); }
   // The percentage is ideas finished out of ideas requested in this batch.
   function renderProgress() {
-    var total = gen.total || 0, done = Math.min(gen.done || 0, total);
-    var pct = total ? Math.round(done / total * 100) : 0;
+    var pct = Math.max(0, Math.min(100, Math.round(gen.pct || 0)));
     var line = $("genline");
     if (line) { line.hidden = !gen.busy; line.firstChild.style.width = (gen.busy ? Math.max(pct, 3) : 0) + "%"; }
     if (!endEl) return;
     var fill = endEl.querySelector(".bar i"), cnt = endEl.querySelector(".count");
     if (fill) fill.style.width = pct + "%";
-    if (cnt) cnt.textContent = !gen.started ? "0% \u00b7 waiting for the AI to start" : pct + "% \u00b7 " + done + " of " + total + " ideas written";
+    if (cnt) cnt.textContent = pct + "% · " + (gen.note || "starting");
   }
   function renderEnd() {
     if (!endEl) return;
@@ -1607,7 +1684,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     var title, text, action = null, go = function () { maybeRefill(true); }, busy = false;
     var toSettings = function () { show("prefs"); };
     switch (gen.status) {
-      case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books for you. New ideas appear as each one is finished."; break;
+      case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books, writing the ideas and checking them against each book."; break;
       case "limit": title = "That is today's " + state.settings.limit + " ideas"; text = "Come back tomorrow, or raise the daily limit in Settings."; break;
       case "nokey": title = "Add your API key"; text = "New ideas are written by AI through your own API key, from Anthropic or Google. Add it in Settings to keep the feed going."; action = "Open Settings"; go = toSettings; break;
       case "auth": title = "Your API key was rejected"; text = "Check the key and the provider in Settings, then try again."; action = "Open Settings"; go = toSettings; break;
@@ -1641,98 +1718,197 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     ka.forEach(function (w) { if (b[w]) inter++; });
     return inter / (ka.length + kb.length - inter);
   }
-  function pickCategories(n) {
-    var counts = {}, taste = state.taste || {};
-    CATS.forEach(function (c) { counts[c] = 0; });
-    state.cards.forEach(function (c) { if (counts[c.category] != null) counts[c.category]++; });
-    var least = CATS.map(function (c) { return { c: c, k: counts[c] + Math.random() }; })
-      .sort(function (a, b) { return a.k - b.k; }).map(function (x) { return x.c; });
-    var hasTaste = CATS.some(function (c) { return (taste[c] || 0) > 0; });
-    // always keep some slots for the least-shown topics, so the feed never narrows completely
-    var explore = hasTaste ? Math.max(3, Math.ceil(n * 0.3)) : n;
-    var out = least.slice(0, Math.min(explore, n, CATS.length));
-    var cap = Math.max(1, Math.ceil(n * 0.4)), used = {};
-    out.forEach(function (c) { used[c] = (used[c] || 0) + 1; });
-    while (out.length < n) {
-      var pool = CATS.filter(function (c) { return (used[c] || 0) < cap; });
-      if (!pool.length) pool = CATS;
-      var total = pool.reduce(function (t, c) { return t + 1 + (taste[c] || 0); }, 0);
-      var r = Math.random() * total, pick = pool[0];
-      for (var i = 0; i < pool.length; i++) { r -= 1 + (taste[pool[i]] || 0); if (r <= 0) { pick = pool[i]; break; } }
-      out.push(pick);
-      used[pick] = (used[pick] || 0) + 1;
-    }
-    for (var j = out.length - 1; j > 0; j--) { var m = Math.floor(Math.random() * (j + 1)); var tmp = out[j]; out[j] = out[m]; out[m] = tmp; }
-    return out;
+  // Different corners of each subject, taken in turn, so the same famous books are not picked every time.
+  var ANGLES = {
+    "Psychology": ["cognitive biases and judgment", "memory and attention", "motivation and emotion", "social influence and groups", "child development and attachment", "trauma, stress and resilience", "personality and identity", "perception and consciousness"],
+    "Self-confidence": ["self-esteem and self-worth", "courage and vulnerability", "handling criticism and rejection", "impostor feelings", "assertiveness and boundaries", "body language and presence"],
+    "Personal Growth": ["mindset and learning", "meaning and purpose", "change and transitions", "deliberate practice and mastery", "self-knowledge and reflection", "happiness research"],
+    "Philosophy": ["Stoicism and ancient ethics", "existentialism", "Eastern philosophy", "political and moral philosophy", "philosophy of mind and knowledge", "modern essays on how to live", "logic and critical thinking"],
+    "Discipline": ["habit formation", "willpower and self-control", "delayed gratification", "routines of high performers", "overcoming procrastination", "endurance and grit"],
+    "Productivity": ["focus and deep work", "prioritising and saying no", "systems and workflows", "time and energy management", "decision making", "rest and sustainable pace"],
+    "Leadership": ["building trust in teams", "leading through crisis", "organisational culture", "coaching and feedback", "strategy and vision", "military and historical leadership", "servant and ethical leadership"],
+    "Business": ["strategy and competition", "startups and innovation", "marketing and customers", "management classics", "company histories", "negotiation and sales", "operations and quality"],
+    "Communication": ["listening and empathy", "difficult conversations", "storytelling and rhetoric", "persuasion", "writing clearly", "public speaking", "cross-cultural communication"],
+    "Relationships": ["love and attachment", "friendship", "marriage and long partnerships", "parenting", "conflict and repair", "community and loneliness"],
+    "History": ["ancient civilisations", "big history and human origins", "revolutions and empires", "the two world wars and the twentieth century", "history of ideas", "economic and technological history", "histories from Asia, Africa and Latin America"],
+    "Science": ["physics and cosmology", "evolution and biology", "neuroscience", "mathematics and probability", "ecology and climate", "medicine and the body", "history and method of science"],
+    "Finance": ["investing principles", "behaviour with money", "wealth building and saving", "markets and crashes", "risk and uncertainty", "personal finance basics"],
+    "Creativity": ["the creative process", "art and design thinking", "writing craft", "play and imagination", "resistance and creative blocks", "innovation in science and industry"],
+    "Health": ["sleep", "nutrition and food", "exercise and movement", "ageing and longevity", "mental health", "medicine and mortality"],
+    "Technology": ["computing and the internet", "artificial intelligence", "technology and society", "inventions and inventors", "attention and digital life", "the future of technology"],
+    "Economics": ["behavioural economics", "inequality and development", "markets and incentives", "economic history", "globalisation and trade", "work and the future of jobs"],
+    "Biography": ["scientists and inventors", "political leaders", "artists and writers", "entrepreneurs", "memoirs of hardship and survival", "explorers and adventurers"]
+  };
+  function enabledCats() {
+    var t = state.settings.topics || {};
+    var on = CATS.filter(function (c) { return t[c] !== false; });
+    return on.length ? on : CATS.slice();
   }
-  function buildPrompt(n) {
-    var cats = pickCategories(n);
-    var used = state.books.slice(-180);
+  // Every enabled topic comes up once before any topic comes up twice.
+  function nextFromDeck() {
+    var on = enabledCats();
+    state.deck = state.deck.filter(function (c) { return on.indexOf(c) >= 0; });
+    if (!state.deck.length) {
+      var d = on.slice();
+      for (var j = d.length - 1; j > 0; j--) { var m = Math.floor(Math.random() * (j + 1)); var tmp = d[j]; d[j] = d[m]; d[m] = tmp; }
+      if (d.length > 1 && d[0] === state.lastCat) { d.push(d.shift()); }
+      state.deck = d;
+    }
+    var c = state.deck.shift();
+    state.lastCat = c;
+    return c;
+  }
+  function pickSlots(n) {
+    var cats = [];
+    for (var i = 0; i < n; i++) cats.push(nextFromDeck());
+    // a light lean toward what the reader likes: at most two places per batch
+    var on = enabledCats();
+    var fav = on.filter(function (c) { return (state.taste[c] || 0) > 0; }).sort(function (a, b) { return state.taste[b] - state.taste[a]; }).slice(0, 2);
+    if (n >= 6) {
+      fav.forEach(function (f, k) {
+        if (cats.filter(function (c) { return c === f; }).length >= 2) return;
+        var idx = cats.length - 1 - k;
+        state.deck.unshift(cats[idx]); // the displaced topic goes back to the front of the queue
+        cats[idx] = f;
+      });
+    }
+    return cats.map(function (c) {
+      var a = ANGLES[c] || [], ix = state.angleIx[c] || 0;
+      state.angleIx[c] = ix + 1;
+      return { cat: c, angle: a.length ? a[ix % a.length] : "" };
+    });
+  }
+  function buildPrompt(slots) {
+    var books = state.books.slice(-220), authors = state.authors.slice(-50), concepts = state.concepts.slice(-160);
     return [
-      "You write knowledge cards for a personal reading app. Write " + n + " cards.",
+      "You curate a reading feed. Write " + slots.length + " knowledge cards, one for each slot below.",
       "",
-      "Each card states ONE idea that genuinely belongs to a real, well-known non-fiction book or classic work, in your own words.",
+      "Slots (category, then the corner of it to explore):",
+      slots.map(function (sl, i) { return (i + 1) + ". " + sl.cat + (sl.angle ? " — " + sl.angle : ""); }).join("\n"),
       "",
-      "Rules:",
-      '- "text": 1 to 3 sentences, 90 to 240 characters. A clear, strong, self-contained statement of the idea in plain English.',
-      "- Paraphrase. Do not reproduce the author's wording, do not use quotation marks, and do not mention the book, the author or phrases like \"the author argues\" inside the text.",
-      "- Attach an idea to a book only if you are confident it is a central idea of that book. If you are unsure, pick a different book. Never invent a book or an author.",
-      '- "book_title" and "author" must be exact and real. Give the main title without the subtitle.',
-      "- Use a different book for every card.",
-      "- Write one card for each entry in this list of categories, in this order. A category may appear more than once; give each entry its own card and its own book: " + cats.join("; ") + ".",
-      '- "category" must be copied exactly from that list.',
-      "- Mix famous classics with respected, less obvious books.",
-      used.length ? "- These books were already used. Do not use any of them: " + used.join("; ") + "." : "",
+      "For each slot choose ONE real, published non-fiction book or classic work that fits it, then state ONE central idea of that book.",
       "",
-      'Reply with only a JSON array of objects with the keys "category", "text", "book_title", "author". No other text.',
-      'Example: [{"category":"Philosophy","text":"...","book_title":"...","author":"..."}]'
+      "Accuracy rules (the most important):",
+      "- Use only a book you know well. The idea must be one this book itself is known for, not a general truth loosely connected to it.",
+      "- If you cannot name the chapter, part, experiment, framework or term where the book develops the idea, choose a different book.",
+      '- "anchor": a few words naming where in the book the idea is developed.',
+      '- "confidence": 1 to 5, how sure you are that this exact book makes this idea central. Be strict.',
+      '- "book_title": the exact main title without the subtitle. "author": the exact author name. Never invent a book or an author.',
+      "",
+      "Variety rules:",
+      "- A different book and a different author for every card.",
+      "- Mix eras: ancient and classical works, twentieth-century landmarks, and books from the last fifteen years.",
+      "- Include authors from different countries and traditions where they fit the slot.",
+      "- For at least half of the cards, pick a respected book that is NOT the first one most people would name for that topic.",
+      books.length ? "- These books were already used. Do not use any of them: " + books.join("; ") + "." : "",
+      authors.length ? "- Do not use these authors again for now: " + authors.join("; ") + "." : "",
+      concepts.length ? "- These ideas were already covered. Do not write about any of them again, even from another book: " + concepts.join("; ") + "." : "",
+      "",
+      "Writing rules:",
+      '- "text": 1 to 3 sentences, 90 to 240 characters. A clear, strong, self-contained statement of the idea in plain English, in your own words.',
+      "- No quotation marks, and do not mention the book, the author or phrases like \"the author argues\" inside the text.",
+      '- "concept": 2 to 4 lowercase words that name the idea itself, for example "loss aversion".',
+      "",
+      'Reply with only a JSON array of objects with the keys "slot" (the slot number), "category", "text", "concept", "anchor", "confidence", "book_title", "author". No other text.'
     ].join("\n");
   }
-  function accept(data) {
-    if (data && !Array.isArray(data) && Array.isArray(data.cards)) data = data.cards;
-    if (!Array.isArray(data)) return [];
-    var known = state.cards.concat(state.saved).map(function (c) { return { book: norm(c.book), w: words(c.text) }; });
+  // First screen, on this device: shape, repeats and the writer's own confidence.
+  function screenIdeas(raw, slots) {
+    if (raw && !Array.isArray(raw) && Array.isArray(raw.cards)) raw = raw.cards;
+    if (!Array.isArray(raw)) return [];
+    var known = state.cards.concat(state.saved, state.liked).map(function (c) { return { book: norm(mainTitle(c.book)), w: words(c.text) }; })
+      .concat(state.memo.map(function (m) { var o = {}; String(m.w || "").split(" ").forEach(function (w) { if (w) o[w] = 1; }); return { book: m.b, w: o }; }));
+    var usedBooks = {}, usedAuthors = {}, usedConcepts = {};
+    state.books.slice(-220).forEach(function (b) { usedBooks[norm(mainTitle(b))] = 1; });
+    state.authors.slice(-50).forEach(function (a) { usedAuthors[norm(firstAuthor(a))] = 1; });
+    state.concepts.forEach(function (c) { usedConcepts[norm(c)] = 1; });
     var out = [];
-    data.forEach(function (r) {
+    raw.forEach(function (r) {
       if (!r || typeof r !== "object") return;
-      var cat = CATS.find(function (c) { return norm(c) === norm(r.category); });
+      var sl = slots[(+r.slot || 0) - 1];
+      var cat = sl ? sl.cat : CATS.find(function (c) { return norm(c) === norm(r.category); });
       var text = String(r.text || "").replace(/^[\s"'“”‘’]+|[\s"'“”‘’]+$/g, "").replace(/\s+/g, " ");
-      var book = String(r.book_title || r.book || "").trim();
-      var author = String(r.author || "").trim();
+      var book = String(r.book_title || r.book || "").trim(), author = String(r.author || "").trim();
+      var concept = norm(r.concept || "");
       if (!cat || text.length < 40 || text.length > 380 || !book || !author || book.length > 140 || author.length > 100) return;
-      var w = words(text), nb = norm(book);
-      var dup = known.some(function (k) { var o = overlap(w, k.w); return o > 0.7 || (k.book === nb && o > 0.45); });
-      if (dup) return;
+      if (r.confidence != null && +r.confidence < 4) return;                 // the writer was not sure
+      var nb = norm(mainTitle(book)), na = norm(firstAuthor(author));
+      if (usedBooks[nb] || usedAuthors[na]) return;                           // book or author seen too recently
+      if (concept && usedConcepts[concept]) return;                           // the same idea under another book
+      var w = words(text);
+      if (known.some(function (k) { var o = overlap(w, k.w); return o > 0.6 || (k.book === nb && o > 0.35); })) return;
+      usedBooks[nb] = 1; usedAuthors[na] = 1; if (concept) usedConcepts[concept] = 1;
       known.push({ book: nb, w: w });
-      out.push({ id: uid(), category: cat, text: text, book: book, author: author, seen: false });
+      out.push({ category: cat, text: text, book: book, author: author, concept: concept });
     });
+    return out;
+  }
+  function verifyPrompt(cands) {
+    return [
+      "You are a strict fact-checker of book attributions. Judge each item from your own knowledge of the book.",
+      '- "book": true only if a real published book with this title by this author exists.',
+      '- "idea": true only if the stated idea is genuinely a central idea of THIS book. It is false if the idea is only loosely related, belongs to a different book or author, or you are not sure.',
+      "Answer false whenever you are in doubt.",
+      "",
+      "Items:",
+      cands.map(function (c, i) { return (i + 1) + ". " + c.book + " — " + c.author + " :: " + c.text; }).join("\n"),
+      "",
+      'Reply with only a JSON array, one object per item: [{"i": 1, "book": true, "idea": true}]'
+    ].join("\n");
+  }
+  // Second opinion from the AI. true or false per idea, or null when the check could not run.
+  async function verifyWithAI(p, key, model, cands) {
+    var out = cands.map(function () { return null; });
+    try {
+      var arr = parseJson(await p.complete(key, model, verifyPrompt(cands), 1500, true));
+      if (arr && !Array.isArray(arr)) arr = arr.items || arr.results || [];
+      if (Array.isArray(arr)) arr.forEach(function (r) {
+        var i = (r && +r.i) - 1;
+        if (i >= 0 && i < out.length) out[i] = r.book === true && r.idea === true;
+      });
+    } catch (e) {}
+    return out;
+  }
+  function verifyBooks(cands) {
+    return Promise.all(cands.map(function (c) { return bookExists(c.book, c.author); }));
+  }
+  function finalize(cands) {
     var last = state.cards.length ? state.cards[state.cards.length - 1].category : "";
-    var ordered = [], rest = out.slice();
-    while (rest.length) {
+    var ordered = [], rest = cands.slice();
+    while (rest.length) { // keep the same topic from appearing back to back
       var i = rest.findIndex(function (c) { return c.category !== last; });
       if (i < 0) i = 0;
       var c = rest.splice(i, 1)[0];
       ordered.push(c);
       last = c.category;
     }
-    return ordered;
+    return ordered.map(function (c) {
+      state.books.push(c.book);
+      state.authors.push(c.author);
+      if (c.concept) state.concepts.push(c.concept);
+      state.memo.push({ b: norm(mainTitle(c.book)), w: Object.keys(words(c.text)).slice(0, 12).join(" ") });
+      return { id: uid(), category: c.category, text: c.text, book: c.book, author: c.author, seen: false };
+    });
   }
   function addCards(list) {
     var lastG = state.cards.length ? state.cards[state.cards.length - 1].g : 0;
     var atEnd = currentId === "end";
-    var first = null;
+    var frag = document.createDocumentFragment(), nodes = [];
     list.forEach(function (c) {
       lastG = (lastG + 1 + Math.floor(Math.random() * 4)) % 6;
       c.g = lastG;
       state.cards.push(c);
-      state.books.push(c.book);
       var node = cardEl(c, false);
-      feed.insertBefore(node, endEl);
-      watch(node);
-      if (!first) first = node;
+      frag.appendChild(node);
+      nodes.push(node);
     });
-    if (state.books.length > 400) state.books = state.books.slice(-400);
-    if (atEnd && first) feed.scrollTop = first.offsetTop;
+    feed.insertBefore(frag, endEl); // one insertion below the reader's position: the card on screen does not move
+    nodes.forEach(watch);
+    if (state.books.length > 500) state.books = state.books.slice(-500);
+    if (state.authors.length > 150) state.authors = state.authors.slice(-150);
+    if (state.concepts.length > 700) state.concepts = state.concepts.slice(-700);
+    if (state.memo.length > 900) state.memo = state.memo.slice(-900);
+    if (atEnd && nodes.length) { try { feed.scrollTo({ top: nodes[0].offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = nodes[0].offsetTop; } }
   }
   var HOLD = ["error", "rate", "auth", "nokey"]; // states that wait for a tap; never retried automatically
   function maybeRefill(manual) {
@@ -1742,74 +1918,98 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     rollDay();
     var left = state.settings.limit - state.usage.count;
     if (left <= 0) { setStatus("limit"); return; }
-    generate(Math.min(BATCH, left));
+    generate(Math.min(BATCH, left), manual);
   }
-  function generate(n) {
+  async function generate(n, manual) {
     var key = getKey();
     if (!key) { setStatus("nokey"); return; }
+    if (navigator.onLine === false) {
+      if (manual || unseenCount() === 0) setStatus("error", "You are offline. New ideas will be written when you are back online.");
+      return;
+    }
     gen.busy = true;
-    gen.total = n; gen.done = 0; gen.started = false;
+    gen.pct = 2; gen.note = "choosing books";
     setStatus("busy");
-    var seen = 0, added = 0, prompt = buildPrompt(n), p = ai(), who = PROVIDER[prov()].who;
-    var take = function (items) {
-      var fresh = accept(items);
-      if (!fresh.length) return;
-      addCards(fresh);
-      added += fresh.length;
-      state.usage.count += fresh.length;
-      persist();
-    };
-    var onText = function (text) {
-      gen.started = true;
-      var objs = extractObjects(text);
-      if (objs.length > seen) {
-        var items = objs.slice(seen).map(function (o) { try { return JSON.parse(o); } catch (e) { return null; } });
-        seen = objs.length;
-        take(items);
+    var p = ai(), who = PROVIDER[prov()].who, model = curModel(), added = 0;
+    try {
+      var slots = pickSlots(n), prompt = buildPrompt(slots), seen = 0, text;
+      var onText = function (t) {
+        var k = extractObjects(t).length;
+        if (k === seen) return;
+        seen = k;
+        gen.pct = 5 + Math.min(1, k / n) * 60;
+        gen.note = "writing idea " + Math.min(k + 1, n) + " of " + n;
+        renderProgress();
+      };
+      try { text = p.stream ? await p.stream(key, model, prompt, true, onText) : await p.complete(key, model, prompt, 4000, true); }
+      catch (e) { if (e && e.nostream) text = await p.complete(key, model, prompt, 4000, true); else throw e; }
+      var raw = parseJson(text);
+      if (!raw) raw = extractObjects(text).map(function (o) { try { return JSON.parse(o); } catch (e) { return null; } });
+      var cands = screenIdeas(raw, slots);
+      if (!cands.length) throw { status: 200, message: "The AI answered, but none of the ideas passed the checks." };
+      if (state.settings.check !== false) {
+        gen.pct = 70; gen.note = "checking " + cands.length + " ideas against their books";
+        renderProgress();
+        var checks = await Promise.all([verifyWithAI(p, key, model, cands), verifyBooks(cands)]);
+        cands = cands.filter(function (c, i) { return checks[0][i] !== false && checks[1][i] !== false; });
+        if (!cands.length) throw { status: 200, message: "None of the ideas written this time passed the accuracy check." };
       }
-      gen.done = Math.min(n, seen);
+      // topics may have been switched off while this batch was being written
+      var onNow = enabledCats();
+      cands = cands.filter(function (c) { return onNow.indexOf(c.category) >= 0; });
+      if (!cands.length) throw { topicsChanged: true };
+      // topics whose idea did not survive the checks go back to the front of the queue, so the balance holds
+      var got = {}, missing = [];
+      cands.forEach(function (c) { got[c.category] = (got[c.category] || 0) + 1; });
+      slots.forEach(function (sl) { if (got[sl.cat] > 0) got[sl.cat]--; else missing.push(sl.cat); });
+      state.deck = missing.concat(state.deck).slice(0, CATS.length * 2);
+      gen.pct = 96; gen.note = "adding to your feed";
       renderProgress();
-    };
-    var run = p.stream
-      ? p.stream(key, curModel(), prompt, true, onText).catch(function (e) {
-          // a browser that cannot read a stream gets the answer in one piece instead
-          if (e && e.nostream) return p.complete(key, curModel(), prompt, 3000, true).then(function (t) { onText(t); return t; });
-          throw e;
-        })
-      : p.complete(key, curModel(), prompt, 3000, true).then(function (t) { onText(t); return t; });
-    run.then(function (text) {
-      if (!seen) take(parseJson(text)); // the answer was not shaped as expected: read it whole
-      gen.done = n;
-      if (!added) { setStatus("error", "The AI answered, but none of the ideas were usable. Try again."); return; }
+      var fresh = finalize(cands);
+      addCards(fresh);
+      added = fresh.length;
+      state.usage.count += added;
+      persistNow();
+      touchSync("data");
+      gen.pct = 100;
       setStatus("idle");
-    }).catch(function (e) {
-      if (added) { setStatus("idle"); return; } // interrupted part-way: keep what arrived
+    } catch (e) {
       var st = e && e.status, m = (e && e.message) || "";
-      if (isAuthError(e)) setStatus("auth");
+      persist();
+      if (e && e.topicsChanged) { setStatus("idle"); setTimeout(function () { maybeRefill(false); }, 400); }
+      else if (isAuthError(e)) setStatus("auth");
       else if (/credit balance|purchase credits|billing|exceeded your current quota|quota/i.test(m)) setStatus("error", "Your " + who + " API account has no usable credit or quota. Add credit or check billing with " + who + ", or switch provider in Settings." + tail(e));
       else if (st === 429) setStatus("rate");
       else if (st === 400 || st === 403 || st === 404) setStatus("error", "The request was refused. Check the model chosen in Settings." + tail(e));
       else if (st >= 500) setStatus("error", "The AI service is overloaded or unavailable right now. Try again shortly.");
       else if (st) setStatus("error", (m || "The AI returned an empty answer.") + " Try again.");
       else setStatus("error", "Could not reach " + who + ". Check your internet connection. Some networks cannot reach this service at all.");
-    }).then(function () { gen.busy = false; renderProgress(); });
+    }
+    gen.busy = false;
+    renderProgress();
+    // the checks removed a lot: top the feed up once more, but never in a loop
+    if (added && added < n / 2 && !gen.chained && unseenCount() < LOW_STOCK) { gen.chained = true; maybeRefill(false); }
+    else gen.chained = false;
   }
 
   /* ---------- saved ---------- */
   function toggleSave(id) {
-    var i = state.saved.findIndex(function (c) { return c.id === id; });
-    if (i >= 0) {
-      bumpTaste(state.saved[i].category, -3);
-      state.saved.splice(i, 1);
+    var was = isSaved(id);
+    if (was) {
+      state.saved = state.saved.filter(function (c) { return c.id !== id; });
+      state.gone.saved[id] = Date.now();
     } else {
-      var c = state.cards.find(function (x) { return x.id === id; });
-      if (!c) return;
-      state.saved.unshift({ id: c.id, category: c.category, text: c.text, book: c.book, author: c.author, savedAt: Date.now() });
-      bumpTaste(c.category, 3);
+      var it = itemOf(id);
+      if (!it) return;
+      it.savedAt = Date.now();
+      state.saved.unshift(it);
+      delete state.gone.saved[id];
     }
+    recomputeTaste();
+    persistNow(); // written at once, so a save survives the app being closed straight after
+    touchSync("data");
     var btn = feed.querySelector('[data-id="' + id + '"] [data-act="save"]');
-    if (btn) { setSaveState(btn, i < 0); if (i < 0) pop(btn); }
-    persist();
+    if (btn) { setSaveState(btn, !was); if (!was) pop(btn); }
     renderSaved();
   }
   function renderSaved() {
@@ -1924,55 +2124,147 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     return JSON.parse(new TextDecoder().decode(pt));
   }
   // what travels between devices: the saved keys, which one is in use, and the provider and model choice
+  function prefsOf() {
+    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null };
+  }
+  // What travels between devices: API keys, saved and liked ideas, removals, preferences, and the lists that prevent repeats.
   function localPayload() {
     return {
+      v: 2,
       keys: loadKeys(),
       active: { anthropic: getKey("anthropic"), gemini: getKey("gemini") },
       provider: prov(),
-      models: state.settings.models
+      models: state.settings.models,
+      keysAt: state.stamp.keys || 0,
+      saved: state.saved,
+      liked: state.liked,
+      gone: state.gone,
+      prefs: prefsOf(),
+      prefsAt: state.stamp.prefs || 0,
+      books: state.books.slice(-300),
+      authors: state.authors.slice(-60),
+      concepts: state.concepts.slice(-400)
     };
   }
-  function applyPayload(p, mode) {
-    if (!p || !Array.isArray(p.keys)) return;
+  function mergeGone(a, b) {
+    var out = {}, k;
+    for (k in (a || {})) out[k] = a[k];
+    for (k in (b || {})) if (!(out[k] >= b[k])) out[k] = b[k];
+    var ids = Object.keys(out);
+    if (ids.length > 600) { // keep the newest removals only
+      ids.sort(function (x, y) { return out[y] - out[x]; }).slice(600).forEach(function (id) { delete out[id]; });
+    }
+    return out;
+  }
+  // Union of both sides; the newer copy of an item wins; an item removed after it was added stays removed.
+  function mergeSet(mine, theirs, gone, tf) {
+    var by = {};
+    (mine || []).concat(theirs || []).forEach(function (x) {
+      if (!x || !x.id || !x.text) return;
+      if (!by[x.id] || (x[tf] || 0) > (by[x.id][tf] || 0)) by[x.id] = x;
+    });
+    return Object.keys(by).map(function (id) { return by[id]; })
+      .filter(function (x) { return !((gone[x.id] || 0) >= (x[tf] || 0)); })
+      .sort(function (a, b) { return (b[tf] || 0) - (a[tf] || 0) || (a.id < b.id ? -1 : 1); })
+      .slice(0, 400);
+  }
+  function unionInto(list, more, cap, keyOf) {
+    var seenK = {};
+    list.forEach(function (x) { seenK[keyOf(x)] = 1; });
+    (more || []).forEach(function (x) { if (typeof x === "string" && x && !seenK[keyOf(x)]) { seenK[keyOf(x)] = 1; list.push(x); } });
+    return list.length > cap ? list.slice(-cap) : list;
+  }
+  function applyPrefs(pr) {
+    if (pr.limit) state.settings.limit = Math.max(10, Math.min(200, +pr.limit || 50));
+    if (pr.topics && typeof pr.topics === "object") state.settings.topics = pr.topics;
+    state.settings.check = pr.check !== false;
+    state.settings.music = pr.music && pr.music.id && pr.music.type ? pr.music : null;
+  }
+  function mergeRemote(p, firstTime) {
+    if (!p) return;
+    var keysChanged = false;
     applying = true;
     try {
-      var remoteKeys = p.keys.filter(function (x) { return x && x.k && PROVIDER[x.p]; });
-      var active = p.active || {};
-      if (mode === "replace") {
-        storeKeys(remoteKeys);
-        ["anthropic", "gemini"].forEach(function (pp) { setKey(active[pp] || "", pp); });
-        if (PROVIDER[p.provider]) state.settings.provider = p.provider;
-        if (p.models) ["anthropic", "gemini"].forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
-      } else {
-        var mine = loadKeys(), hadAny = mine.length > 0;
-        remoteKeys.forEach(function (x) { if (!mine.some(function (y) { return y.k === x.k && y.p === x.p; })) mine.push(x); });
-        storeKeys(mine);
-        ["anthropic", "gemini"].forEach(function (pp) { if (!getKey(pp) && active[pp]) setKey(active[pp], pp); });
-        if (!hadAny && PROVIDER[p.provider]) {
-          state.settings.provider = p.provider;
+      if (Array.isArray(p.keys)) {
+        var remoteKeys = p.keys.filter(function (x) { return x && x.k && PROVIDER[x.p]; });
+        var active = p.active || {}, rAt = p.keysAt || 0, lAt = state.stamp.keys || 0;
+        var setModels = function () {
+          if (PROVIDER[p.provider]) state.settings.provider = p.provider;
           if (p.models) ["anthropic", "gemini"].forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
+        };
+        if (firstTime || p.keysAt === undefined) {
+          // first sign-in on this device: keep what is here and add what the account has
+          var mine = loadKeys(), hadAny = mine.length > 0, extra = false;
+          remoteKeys.forEach(function (x) { if (!mine.some(function (y) { return y.k === x.k && y.p === x.p; })) mine.push(x); });
+          extra = mine.length > remoteKeys.length;
+          storeKeys(mine);
+          ["anthropic", "gemini"].forEach(function (pp) { if (!getKey(pp) && active[pp]) setKey(active[pp], pp); });
+          if (!hadAny) setModels();
+          state.stamp.keys = extra ? Date.now() : Math.max(lAt, rAt);
+          keysChanged = true;
+        } else if (rAt > lAt) {
+          storeKeys(remoteKeys);
+          ["anthropic", "gemini"].forEach(function (pp) { setKey(active[pp] || "", pp); });
+          setModels();
+          state.stamp.keys = rAt;
+          keysChanged = true;
         }
       }
-      persist();
+      if (p.v >= 2) {
+        var g = p.gone || {};
+        state.gone.saved = mergeGone(state.gone.saved, g.saved);
+        state.gone.liked = mergeGone(state.gone.liked, g.liked);
+        state.saved = mergeSet(state.saved, p.saved, state.gone.saved, "savedAt");
+        state.liked = mergeSet(state.liked, p.liked, state.gone.liked, "t");
+        if (p.prefs && (p.prefsAt || 0) > (state.stamp.prefs || 0)) { applyPrefs(p.prefs); state.stamp.prefs = p.prefsAt; }
+        state.books = unionInto(state.books, p.books, 500, function (t) { return norm(mainTitle(t)); });
+        state.authors = unionInto(state.authors, p.authors, 150, function (t) { return norm(firstAuthor(t)); });
+        state.concepts = unionInto(state.concepts, p.concepts, 700, norm);
+      }
+      recomputeTaste();
+      persistNow();
     } finally { applying = false; }
-    tested = {};
-    releaseHold();
+    if (keysChanged) { tested = {}; releaseHold(); }
+    pruneTopics();
+    refreshMarks();
+    renderSaved();
     renderSettings();
     renderEnd();
     maybeRefill(false);
   }
-  function touchSync() {
-    if (applying || !session || !vault) return;
+  // A fingerprint of the parts that must match on every device. The repeat-prevention lists are
+  // left out on purpose: they only ever grow and ride along with other changes.
+  function digest(p) {
+    var ids = function (l, tf) { return (l || []).map(function (x) { return x.id + "@" + (x[tf] || 0); }).sort(); };
+    var gone = function (o) { return Object.keys(o || {}).sort().map(function (k) { return k + "@" + o[k]; }); };
+    var pr = p.prefs || {}, tp = pr.topics || {}, a = p.active || {}, md = p.models || {}, g = p.gone || {};
+    return JSON.stringify([
+      (p.keys || []).map(function (x) { return x.p + ":" + x.k; }).sort(),
+      [a.anthropic || "", a.gemini || ""], p.provider || "", [md.anthropic || "", md.gemini || ""], p.keysAt || 0,
+      ids(p.saved, "savedAt"), ids(p.liked, "t"), gone(g.saved), gone(g.liked),
+      [pr.limit || 0, pr.check !== false, pr.music ? pr.music.type + ":" + pr.music.id : "", Object.keys(tp).sort().map(function (k) { return k + ":" + tp[k]; })],
+      p.prefsAt || 0
+    ]);
+  }
+  // kind: "data" for saved or liked ideas, "prefs" for preferences, anything else for API keys
+  function touchSync(kind) {
+    if (applying) return;
+    if (state && state.stamp) {
+      if (kind === "prefs") state.stamp.prefs = Date.now();
+      else if (kind !== "data") state.stamp.keys = Date.now();
+      persist();
+    }
+    if (!session || !vault) return;
     vault.dirty = true;
     lsSet(KEY_VAULT, vault);
     if (syncing) { syncAgain = true; return; }
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(function () { syncNow(false); }, 1200);
+    syncTimer = setTimeout(function () { syncNow(false); }, 900);
   }
   function timeNow() {
     try { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; }
   }
-  function rowPath() { return "/rest/v1/wisdomscroll_sync?select=data,updated_at&user_id=eq." + encodeURIComponent(session.uid); }
+  function rowPath(sel) { return "/rest/v1/wisdomscroll_sync?select=" + (sel || "data,updated_at") + "&user_id=eq." + encodeURIComponent(session.uid); }
   async function syncNow(manual) {
     if (!session || !vault || !vaultKey) return;
     if (syncing) { syncAgain = true; return; }
@@ -1981,19 +2273,24 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     lastSyncTry = Date.now();
     if (manual) setAcct("Syncing", "");
     try {
-      var rows = await sb(rowPath(), {}, true);
-      var row = rows && rows[0], remoteT = row ? (Date.parse(row.updated_at) || 0) : 0;
-      var push = !row || vault.dirty;
-      if (row && row.data && row.data.enc && remoteT > (vault.syncedAt || 0)) {
-        var remote = await unlock(row.data.enc);
-        applyPayload(remote, vault.dirty ? "union" : "replace"); // changes made on both sides are merged, never dropped
+      // a small request first: has anything changed on the account since this device last looked?
+      var head = await sb(rowPath("updated_at"), {}, true);
+      var hasRow = !!(head && head[0]), remoteT = hasRow ? (Date.parse(head[0].updated_at) || 0) : 0, remote = null;
+      if (hasRow && remoteT > (vault.syncedAt || 0)) {
+        var rows = await sb(rowPath("data,updated_at"), {}, true), row = rows && rows[0];
+        if (row && row.data && row.data.enc) {
+          remote = await unlock(row.data.enc);
+          remoteT = Date.parse(row.updated_at) || remoteT;
+          mergeRemote(remote, false); // both sides are merged, so nothing saved on either device is lost
+        }
       }
-      if (push) {
+      var mine = localPayload();
+      if (!hasRow || vault.dirty || (remote && digest(mine) !== digest(remote))) {
         var t = Math.max(Date.now(), remoteT + 1); // always later than what is stored, whatever this device's clock says
         await sb("/rest/v1/wisdomscroll_sync?on_conflict=user_id", {
           method: "POST",
           prefer: "resolution=merge-duplicates,return=minimal",
-          body: { user_id: session.uid, data: { v: 1, salt: vault.salt, enc: await lock(localPayload()) }, updated_at: new Date(t).toISOString() }
+          body: { user_id: session.uid, data: { v: 2, salt: vault.salt, enc: await lock(mine) }, updated_at: new Date(t).toISOString() }
         }, true);
         remoteT = t;
       }
@@ -2003,9 +2300,9 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       setAcct("Synced at " + timeNow(), "ok");
     } catch (e) {
       if (e && e.code === "signed_out") { /* message already set */ }
-      else if (e && e.name === "OperationError") setAcct("The saved keys could not be unlocked on this device. Sign out and sign in again.", "bad");
+      else if (e && e.name === "OperationError") setAcct("The account data could not be unlocked on this device. Sign out and sign in again.", "bad");
       else if (e && e.status) setAcct("Sync failed (" + e.status + ")." + (e.message ? " " + e.message : ""), "bad");
-      else setAcct("Could not reach the sync service. Your keys still work on this device.", "bad");
+      else setAcct("Could not reach the sync service. Everything still works on this device and will sync later.", "bad");
     }
     syncing = false;
     if (syncAgain && session) { syncAgain = false; syncNow(false); }
@@ -2065,7 +2362,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
         }
         vault.syncedAt = Date.parse(row.updated_at) || 0;
         lsSet(KEY_VAULT, vault);
-        applyPayload(remote, "union"); // keep what is on this device and add what the account has
+        mergeRemote(remote, true); // keep what is on this device and add what the account has
         vault.dirty = true;
       }
       lsSet(KEY_VAULT, vault);
@@ -2118,6 +2415,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     rollDay();
     renderAccount();
     renderMusic();
+    renderTopics();
     var p = prov(), info = PROVIDER[p];
     $("limit-value").textContent = state.settings.limit;
     $("usage-line").textContent = "Written today: " + state.usage.count + " of " + state.settings.limit + ".";
@@ -2148,8 +2446,42 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       sel.appendChild(o);
     });
   }
+  // Unread cards from topics that were switched off leave the feed.
+  function pruneTopics() {
+    var on = enabledCats(), keep = currentId && currentId !== "end" ? currentId : state.pos;
+    var before = state.cards.length;
+    state.cards = state.cards.filter(function (c) { return c.seen || c.id === keep || on.indexOf(c.category) >= 0; });
+    if (state.cards.length !== before) { persist(); renderFeed(); }
+  }
+  var topicTimer = null;
+  function renderTopics() {
+    var box = $("topic-list"), on = enabledCats();
+    box.textContent = "";
+    CATS.forEach(function (c) {
+      var b = el("button", "chip-btn", c);
+      b.type = "button";
+      b.setAttribute("aria-pressed", on.indexOf(c) >= 0 ? "true" : "false");
+      b.addEventListener("click", function () {
+        var now = enabledCats(), isOn = now.indexOf(c) >= 0;
+        if (isOn && now.length <= 3) { $("topic-note").textContent = "Keep at least three topics on."; return; }
+        CATS.forEach(function (x) { state.settings.topics[x] = now.indexOf(x) >= 0; });
+        state.settings.topics[c] = !isOn;
+        $("topic-note").textContent = "";
+        persist();
+        touchSync("prefs");
+        pruneTopics();
+        renderTopics();
+        clearTimeout(topicTimer); // wait until the reader has finished choosing before writing more
+        topicTimer = setTimeout(function () { maybeRefill(false); }, 1500);
+      });
+      box.appendChild(b);
+    });
+    $("topic-count").textContent = on.length + " of " + CATS.length + " topics on";
+    $("check-toggle").checked = state.settings.check !== false;
+  }
   function changeLimit(d) {
     state.settings.limit = Math.max(10, Math.min(200, state.settings.limit + d));
+    touchSync("prefs");
     persist();
     if (gen.status === "limit" && state.settings.limit > state.usage.count) gen.status = "idle";
     renderSettings();
@@ -2359,7 +2691,20 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     var ck = Object.keys(state.covers);
     if (ck.length > 600) ck.slice(0, ck.length - 600).forEach(function (k) { delete state.covers[k]; });
 
+    recomputeTaste();
     renderFeed(); renderSaved(); renderSettings();
+    $("check-toggle").addEventListener("change", function () {
+      state.settings.check = $("check-toggle").checked;
+      persist();
+      touchSync("prefs");
+    });
+    // nothing is lost if the app is closed or put in the background
+    window.addEventListener("pagehide", persistNow);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) persistNow(); });
+    // while the app is open, look for changes from other devices every 20 seconds
+    setInterval(function () {
+      if (session && !document.hidden && navigator.onLine !== false && Date.now() - lastSyncTry > 15000) syncNow(false);
+    }, 20000);
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
       t.addEventListener("click", function () { show(t.dataset.view); });
