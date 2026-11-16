@@ -1059,8 +1059,8 @@ html[data-motion="reduced"] .burst { display: none; }
 
   var APP_VERSION = "3.0";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
-  // Contact links shown in Help & Support. Left empty until the developer supplies them.
-  var CONTACT = { telegram: "", instagram: "" };
+  // Contact links shown beneath the settings list and in Help & Support.
+  var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
   function langOf(code) { return LANGS.find(function (l) { return l[0] === code; }) || LANGS[0]; }
   function wideScript(code) { return /^(zh|ja|ko)/.test(code || ""); }
   var CATS = ["Psychology", "Self-confidence", "Personal Growth", "Philosophy", "Discipline", "Productivity", "Leadership", "Business", "Communication", "Relationships", "History", "Science", "Finance", "Creativity", "Health", "Technology", "Economics", "Biography"];
