@@ -359,6 +359,95 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   .toast { transition: none; }
   .pulse { animation: none; opacity: 1; }
 }
+
+/* ---------- v3: Settings Center ---------- */
+#view-prefs { overflow: hidden; }
+.spage { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--ink); visibility: hidden; pointer-events: none; opacity: 0; transform: translateX(26px); transition: transform .26s cubic-bezier(.2,.7,.2,1), opacity .2s ease, visibility 0s linear .26s; }
+.spage[data-page="home"] { transform: translateX(-26px); }
+.spage.active { visibility: inherit; pointer-events: auto; opacity: 1; transform: none; transition: transform .26s cubic-bezier(.2,.7,.2,1), opacity .2s ease, visibility 0s; }
+.view:not(.active) .spage { pointer-events: none; }
+#view-prefs.instant .spage { transition: none; }
+.spage > .page { flex: 1; min-height: 0; height: auto; -webkit-overflow-scrolling: touch; }
+.spage > .shead + .page { padding-top: 6px; }
+.shead { flex: none; position: relative; display: flex; align-items: center; justify-content: center; min-height: 48px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 6px; border-bottom: 1px solid var(--line); }
+.shead h2 { margin: 0; font-size: 1rem; font-weight: 700; max-width: 56%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sback { position: absolute; left: 6px; bottom: 2px; min-height: 44px; display: inline-flex; align-items: center; gap: 1px; padding: 0 10px 0 2px; color: var(--gold); font-size: .95rem; font-weight: 600; }
+.sback svg { width: 24px; height: 24px; }
+svg.ico, svg.chev, .sback svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.sgroup-label { margin: 22px 6px 8px; font-size: .7rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
+.sgroup { background: var(--charcoal); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.sgroup + .sgroup { margin-top: 12px; }
+.sgroup.pad { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.sgroup p { margin: 0; }
+.sgroup a:not(.srow), .doc a { color: var(--gold); }
+.sgroup .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.srow { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 9px 12px 9px 16px; text-align: left; text-decoration: none; color: var(--cream); position: relative; }
+.srow + .srow::before { content: ""; position: absolute; top: 0; left: 52px; right: 0; height: 1px; background: var(--line); }
+.srow:active { background: rgba(244,236,220,.05); }
+.srow svg.ico { width: 22px; height: 22px; color: var(--gold); }
+.srow svg.chev { width: 18px; height: 18px; color: var(--muted); opacity: .7; }
+.srow-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.srow-title { font-size: .97rem; font-weight: 600; }
+.srow-sub { font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow-sub:empty { display: none; }
+#contact-list .srow { padding-left: 16px; }
+#contact-list .srow + .srow::before { left: 16px; }
+.grow { flex: 1; min-width: 0; }
+.rowline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rowline-title { font-size: .95rem; font-weight: 600; }
+.rowline .stepper { align-self: center; flex: none; }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.four span { font-size: .8rem; }
+.field input[type="time"] { -webkit-appearance: none; appearance: none; }
+.preview { min-height: 104px; justify-content: center; }
+.preview .idea { animation: none; }
+.about-top { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0 6px; text-align: center; }
+.about-logo { width: 72px; height: 72px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(150deg, #16203a, #0a101d); border: 1px solid rgba(220,181,108,.4); margin-bottom: 8px; }
+.about-logo svg { width: 38px; height: 38px; fill: none; stroke: var(--gold); stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.about-name { font-family: var(--serif); font-size: 1.6rem; line-height: 1.2; }
+.about-tag { color: var(--gold); font-size: .9rem; font-weight: 600; letter-spacing: .04em; }
+.faq details { padding: 0 16px; }
+.faq details + details { border-top: 1px solid var(--line); }
+.faq summary { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: .95rem; font-weight: 600; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 1.7px solid var(--muted); border-bottom: 1.7px solid var(--muted); transform: rotate(45deg); transition: transform .2s ease; margin-right: 4px; }
+.faq details[open] summary::after { transform: rotate(-135deg); }
+.faq details p { padding-bottom: 14px; font-size: .88rem; color: var(--muted); }
+.steps { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 8px; font-size: .88rem; color: var(--muted); }
+.doc h3 { margin: 22px 0 6px; font-size: .98rem; font-weight: 700; }
+.doc p { margin: 0 0 10px; font-size: .9rem; color: var(--muted); }
+.doc p strong, .sgroup .note strong { color: var(--cream); font-weight: 600; }
+.confirm-box { gap: 12px; }
+.confirm-box .note { text-align: left; font-size: .92rem; }
+.confirm-box .actions { justify-content: flex-end; }
+.btn.danger.solidish, #confirm-yes { background: rgba(229,138,120,.12); }
+#wipe-result:empty, #storage-counts:empty { display: none; }
+
+/* appearance preferences */
+html[data-theme="black"] { --ink: #000; --charcoal: #0e0e11; --surface: #1a1a1f; }
+html[data-theme="black"] .about-logo { background: #000; }
+html[data-size="s"] { font-size: 15px; --fs: .9; }
+html[data-size="m"] { --fs: 1; }
+html[data-size="l"] { font-size: 17px; --fs: 1.12; }
+html[data-size="xl"] { font-size: 18.5px; --fs: 1.25; }
+.idea.s { font-size: calc(clamp(1.25rem, min(7.2vw, 4.1vh), 2.2rem) * var(--fs, 1)); }
+.idea.m { font-size: calc(clamp(1.15rem, min(6.3vw, 3.6vh), 1.9rem) * var(--fs, 1)); }
+.idea.l { font-size: calc(clamp(1.05rem, min(5.6vw, 3.2vh), 1.65rem) * var(--fs, 1)); }
+html[data-face="classic"] .idea { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti SC", serif; }
+html[data-face="sans"] .idea { font-family: var(--sans); font-weight: 500; line-height: 1.32; letter-spacing: -.005em; }
+html[data-spacing="relaxed"] .idea { line-height: 1.46; }
+html[data-dropcap="off"] .idea::first-letter { float: none; font-size: inherit; line-height: inherit; padding: 0; color: inherit; text-shadow: none; }
+html[data-bg="calm"] .card::before { inset: 0; background: rgba(8,12,22,.6); }
+html[data-theme="black"][data-bg="calm"] .card::before { background: rgba(0,0,0,.68); }
+html[data-bg="plain"] .card { background: var(--ink); }
+html[data-bg="plain"] .card::after { display: none; }
+html[data-motion="reduced"] .card.on .idea, html[data-motion="reduced"] .card.on .caption, html[data-motion="reduced"] .card.on .rail, html[data-motion="reduced"] .rail-btn.pop i, html[data-motion="reduced"] .feed.refreshing, html[data-motion="reduced"] .tab.spin svg { animation: none; }
+html[data-motion="reduced"] .spage, html[data-motion="reduced"] .toast, html[data-motion="reduced"] .rail-btn i { transition: none; }
+html[data-motion="reduced"] .burst { display: none; }
+@media (prefers-reduced-motion: reduce) { .spage, .spage.active { transition: none; } }
+@media (min-width: 700px) { .srow { min-height: 54px; } }
+
 </style>
 </head>
 <body>
@@ -393,15 +482,62 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     </section>
 
     <section class="view" id="view-prefs" aria-label="Settings">
-      <div class="page">
-        <h1>Settings</h1>
-        <p class="sub" id="settings-sub">Feed your mind.</p>
-        <div class="list">
-          <div class="panel">
-            <h2>Account</h2>
+
+      <!-- ===== Settings home ===== -->
+      <div class="spage active" data-page="home">
+        <div class="page">
+          <h1>Settings</h1>
+          <p class="sub" id="settings-sub">Feed your mind.</p>
+
+          <div class="sgroup-label">Personal</div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="account"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></svg><span class="srow-text"><span class="srow-title">Account</span><span class="srow-sub" id="row-account">Your name and optional sync</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="reading"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></svg><span class="srow-text"><span class="srow-title">Reading Preferences</span><span class="srow-sub" id="row-reading">Topics, language and feed</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="notifications"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg><span class="srow-text"><span class="srow-title">Notifications</span><span class="srow-sub" id="row-notifications">Daily reminder</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+
+          <div class="sgroup-label">Application</div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="ai"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /> <path d="M20 3v4" /> <path d="M22 5h-4" /> <path d="M4 17v2" /> <path d="M5 18H3" /></svg><span class="srow-text"><span class="srow-title">AI &amp; Generation</span><span class="srow-sub" id="row-ai">Provider, key and limits</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="appearance"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" /></svg><span class="srow-text"><span class="srow-title">Appearance</span><span class="srow-sub" id="row-appearance">Theme, text size and motion</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="privacy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></svg><span class="srow-text"><span class="srow-title">Privacy &amp; Security</span><span class="srow-sub">What is stored and what is sent</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+
+          <div class="sgroup-label">Storage</div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="data"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /></svg><span class="srow-text"><span class="srow-title">Data &amp; Storage</span><span class="srow-sub" id="row-data">Export, restore and clear</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+
+          <div class="sgroup-label">Information</div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="about"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="M12 16v-4" /> <path d="M12 8h.01" /></svg><span class="srow-text"><span class="srow-title">About WisdomScroll</span><span class="srow-sub" id="row-about">Version and credits</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="help"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="m4.93 4.93 4.24 4.24" /> <path d="m14.83 9.17 4.24-4.24" /> <path d="m14.83 14.83 4.24 4.24" /> <path d="m9.17 14.83-4.24 4.24" /> <circle cx="12" cy="12" r="4" /></svg><span class="srow-text"><span class="srow-title">Help &amp; Support</span><span class="srow-sub">Questions and troubleshooting</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span><span class="srow-sub">How your information is handled</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="terms"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12h-5" /> <path d="M15 8h-5" /> <path d="M19 17V5a2 2 0 0 0-2-2H4" /> <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></svg><span class="srow-text"><span class="srow-title">Terms of Use</span><span class="srow-sub">The conditions for using the app</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Account ===== -->
+      <div class="spage" data-page="account">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Account</h2></header>
+        <div class="page">
+          <div class="sgroup pad">
+            <div class="profile">
+              <span class="avatar" id="acct-avatar" aria-hidden="true"></span>
+              <div class="field grow">
+                <label for="display-name">Display name</label>
+                <input type="text" id="display-name" maxlength="40" autocomplete="nickname" placeholder="Your name">
+              </div>
+            </div>
+            <p class="note">No online account is needed. WisdomScroll works fully on this device, and this name is only shown here.</p>
+          </div>
+
+          <div class="sgroup-label">Sync between devices (optional)</div>
+          <div class="sgroup pad">
             <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
             <div class="stack" id="acct-out">
-              <p>Choose a username and password to have your saved ideas, likes, topics and API keys on all your devices. Everything is locked with your password before it leaves this device. There is no password reset, so keep the password somewhere safe.</p>
+              <p class="note">If you use more than one device, a sync sign-in keeps your saved ideas, likes, topics and API keys the same on all of them. Everything is locked with your password before it leaves this device. There is no password reset, so keep the password somewhere safe.</p>
               <div class="field">
                 <label for="acct-email">Username</label>
                 <input type="text" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -412,18 +548,15 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
               </div>
               <div class="actions">
                 <button type="button" class="btn solid" id="acct-signin">Sign in</button>
-                <button type="button" class="btn" id="acct-signup">Create account</button>
+                <button type="button" class="btn" id="acct-signup">Create sync sign-in</button>
               </div>
             </div>
             <div class="stack" id="acct-in" hidden>
-              <div class="profile">
-                <span class="avatar" id="acct-avatar" aria-hidden="true"></span>
-                <div>
-                  <div class="pname" id="acct-name"></div>
-                  <div class="note" id="acct-sub"></div>
-                </div>
+              <div>
+                <div class="pname" id="acct-name"></div>
+                <div class="note" id="acct-sub"></div>
               </div>
-              <p>Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open.</p>
+              <p class="note">Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open.</p>
               <div class="actions">
                 <button type="button" class="btn" id="acct-sync">Sync now</button>
                 <button type="button" class="btn" id="acct-signout">Sign out</button>
@@ -431,32 +564,48 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             </div>
             <p class="note" id="acct-msg" role="status"></p>
           </div>
+        </div>
+      </div>
 
-          <div class="panel">
-            <h2>Daily limit</h2>
-            <p>The most new ideas Claude writes for you in one day.</p>
-            <div class="stepper">
-              <button type="button" id="limit-down" aria-label="Lower the daily limit">&minus;</button>
-              <output id="limit-value" for="limit-down limit-up">50</output>
-              <button type="button" id="limit-up" aria-label="Raise the daily limit">+</button>
+      <!-- ===== Reading Preferences ===== -->
+      <div class="spage" data-page="reading">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Reading Preferences</h2></header>
+        <div class="page">
+          <div class="sgroup-label">Reading now</div>
+          <div class="sgroup pad">
+            <div class="field">
+              <label for="focus-select">Show in Discover</label>
+              <select id="focus-select"></select>
             </div>
-            <p id="usage-line"></p>
+            <p class="note">You can also change this by tapping the topic label on any card.</p>
           </div>
 
-          <div class="panel">
-            <h2>Topics</h2>
-            <p>Choose what your feed draws from. Every topic that is on gets an equal turn, with a light lean toward what you like and save.</p>
+          <div class="sgroup-label">Topics in my mix</div>
+          <div class="sgroup pad">
+            <p class="note">Every topic that is on gets an equal turn.</p>
             <div class="chips" id="topic-list"></div>
             <p class="note"><span id="topic-count"></span> <span id="topic-note"></span></p>
-            <p id="taste-line"></p>
-            <label class="switch" for="check-toggle"><input type="checkbox" id="check-toggle"><span>Double-check every idea against its book</span></label>
-            <p>A second AI pass and a book-catalogue lookup remove ideas that do not clearly belong to the named book. It uses one extra AI request per batch. No check is perfect, so a wrong card can still appear now and then.</p>
           </div>
 
-          <div class="panel">
-            <h2>Sound and music</h2>
+          <div class="sgroup-label">Feed</div>
+          <div class="sgroup pad">
+            <label class="switch" for="lean-toggle"><input type="checkbox" id="lean-toggle"><span>Lean toward topics I like and save</span></label>
+            <p class="note" id="taste-line"></p>
+          </div>
+
+          <div class="sgroup-label">Content language</div>
+          <div class="sgroup pad">
+            <div class="field">
+              <label for="lang-select">Write new ideas in</label>
+              <select id="lang-select"></select>
+            </div>
+            <p class="note">This applies to ideas written from now on. Ideas already in your feed keep their language. Book titles stay in English so their covers can be found.</p>
+          </div>
+
+          <div class="sgroup-label">Sound and music</div>
+          <div class="sgroup pad">
             <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Ambient sound that changes with each swipe</span></label>
-            <p>The app makes these sounds itself, with a different mood for each topic. On an iPhone, sound may stay off while the ring/silent switch is set to silent.</p>
+            <p class="note">The app makes these sounds itself, with a different mood for each topic.</p>
             <div class="field">
               <label for="music-link">Your Spotify playlist link</label>
               <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -469,11 +618,39 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h3 class="sub-h">Or pick a reading playlist</h3>
             <div class="actions" id="music-presets"></div>
             <div id="music-embed"></div>
-            <p>The music note on the Discover screen opens this playlist in Spotify, where it keeps playing while you read. The ambient sound pauses when you start your music.</p>
+            <p class="note">The music note on the Discover screen opens this playlist in Spotify. The ambient sound pauses when you start your music.</p>
           </div>
+        </div>
+      </div>
 
-          <div class="panel">
-            <h2>AI connection</h2>
+      <!-- ===== Notifications ===== -->
+      <div class="spage" data-page="notifications">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Notifications</h2></header>
+        <div class="page">
+          <div class="sgroup-label">Daily learning reminder</div>
+          <div class="sgroup pad">
+            <label class="switch" for="remind-toggle"><input type="checkbox" id="remind-toggle"><span>Remind me to read each day</span></label>
+            <div class="field">
+              <label for="remind-time">Reminder time</label>
+              <input type="time" id="remind-time" value="20:00">
+            </div>
+            <div class="status"><span class="dot" id="remind-dot"></span><span id="remind-status"></span></div>
+            <div class="actions">
+              <button type="button" class="btn" id="remind-test">Send a test notification</button>
+            </div>
+          </div>
+          <div class="sgroup pad">
+            <p class="note"><strong>How reminders work.</strong> WisdomScroll has no server, so nothing can wake it once it is fully closed. A reminder appears at your chosen time only while the app is open or still running in the background on this device. On iPhone and iPad, notifications need the app to be added to the Home Screen first.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== AI & Generation ===== -->
+      <div class="spage" data-page="ai">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>AI &amp; Generation</h2></header>
+        <div class="page">
+          <div class="sgroup-label">AI connection</div>
+          <div class="sgroup pad">
             <div class="status"><span class="dot" id="ai-dot"></span><span id="ai-status">No API key yet</span></div>
             <div class="field">
               <label for="provider">Provider</label>
@@ -499,46 +676,317 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
               <button type="button" class="btn" id="test-btn">Test connection</button>
               <span class="note" id="test-result" role="status"></span>
             </div>
-            <p>Each key is kept only in this browser on this device and is sent only to its own provider, Anthropic or Google. New ideas are billed to the key in use. Every key you save is listed above, and Show reveals it in full. Anyone who can open this browser can see and use these keys, so use it on your own phone only.</p>
           </div>
 
-          <div class="panel">
-            <h2>Export saved ideas</h2>
-            <p>Your cards are stored in this browser, which can clear them. Export a copy now and then.</p>
+          <div class="sgroup-label">Generation</div>
+          <div class="sgroup pad">
+            <div class="status"><span class="dot" id="gen-dot"></span><span id="gen-status"></span></div>
+            <div class="rowline">
+              <div><div class="rowline-title">Daily limit</div><div class="note">The most new ideas written in one day</div></div>
+              <div class="stepper">
+                <button type="button" id="limit-down" aria-label="Lower the daily limit">&minus;</button>
+                <output id="limit-value" for="limit-down limit-up">50</output>
+                <button type="button" id="limit-up" aria-label="Raise the daily limit">+</button>
+              </div>
+            </div>
+            <p class="note" id="usage-line"></p>
+          </div>
+
+          <div class="sgroup-label">Background refill</div>
+          <div class="sgroup pad">
+            <label class="switch" for="auto-toggle"><input type="checkbox" id="auto-toggle"><span>Write new ideas automatically as I read</span></label>
+            <div class="rowline">
+              <div><div class="rowline-title">Keep ready</div><div class="note">Start writing when fewer unread ideas remain</div></div>
+              <div class="stepper">
+                <button type="button" id="stock-down" aria-label="Keep fewer ideas ready">&minus;</button>
+                <output id="stock-value" for="stock-down stock-up">15</output>
+                <button type="button" id="stock-up" aria-label="Keep more ideas ready">+</button>
+              </div>
+            </div>
+            <label class="switch" for="check-toggle"><input type="checkbox" id="check-toggle"><span>Double-check every idea against its book</span></label>
+            <p class="note">A second AI pass and a book-catalogue lookup remove ideas that do not clearly belong to the named book. It uses one extra AI request per batch. No check is perfect, so a wrong card can still appear now and then.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Appearance ===== -->
+      <div class="spage" data-page="appearance">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Appearance</h2></header>
+        <div class="page">
+          <div class="sgroup pad preview" aria-hidden="true">
+            <p class="idea m">Lasting change comes from tiny improvements repeated every day.</p>
+          </div>
+
+          <div class="sgroup-label">Theme</div>
+          <div class="sgroup pad">
+            <div class="seg two" role="radiogroup" aria-label="Theme">
+              <label><input type="radio" name="theme" id="theme-navy" value="navy"><span>Midnight navy</span></label>
+              <label><input type="radio" name="theme" id="theme-black" value="black"><span>True black</span></label>
+            </div>
+            <p class="note">WisdomScroll is a dark app. True black saves a little battery on OLED screens.</p>
+          </div>
+
+          <div class="sgroup-label">Text</div>
+          <div class="sgroup pad">
+            <div class="seg four" role="radiogroup" aria-label="Font size">
+              <label><input type="radio" name="size" id="size-s" value="s"><span>Small</span></label>
+              <label><input type="radio" name="size" id="size-m" value="m"><span>Default</span></label>
+              <label><input type="radio" name="size" id="size-l" value="l"><span>Large</span></label>
+              <label><input type="radio" name="size" id="size-xl" value="xl"><span>Largest</span></label>
+            </div>
+            <div class="seg" role="radiogroup" aria-label="Typeface">
+              <label><input type="radio" name="face" id="face-antique" value="antique"><span>Antique</span></label>
+              <label><input type="radio" name="face" id="face-classic" value="classic"><span>Classic</span></label>
+              <label><input type="radio" name="face" id="face-sans" value="sans"><span>Modern</span></label>
+            </div>
+          </div>
+
+          <div class="sgroup-label">Reading comfort</div>
+          <div class="sgroup pad">
+            <label class="switch" for="dropcap-toggle"><input type="checkbox" id="dropcap-toggle"><span>Large gold first letter</span></label>
+            <div class="seg two" role="radiogroup" aria-label="Line spacing">
+              <label><input type="radio" name="spacing" id="spacing-normal" value="normal"><span>Normal spacing</span></label>
+              <label><input type="radio" name="spacing" id="spacing-relaxed" value="relaxed"><span>Relaxed spacing</span></label>
+            </div>
+          </div>
+
+          <div class="sgroup-label">Card backgrounds</div>
+          <div class="sgroup pad">
+            <div class="seg" role="radiogroup" aria-label="Card backgrounds">
+              <label><input type="radio" name="bg" id="bg-varied" value="varied"><span>Varied</span></label>
+              <label><input type="radio" name="bg" id="bg-calm" value="calm"><span>Calm</span></label>
+              <label><input type="radio" name="bg" id="bg-plain" value="plain"><span>Plain</span></label>
+            </div>
+          </div>
+
+          <div class="sgroup-label">Animation</div>
+          <div class="sgroup pad">
+            <div class="seg two" role="radiogroup" aria-label="Animation">
+              <label><input type="radio" name="motion" id="motion-full" value="full"><span>Full</span></label>
+              <label><input type="radio" name="motion" id="motion-reduced" value="reduced"><span>Reduced</span></label>
+            </div>
+            <p class="note">Reduced turns off the text entrance, button and refresh animations. Your device's own Reduce Motion setting is always respected.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Privacy & Security ===== -->
+      <div class="spage" data-page="privacy">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Privacy &amp; Security</h2></header>
+        <div class="page">
+          <div class="sgroup-label">Stored on this device</div>
+          <div class="sgroup pad">
+            <p class="note">Your feed, saved and liked ideas, preferences and API keys are kept in this browser's local storage on this device. The app has no analytics, advertising or tracking. The browser can clear local storage, so export a backup from time to time.</p>
+          </div>
+          <div class="sgroup-label">Sent to the AI provider</div>
+          <div class="sgroup pad">
+            <p class="note">To write ideas, the app sends a request to the provider you chose, Anthropic or Google, using your API key. The request contains the writing instructions, your topics and language, and the lists of books, authors and ideas already shown. It does not contain your name or your sign-in. The provider handles that request under its own policies.</p>
+          </div>
+          <div class="sgroup-label">Other services</div>
+          <div class="sgroup pad">
+            <p class="note">Book titles and authors are sent to Open Library to find covers and confirm that a book exists. Fonts load from Google Fonts. If you turn on sync, your data is encrypted on this device with your password and then stored with the sync service.</p>
+          </div>
+          <div class="sgroup-label">API keys</div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="ai"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /> <path d="M20 3v4" /> <path d="M22 5h-4" /> <path d="M4 17v2" /> <path d="M5 18H3" /></svg><span class="srow-text"><span class="srow-title">Manage API keys</span><span class="srow-sub" id="row-keys"></span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+          <div class="sgroup pad">
+            <p class="note">Anyone who can open this browser can see and use the saved keys. Remove them before lending or selling this device.</p>
             <div class="actions">
-              <button type="button" class="btn" id="export-btn">Download file</button>
+              <button type="button" class="btn danger" id="wipe-keys">Remove all API keys and sign out</button>
+            </div>
+            <p class="note" id="wipe-result" role="status"></p>
+          </div>
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span><span class="srow-sub">The full statement</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Data & Storage ===== -->
+      <div class="spage" data-page="data">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Data &amp; Storage</h2></header>
+        <div class="page">
+          <div class="sgroup-label">Storage</div>
+          <div class="sgroup pad">
+            <p class="note" id="storage-line"></p>
+            <p class="note" id="storage-counts"></p>
+          </div>
+
+          <div class="sgroup-label">Back up</div>
+          <div class="sgroup pad">
+            <p class="note">A backup holds your feed, saved and liked ideas and preferences as one JSON file.</p>
+            <label class="switch" for="export-keys"><input type="checkbox" id="export-keys"><span>Include my API keys in the backup</span></label>
+            <p class="note">Off by default. A backup that includes keys must be kept private.</p>
+            <div class="actions">
+              <button type="button" class="btn solid" id="export-all">Export all data</button>
+              <span class="note" id="export-all-result" role="status"></span>
+            </div>
+          </div>
+
+          <div class="sgroup-label">Restore</div>
+          <div class="sgroup pad">
+            <p class="note">Restoring replaces what is on this device with the contents of a backup file.</p>
+            <input type="file" id="restore-file" accept="application/json,.json" hidden>
+            <div class="actions">
+              <button type="button" class="btn" id="restore-btn">Restore from a backup file</button>
+              <span class="note" id="restore-result" role="status"></span>
+            </div>
+          </div>
+
+          <div class="sgroup-label">Saved ideas</div>
+          <div class="sgroup pad">
+            <div class="actions">
+              <button type="button" class="btn" id="export-btn">Download as text</button>
               <button type="button" class="btn" id="copy-btn">Copy text</button>
               <span class="note" id="export-result" role="status"></span>
             </div>
             <textarea id="export-text" readonly hidden aria-label="Saved ideas as text"></textarea>
           </div>
 
-          <div class="panel">
-            <h2>Clear data</h2>
-            <p>Deletes every card, your saved ideas, these settings and your API key from this browser.</p>
-            <div class="actions" id="clear-idle">
-              <button type="button" class="btn danger" id="clear-btn">Clear data</button>
+          <div class="sgroup-label">Clear</div>
+          <div class="sgroup pad">
+            <div class="actions">
+              <button type="button" class="btn danger" id="clear-saved">Clear saved ideas</button>
+              <button type="button" class="btn danger" id="clear-btn">Clear all app data</button>
             </div>
-            <div class="actions" id="clear-confirm" hidden>
-              <button type="button" class="btn danger" id="clear-yes">Delete everything</button>
-              <button type="button" class="btn" id="clear-no">Cancel</button>
-            </div>
-          </div>
-
-          <div class="panel" id="install-panel" hidden>
-            <h2>Install the app</h2>
-            <p id="install-note"></p>
-            <div class="actions"><button type="button" class="btn solid" id="install-btn" hidden>Install WisdomScroll</button></div>
-          </div>
-
-          <div class="panel">
-            <h2>About WisdomScroll</h2>
-            <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
-            <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 2.3</p>
+            <p class="note">Clearing all app data removes every idea, your preferences and your API keys from this browser, and signs this device out of sync.</p>
           </div>
         </div>
       </div>
+
+      <!-- ===== About ===== -->
+      <div class="spage" data-page="about">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>About</h2></header>
+        <div class="page">
+          <div class="about-top">
+            <span class="about-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7.2 4.5 3.5 5v13c3.700-.500 6.500 0 8.500 1.500 2-1.500 4.800-2 8.500-1.500V5C16.800 4.500 14 5 12 6.500z"/><path d="M12 6.5v13"/></svg></span>
+            <div class="about-name">WisdomScroll</div>
+            <div class="about-tag">Feed Your Mind.</div>
+            <div class="note" id="app-version"></div>
+          </div>
+
+          <div class="sgroup pad" id="install-panel" hidden>
+            <p class="note" id="install-note"></p>
+            <div class="actions"><button type="button" class="btn solid" id="install-btn" hidden>Install WisdomScroll</button></div>
+          </div>
+
+          <div class="sgroup-label">What it is</div>
+          <div class="sgroup pad">
+            <p class="note">Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
+          </div>
+
+          <div class="sgroup-label">Developer</div>
+          <div class="sgroup pad">
+            <p class="note">Made by <a href="https://github.com/jirojrm-cyber" target="_blank" rel="noopener">jirojrm-cyber</a>, with code written by Claude from Anthropic. The source is at <a href="https://github.com/jirojrm-cyber/wisdomscroll" target="_blank" rel="noopener">github.com/jirojrm-cyber/wisdomscroll</a>.</p>
+          </div>
+
+          <div class="sgroup-label">Acknowledgements</div>
+          <div class="sgroup pad">
+            <p class="note">Ideas are written through the Anthropic Claude API or the Google Gemini API, using your own key. Book covers and catalogue lookups come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>; a cover can be missing or show a different edition. Optional sync runs on Supabase. Background music opens in Spotify. The app is hosted on GitHub Pages.</p>
+          </div>
+
+          <div class="sgroup-label">Open-source licenses</div>
+          <div class="sgroup pad">
+            <p class="note"><strong>Lucide icons</strong>, ISC License. Copyright for portions held by Cole Bemis 2013 to 2022 as part of Feather (MIT); all other copyright held by Lucide Contributors 2022.</p>
+            <p class="note"><strong>IM Fell English</strong> typeface by Igino Marini, SIL Open Font License 1.1.</p>
+            <p class="note"><strong>Manrope</strong> typeface by Mikhail Sharanda, SIL Open Font License 1.1.</p>
+            <p class="note">No license has been chosen yet for the app's own code.</p>
+          </div>
+
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" class="srow" data-open="terms"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12h-5" /> <path d="M15 8h-5" /> <path d="M19 17V5a2 2 0 0 0-2-2H4" /> <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></svg><span class="srow-text"><span class="srow-title">Terms of Use</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Help & Support ===== -->
+      <div class="spage" data-page="help">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Help &amp; Support</h2></header>
+        <div class="page">
+          <div class="sgroup-label">Frequently asked questions</div>
+          <div class="sgroup faq">
+            <details><summary>Are these real quotations?</summary><p>No. Each card states an idea from the named book in the AI's own words. The app checks each idea twice, but nothing reads the book itself, so treat a card as a pointer to the book and not as a quotation.</p></details>
+            <details><summary>Why do I need an API key?</summary><p>The ideas are written by an AI service that charges per use. The app has no server of its own, so it uses a key from your own Anthropic or Google account. Add it in AI &amp; Generation.</p></details>
+            <details><summary>What happens to ideas after I swipe past them?</summary><p>They stay on this device. Swipe back to see them, or tap Discover to shuffle every stored idea into a new order. The app keeps the most recent 300 and remembers older books and ideas so they are not repeated.</p></details>
+            <details><summary>How do I read only one topic?</summary><p>Tap the topic label at the top of any card, or use Reading Preferences, and choose a topic. Choose Mix of my topics to go back.</p></details>
+            <details><summary>Does it work offline?</summary><p>Yes, for the ideas already on the device. Writing new ideas, loading covers and syncing need a connection.</p></details>
+            <details><summary>How do I use it on another device?</summary><p>Open the same address there and add it to the Home Screen. To carry your saved ideas and keys across, create a sync sign-in in Account and sign in on each device.</p></details>
+          </div>
+
+          <div class="sgroup-label">If new ideas stop arriving</div>
+          <div class="sgroup pad">
+            <ol class="steps">
+              <li>Open AI &amp; Generation and read the status line under Generation.</li>
+              <li>Tap Test connection. A rejected key means it was pasted wrongly, has expired, or belongs to the other provider.</li>
+              <li>A message about credit, billing or quota means the provider account needs credit. Add it with the provider, or switch provider.</li>
+              <li>"Could not reach" means this network cannot reach the provider. Try another network.</li>
+              <li>Check that today's count is below the daily limit, and that automatic writing is on under Background refill.</li>
+            </ol>
+          </div>
+
+          <div class="sgroup-label">Exporting your data</div>
+          <div class="sgroup pad">
+            <ol class="steps">
+              <li>Open Data &amp; Storage.</li>
+              <li>Tap Export all data to save a backup file. API keys are left out unless you switch that option on.</li>
+              <li>To move to a new device without sync, open Data &amp; Storage there and choose Restore from a backup file.</li>
+            </ol>
+          </div>
+
+          <div id="contact-block" hidden>
+            <div class="sgroup-label">Contact</div>
+            <div class="sgroup" id="contact-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Privacy Policy ===== -->
+      <div class="spage" data-page="policy">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Privacy Policy</h2></header>
+        <div class="page doc">
+          <p class="note">A plain-language description of how this app handles information. It is not legal advice.</p>
+          <h3>What the app keeps</h3>
+          <p>WisdomScroll stores your feed, saved and liked ideas, preferences, display name, API keys and sync sign-in state in your browser's local storage on your own device. The developer of the app does not receive this information and runs no server that collects it.</p>
+          <h3>What leaves your device</h3>
+          <p><strong>AI providers.</strong> When ideas are written, a request goes directly from your device to the provider you selected, Anthropic or Google, authenticated with your API key. It contains the writing instructions, your chosen topics and language, and lists of the books, authors and ideas already shown to you. Each provider processes the request under its own terms and privacy policy.</p>
+          <p><strong>Open Library.</strong> Book titles and author names are sent to Open Library, run by the Internet Archive, to find covers and to confirm that a book exists.</p>
+          <p><strong>Google Fonts.</strong> The app's typefaces are loaded from Google's font service.</p>
+          <p><strong>Optional sync.</strong> If you create a sync sign-in, the sync service (Supabase) stores your username, a protected form of your password, and one encrypted record containing your saved and liked ideas, preferences and API keys. The record is encrypted on your device with a key derived from your password before it is uploaded.</p>
+          <p><strong>Spotify.</strong> The music button only opens the playlist link you chose. The app does not connect to your Spotify account.</p>
+          <p><strong>Hosting.</strong> The app's files are served by GitHub Pages, which, like any web host, can log requests for those files.</p>
+          <h3>What the app does not do</h3>
+          <p>It shows no advertising, uses no analytics or tracking, and does not sell or share information.</p>
+          <h3>Your choices</h3>
+          <p>You can export everything, remove your API keys, sign out of sync, or clear all app data at any time in Settings. Clearing your browser's site data has the same effect as clearing all app data.</p>
+          <h3>Changes</h3>
+          <p>If the way the app handles information changes, this page will be updated with the app.</p>
+        </div>
+      </div>
+
+      <!-- ===== Terms of Use ===== -->
+      <div class="spage" data-page="terms">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Terms of Use</h2></header>
+        <div class="page doc">
+          <p class="note">A plain-language description of the conditions for using this app. It is not legal advice.</p>
+          <h3>The app</h3>
+          <p>WisdomScroll is a personal reading tool offered free of charge, as it is, with no guarantee that it will be available, accurate or free of errors.</p>
+          <h3>The content</h3>
+          <p>Ideas are written by AI and attributed to books. They are paraphrases, not quotations, and they can be wrong or incomplete. Nothing in the app is professional advice of any kind, including medical, legal, financial or psychological advice. Check the original book before relying on an idea.</p>
+          <h3>Your API key and costs</h3>
+          <p>You supply your own API key. Any charges from the AI provider for requests made with that key are yours, and your use of that provider is subject to its terms. The daily limit in Settings helps you control usage but is not a billing guarantee.</p>
+          <h3>Your data</h3>
+          <p>Your data is kept in your browser and can be lost if the browser clears it. You are responsible for keeping backups, your API keys and your sync password safe.</p>
+          <h3>Books and authors</h3>
+          <p>Book titles, authors and covers belong to their respective owners. The app refers to them to credit the source of each idea.</p>
+          <h3>Acceptable use</h3>
+          <p>Do not use the app to break the law or the terms of the services it connects to.</p>
+          <h3>Changes</h3>
+          <p>These terms may change as the app changes. Continuing to use the app means you accept the current version.</p>
+        </div>
+      </div>
+
     </section>
   </main>
 
@@ -563,6 +1011,17 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     </div>
   </div>
 
+  <div class="sheet" id="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text" hidden>
+    <div class="sheet-box topic-box confirm-box">
+      <h2 id="confirm-title"></h2>
+      <p class="note" id="confirm-text"></p>
+      <div class="actions">
+        <button type="button" class="btn" id="confirm-no">Cancel</button>
+        <button type="button" class="btn danger" id="confirm-yes"></button>
+      </div>
+    </div>
+  </div>
+
   <div id="genline" hidden aria-hidden="true"><i></i></div>
 
   <div class="toast" id="toast" role="status"></div>
@@ -584,6 +1043,12 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
 (function () {
   "use strict";
 
+  var APP_VERSION = "3.0";
+  var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
+  // Contact links shown in Help & Support. Left empty until the developer supplies them.
+  var CONTACT = { telegram: "", instagram: "" };
+  function langOf(code) { return LANGS.find(function (l) { return l[0] === code; }) || LANGS[0]; }
+  function wideScript(code) { return /^(zh|ja|ko)/.test(code || ""); }
   var CATS = ["Psychology", "Self-confidence", "Personal Growth", "Philosophy", "Discipline", "Productivity", "Leadership", "Business", "Communication", "Relationships", "History", "Science", "Finance", "Creativity", "Health", "Technology", "Economics", "Biography"];
 
   // Starter cards so the feed works before the AI writes anything.
@@ -656,6 +1121,23 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     s.settings.topics = s.settings.topics && typeof s.settings.topics === "object" ? s.settings.topics : {};
     s.settings.check = s.settings.check !== false;
     s.focus = CATS.indexOf(s.focus) >= 0 ? s.focus : null;
+    var ui = s.ui && typeof s.ui === "object" ? s.ui : {}, rm = ui.remind && typeof ui.remind === "object" ? ui.remind : {};
+    var pick = function (v, list, d) { return list.indexOf(v) >= 0 ? v : d; };
+    s.ui = {
+      name: typeof ui.name === "string" ? ui.name.slice(0, 40) : "",
+      lang: langOf(ui.lang)[0],
+      size: pick(ui.size, ["s", "m", "l", "xl"], "m"),
+      face: pick(ui.face, ["antique", "classic", "sans"], "antique"),
+      theme: pick(ui.theme, ["navy", "black"], "navy"),
+      bg: pick(ui.bg, ["varied", "calm", "plain"], "varied"),
+      motion: pick(ui.motion, ["full", "reduced"], "full"),
+      spacing: pick(ui.spacing, ["normal", "relaxed"], "normal"),
+      dropcap: ui.dropcap !== false,
+      lean: ui.lean !== false,
+      auto: ui.auto !== false,
+      stock: pick(+ui.stock, [10, 15, 20, 30], 15),
+      remind: { on: rm.on === true, time: /^\d\d:\d\d$/.test(rm.time || "") ? rm.time : "20:00", last: typeof rm.last === "string" ? rm.last : "" }
+    };
     return s;
   }
   function freshState() {
@@ -992,7 +1474,10 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   var BOOKMARK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z"/></svg>';
   var CLOTH = [["#5b1f24", "#33100f"], ["#1f4a3c", "#0f2a22"], ["#27386b", "#141d3d"], ["#6a4a1c", "#3a270d"], ["#4a2857", "#27132f"], ["#1d4f5c", "#0e2b33"], ["#5a3320", "#2e190f"]];
   function isSaved(id) { return state.saved.some(function (c) { return c.id === id; }); }
-  function sizeClass(t) { return t.length <= 125 ? "s" : t.length <= 205 ? "m" : "l"; }
+  function sizeClass(t) {
+    var wide = /[\u3000-\u9fff\uac00-\ud7af]/.test(t), a = wide ? 48 : 125, b = wide ? 84 : 205; // wide scripts fill a line with fewer characters
+    return t.length <= a ? "s" : t.length <= b ? "m" : "l";
+  }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -1164,8 +1649,14 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   function wrapLines(ctx, text, widthFor, maxLines) {
     var out = [], cur = "";
-    text.split(" ").forEach(function (w) {
-      var t = cur ? cur + " " + w : w;
+    // words are split at spaces; scripts written without spaces can break after any character
+    var parts = [];
+    text.split(" ").forEach(function (w, i) {
+      var bits = /[\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(w) ? Array.from(w) : [w];
+      bits.forEach(function (x, j) { parts.push([x, i > 0 && j === 0]); });
+    });
+    parts.forEach(function (p) {
+      var w = p[0], t = cur ? cur + (p[1] ? " " : "") + w : w;
       if (!cur || ctx.measureText(t).width <= widthFor(out.length)) cur = t;
       else { out.push(cur); cur = w; }
     });
@@ -1515,7 +2006,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
         try { feed.scrollTo({ top: node.offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = node.offsetTop; }
       }
     }
-    if (unseenCount() < LOW_STOCK) maybeRefill(true);
+    if (unseenCount() < lowStock()) maybeRefill(true);
   }
 
   /* ---------- ambient sound: made by the app itself, a different texture for every card ---------- */
@@ -1785,7 +2276,15 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
 
   /* ---------- generation ---------- */
-  function words(s) { var o = {}; norm(s).split(" ").forEach(function (w) { if (w.length > 3) o[w] = 1; }); return o; }
+  function words(s) {
+    var o = {}, n = 0;
+    norm(s).split(" ").forEach(function (w) { if (w.length > 3) { o[w] = 1; n++; } });
+    if (n < 3) { // text in a script without spaces: compare by pairs of characters instead
+      var t = String(s || "").replace(/[\s\u3000-\u303f\uff00-\uffef.,;:!?'"()\-]/g, "");
+      for (var i = 0; i < t.length - 1; i++) o[t.substr(i, 2)] = 1;
+    }
+    return o;
+  }
   function overlap(a, b) {
     var ka = Object.keys(a), kb = Object.keys(b), inter = 0;
     if (!ka.length || !kb.length) return 0;
@@ -1838,7 +2337,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     // a light lean toward what the reader likes: at most two places per batch
     var on = enabledCats();
     var fav = on.filter(function (c) { return (state.taste[c] || 0) > 0; }).sort(function (a, b) { return state.taste[b] - state.taste[a]; }).slice(0, 2);
-    if (n >= 6 && !state.focus) {
+    if (n >= 6 && !state.focus && state.ui.lean !== false) {
       fav.forEach(function (f, k) {
         if (cats.filter(function (c) { return c === f; }).length >= 2) return;
         var idx = cats.length - 1 - k;
@@ -1879,7 +2378,10 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       concepts.length ? "- These ideas were already covered. Do not write about any of them again, even from another book: " + concepts.join("; ") + "." : "",
       "",
       "Writing rules:",
-      '- "text": 1 to 3 sentences, 90 to 240 characters. A clear, strong, self-contained statement of the idea in plain English, in your own words.',
+      wideScript(state.ui.lang)
+        ? '- "text": 1 to 3 sentences, 35 to 110 characters. A clear, strong, self-contained statement of the idea, in your own words.'
+        : '- "text": 1 to 3 sentences, 90 to 240 characters. A clear, strong, self-contained statement of the idea in plain language, in your own words.',
+      '- Write "text" in ' + langOf(state.ui.lang)[2] + '. Keep "concept" and "anchor" in English.' + (state.ui.lang === "en" ? "" : ' Give "book_title" as the title of the English-language edition and "author" in Latin letters, so the book can be looked up.'),
       "- No quotation marks, and do not mention the book, the author or phrases like \"the author argues\" inside the text.",
       '- "concept": 2 to 4 lowercase words that name the idea itself, for example "loss aversion".',
       "",
@@ -1904,7 +2406,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       var text = String(r.text || "").replace(/^[\s"'“”‘’]+|[\s"'“”‘’]+$/g, "").replace(/\s+/g, " ");
       var book = String(r.book_title || r.book || "").trim(), author = String(r.author || "").trim();
       var concept = norm(r.concept || "");
-      if (!cat || text.length < 40 || text.length > 380 || !book || !author || book.length > 140 || author.length > 100) return;
+      if (!cat || text.length < (wideScript(state.ui.lang) ? 12 : 40) || text.length > 380 || !book || !author || book.length > 140 || author.length > 100) return;
       if (r.confidence != null && +r.confidence < 4) return;                 // the writer was not sure
       var nb = norm(mainTitle(book)), na = norm(firstAuthor(author));
       if (usedBooks[nb] || usedAuthors[na]) return;                           // book or author seen too recently
@@ -1985,11 +2487,13 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     if (state.memo.length > 900) state.memo = state.memo.slice(-900);
     if (atEnd && nodes.length) { try { feed.scrollTo({ top: nodes[0].offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = nodes[0].offsetTop; } }
   }
+  function lowStock() { return (state.ui && state.ui.stock) || LOW_STOCK; }
   var HOLD = ["error", "rate", "auth", "nokey"]; // states that wait for a tap; never retried automatically
   function maybeRefill(manual) {
     if (gen.busy) return;
     if (!manual && HOLD.indexOf(gen.status) >= 0) return;
-    if (!manual && unseenCount() >= LOW_STOCK) return;
+    if (!manual && state.ui.auto === false) return; // automatic writing is switched off
+    if (!manual && unseenCount() >= lowStock()) return;
     rollDay();
     var left = state.settings.limit - state.usage.count;
     if (left <= 0) { setStatus("limit"); return; }
@@ -2063,7 +2567,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     gen.busy = false;
     renderProgress();
     // the checks removed a lot: top the feed up once more, but never in a loop
-    if (gen.status === "idle" && !gen.chained && unseenCount() < LOW_STOCK) { gen.chained = true; maybeRefill(false); }
+    if (gen.status === "idle" && !gen.chained && unseenCount() < lowStock()) { gen.chained = true; maybeRefill(false); }
     else gen.chained = false;
   }
 
@@ -2200,7 +2704,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   // what travels between devices: the saved keys, which one is in use, and the provider and model choice
   function prefsOf() {
-    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null };
+    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name };
   }
   // What travels between devices: API keys, saved and liked ideas, removals, preferences, and the lists that prevent repeats.
   function localPayload() {
@@ -2254,6 +2758,9 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     if (pr.topics && typeof pr.topics === "object") state.settings.topics = pr.topics;
     state.settings.check = pr.check !== false;
     state.settings.music = pr.music && pr.music.id && pr.music.type ? pr.music : null;
+    if (typeof pr.lang === "string") state.ui.lang = langOf(pr.lang)[0];
+    if (typeof pr.lean === "boolean") state.ui.lean = pr.lean;
+    if (typeof pr.name === "string" && pr.name) state.ui.name = pr.name.slice(0, 40);
   }
   function mergeRemote(p, firstTime) {
     if (!p) return;
@@ -2468,17 +2975,24 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     renderAccount();
     syncNow(false);
   }
+  function initials(n) {
+    var parts = String(n || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "W";
+    return (parts[0].charAt(0) + (parts.length > 1 ? parts[parts.length - 1].charAt(0) : "")).toUpperCase();
+  }
   function renderAccount() {
     var inn = !!session, dot = $("acct-dot");
     $("acct-out").hidden = inn;
     $("acct-in").hidden = !inn;
     dot.className = "dot" + (acct.mood === "ok" || (inn && !acct.mood) ? " ok" : acct.mood === "bad" ? " bad" : "");
-    var name = inn ? (accountName(session.email) || "your account") : "";
-    $("acct-status").textContent = inn ? "Signed in" : "Not signed in";
-    $("acct-name").textContent = name;
-    $("acct-avatar").textContent = name ? name.charAt(0).toUpperCase() : "";
-    $("acct-sub").textContent = inn ? "Your WisdomScroll account" : "";
-    $("settings-sub").textContent = inn ? "Signed in as " + name : "Feed your mind.";
+    var uname = inn ? (accountName(session.email) || "your account") : "";
+    var shown = state.ui.name || uname;
+    $("acct-status").textContent = inn ? "Sync is on" : "Sync is off";
+    $("acct-name").textContent = uname;
+    $("acct-sub").textContent = inn ? "Signed in on this device" : "";
+    $("acct-avatar").textContent = initials(shown);
+    $("settings-sub").textContent = shown ? "Hello, " + shown + "." : "Feed your mind.";
+    if (document.activeElement !== $("display-name")) $("display-name").value = state.ui.name;
     $("acct-msg").textContent = acct.msg;
     $("acct-signin").disabled = acctBusy;
     $("acct-signup").disabled = acctBusy;
@@ -2491,6 +3005,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     renderAccount();
     renderMusic();
     renderTopics();
+    renderCenter();
     var p = prov(), info = PROVIDER[p];
     $("limit-value").textContent = state.settings.limit;
     $("usage-line").textContent = "Written today: " + state.usage.count + " of " + state.settings.limit + ".";
@@ -2685,20 +3200,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function doDownload() {
     var out = $("export-result");
     if (!state.saved.length) { out.textContent = "Nothing saved yet."; return; }
-    var text = exportText();
-    try {
-      var url = URL.createObjectURL(new Blob([text], { type: "text/markdown" }));
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = "wisdomscroll-saved.md";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      out.textContent = "Download started.";
-    } catch (e) {
-      showExportText(text, "Select the text below and copy it.");
-    }
+    saveFile("wisdomscroll-saved.md", exportText(), "text/markdown", out);
   }
   function doCopy() {
     var out = $("export-result");
@@ -2726,8 +3228,8 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     gen.status = "idle";
     currentId = null;
     renderFeed(); renderSaved(); renderSettings();
-    $("clear-confirm").hidden = true;
-    $("clear-idle").hidden = false;
+    applyAppearance();
+    openPage("home", true);
     $("export-text").hidden = true;
     $("export-result").textContent = "";
     $("test-result").textContent = "";
@@ -2769,6 +3271,341 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     maybeRefill(false); // new ideas are still written when the unread ones run low
   }
 
+  /* ---------- Settings Center: pages, confirmations, appearance, reminders, data ---------- */
+  var curPage = "home";
+  function openPage(name, instant) {
+    var root = $("view-prefs"), target = root.querySelector('.spage[data-page="' + name + '"]');
+    if (!target) return;
+    root.classList.toggle("instant", !!instant);
+    Array.prototype.forEach.call(root.querySelectorAll(".spage"), function (p) { p.classList.toggle("active", p === target); });
+    if (name !== curPage) { var sc = target.querySelector(".page"); if (sc) sc.scrollTop = 0; }
+    curPage = name;
+    renderSettings();
+    if (name === "data") refreshStorage();
+  }
+  // Sub-pages are pushed onto the browser history, so the system Back gesture and button work too.
+  function goPage(name) {
+    try { history.pushState({ sp: name }, "", "#settings-" + name); } catch (e) {}
+    openPage(name, false);
+  }
+  function backPage() {
+    if (history.state && history.state.sp) { history.back(); return; }
+    openPage("home", false);
+  }
+  function confirmBox(title, text, yesLabel) {
+    return new Promise(function (resolve) {
+      $("confirm-title").textContent = title;
+      $("confirm-text").textContent = text;
+      $("confirm-yes").textContent = yesLabel;
+      var sheet = $("confirm-sheet"), done = function (v) {
+        sheet.hidden = true;
+        $("confirm-yes").onclick = null; $("confirm-no").onclick = null; sheet.onclick = null;
+        resolve(v);
+      };
+      $("confirm-yes").onclick = function () { done(true); };
+      $("confirm-no").onclick = function () { done(false); };
+      sheet.onclick = function (e) { if (e.target === sheet) done(false); };
+      sheet.hidden = false;
+      $("confirm-no").focus();
+    });
+  }
+  function applyAppearance() {
+    var d = document.documentElement.dataset, u = state.ui;
+    d.theme = u.theme; d.size = u.size; d.face = u.face; d.bg = u.bg; d.motion = u.motion; d.spacing = u.spacing;
+    d.dropcap = u.dropcap ? "on" : "off";
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", u.theme === "black" ? "#000000" : "#0a101d");
+    Array.prototype.forEach.call(feed.querySelectorAll(".card[data-fit]"), fitIdea); // text size changed: fit the visible cards again
+  }
+  function setRadio(name, value) {
+    var r = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (r) r.checked = true;
+  }
+  function fmtBytes(n) {
+    if (n < 1024) return n + " bytes";
+    if (n < 1048576) return Math.round(n / 1024) + " KB";
+    return (n / 1048576).toFixed(1) + " MB";
+  }
+  function storageBytes() {
+    var n = 0;
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf("wisdomscroll") === 0) n += (k.length + (localStorage.getItem(k) || "").length) * 2;
+      }
+    } catch (e) { return -1; }
+    return n;
+  }
+  function refreshStorage() {
+    var b = storageBytes();
+    $("storage-line").textContent = b < 0 ? "This browser does not let the app measure its storage." : "Your WisdomScroll data uses about " + fmtBytes(b) + " on this device.";
+    $("storage-counts").textContent = state.cards.length + " ideas in the feed, " + state.saved.length + " saved, " + state.liked.length + " liked.";
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(function (e) {
+          if (e && e.usage > 0 && e.quota && b >= 0) $("storage-line").textContent = "Your WisdomScroll data uses about " + fmtBytes(b) + " on this device. With the offline copy of the app, this site uses " + fmtBytes(e.usage) + " of roughly " + fmtBytes(e.quota) + " available.";
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  /* reminders: real browser notifications, shown only when permission is granted and the app is running */
+  function notifState() { return ("Notification" in window) ? Notification.permission : "unsupported"; }
+  function notify(title, body) {
+    var opts = { body: body, icon: "icon-192.png", badge: "icon-192.png", tag: "wisdomscroll-reminder" };
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        return navigator.serviceWorker.ready.then(function (reg) { return reg.showNotification(title, opts); }).then(function () { return true; }, function () { return false; });
+      }
+      new Notification(title, opts);
+      return Promise.resolve(true);
+    } catch (e) { return Promise.resolve(false); }
+  }
+  function remindTick() {
+    var r = state.ui.remind;
+    if (!r.on || notifState() !== "granted" || r.last === today()) return;
+    var d = new Date(), hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    if (hm < r.time) return;
+    r.last = today();
+    persist();
+    if (document.hidden) notify("WisdomScroll", "Time for today's ideas. Feed your mind.");
+    else toast("Time for today's reading");
+  }
+  function renderRemind() {
+    var r = state.ui.remind, ns = notifState(), dot = $("remind-dot"), on = r.on && ns === "granted";
+    $("remind-toggle").checked = on;
+    if (document.activeElement !== $("remind-time")) $("remind-time").value = r.time;
+    dot.className = "dot" + (on ? " ok" : ns === "denied" ? " bad" : "");
+    $("remind-status").textContent =
+      ns === "unsupported" ? "This browser cannot show notifications here. On iPhone or iPad, add WisdomScroll to the Home Screen and open it from there." :
+      ns === "denied" ? "Notifications are blocked for this app. Allow them in your browser or system settings, then switch this on." :
+      on ? "On. A reminder appears at " + r.time + " while the app is open or running in the background." :
+      ns === "granted" ? "Notifications are allowed, and the reminder is off." :
+      "Off. Switching it on asks your browser for permission.";
+    $("remind-test").disabled = ns !== "granted";
+  }
+  function setRemind(want) {
+    var r = state.ui.remind;
+    if (!want) { r.on = false; persist(); renderSettings(); return; }
+    var ns = notifState();
+    if (ns === "unsupported" || ns === "denied") { r.on = false; persist(); renderSettings(); return; }
+    var done = function (p) { r.on = p === "granted"; r.last = ""; persist(); renderSettings(); };
+    if (ns === "granted") { done("granted"); return; }
+    $("remind-toggle").checked = false; // stays off until the browser actually grants permission
+    try {
+      var ask = Notification.requestPermission(done);
+      if (ask && ask.then) ask.then(done, function () { done("default"); });
+    } catch (e) { done("default"); }
+  }
+  /* data: backup, restore and clearing */
+  function saveFile(name, text, mime, out) {
+    var file = null, blob = new Blob([text], { type: mime });
+    try { file = new File([blob], name, { type: mime }); } catch (e) {}
+    var canShare = false;
+    try { canShare = !!(file && navigator.canShare && navigator.canShare({ files: [file] }) && /iphone|ipad|ipod|android/i.test(navigator.userAgent)); } catch (e) {}
+    var download = function () {
+      try {
+        var url = URL.createObjectURL(blob), a = document.createElement("a");
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        out.textContent = "Download started.";
+      } catch (e) { out.textContent = "This browser could not save the file."; }
+    };
+    if (!canShare) { download(); return; }
+    navigator.share({ files: [file], title: name }).then(function () { out.textContent = "Done."; }, function (e) {
+      if (e && e.name === "AbortError") out.textContent = "Cancelled."; else download();
+    });
+  }
+  function exportAll() {
+    var withKeys = $("export-keys").checked;
+    var data = { app: "WisdomScroll", format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), includesApiKeys: withKeys, state: JSON.parse(JSON.stringify(state)) };
+    if (withKeys) data.keys = { list: loadKeys(), active: { anthropic: getKey("anthropic"), gemini: getKey("gemini") } };
+    saveFile("wisdomscroll-backup-" + today() + ".json", JSON.stringify(data, null, 1), "application/json", $("export-all-result"));
+  }
+  function restoreFrom(file) {
+    var out = $("restore-result");
+    var reader = new FileReader();
+    reader.onerror = function () { out.textContent = "The file could not be read."; };
+    reader.onload = function () {
+      var d = null;
+      try { d = JSON.parse(String(reader.result)); } catch (e) {}
+      if (!d || d.app !== "WisdomScroll" || !d.state || !Array.isArray(d.state.cards) || !d.state.cards.length || !d.state.settings) {
+        out.textContent = "That is not a WisdomScroll backup file.";
+        return;
+      }
+      var when = d.exportedAt ? new Date(d.exportedAt).toLocaleDateString() : "an unknown date";
+      var n = Array.isArray(d.state.saved) ? d.state.saved.length : 0;
+      confirmBox("Restore this backup?", "It was made on " + when + " and holds " + d.state.cards.length + " ideas, " + n + " of them saved." + (d.keys ? " It also contains API keys." : "") + " Everything now on this device is replaced.", "Restore").then(function (yes) {
+        if (!yes) { out.textContent = "Nothing was changed."; return; }
+        try { localStorage.setItem(KEY, JSON.stringify(d.state)); }
+        catch (e) { out.textContent = "The backup is too large for this browser's storage."; return; }
+        state = loadState();
+        if (d.keys && Array.isArray(d.keys.list)) {
+          storeKeys(d.keys.list.filter(function (x) { return x && x.k && PROVIDER[x.p]; }));
+          ["anthropic", "gemini"].forEach(function (pp) { if (d.keys.active && d.keys.active[pp]) setKey(d.keys.active[pp], pp); });
+        }
+        recomputeTaste();
+        persistNow();
+        currentId = null; gen.status = "idle"; tested = {};
+        applyAppearance();
+        renderFeed(); renderSaved(); renderSettings();
+        touchSync("prefs"); touchSync("data");
+        out.textContent = "Restored.";
+      });
+    };
+    reader.readAsText(file);
+  }
+  function clearSaved() {
+    if (!state.saved.length) { toast("There are no saved ideas"); return; }
+    confirmBox("Clear saved ideas?", "All " + state.saved.length + " saved ideas are removed from this device" + (session ? " and from your other synced devices" : "") + ". This cannot be undone.", "Clear saved ideas").then(function (yes) {
+      if (!yes) return;
+      var now = Date.now();
+      state.saved.forEach(function (c) { state.gone.saved[c.id] = now; });
+      state.saved = [];
+      recomputeTaste();
+      persistNow();
+      touchSync("data");
+      refreshMarks(); renderSaved(); renderSettings(); refreshStorage();
+      toast("Saved ideas cleared");
+    });
+  }
+  function wipeKeys() {
+    confirmBox("Remove all API keys?", "Every saved API key is removed from this browser and this device is signed out of sync. Keys stored with your sync sign-in are not deleted, and return if you sign in again.", "Remove keys").then(function (yes) {
+      if (!yes) return;
+      signOutLocal("");
+      setKey("", "anthropic"); setKey("", "gemini");
+      storeKeys([]);
+      shownKeys = {}; tested = {};
+      if (HOLD.indexOf(gen.status) >= 0) gen.status = "idle";
+      renderSettings(); renderEnd();
+      $("wipe-result").textContent = "All API keys were removed from this device.";
+    });
+  }
+  function fillSelect(sel, items, value) {
+    sel.textContent = "";
+    items.forEach(function (it) {
+      var o = el("option", null, it[1]);
+      o.value = it[0];
+      if (it[0] === value) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+  // Everything the new pages show that depends on the current state.
+  function renderCenter() {
+    var u = state.ui, p = prov(), key = getKey(), ns = notifState(), on = enabledCats();
+    var uname = session ? accountName(session.email) : "";
+    $("row-account").textContent = (u.name || uname || "No name set") + " \u00b7 " + (session ? "sync on" : "on this device only");
+    $("row-reading").textContent = on.length + " topics \u00b7 " + langOf(u.lang)[1] + (state.focus ? " \u00b7 only " + state.focus : "");
+    $("row-notifications").textContent = u.remind.on && ns === "granted" ? "Daily reminder at " + u.remind.time : "Off";
+    $("row-ai").textContent = PROVIDER[p].name + " \u00b7 " + (key ? "key saved" : "no key yet");
+    $("row-appearance").textContent = ({ s: "Small", m: "Default", l: "Large", xl: "Largest" })[u.size] + " text \u00b7 " + (u.theme === "black" ? "true black" : "midnight navy");
+    $("row-data").textContent = state.saved.length + " saved \u00b7 " + state.cards.length + " in the feed";
+    $("row-about").textContent = "Version " + APP_VERSION;
+    $("row-keys").textContent = loadKeys().length + (loadKeys().length === 1 ? " key saved" : " keys saved");
+    $("app-version").textContent = "Version " + APP_VERSION;
+    // reading
+    if (document.activeElement !== $("focus-select")) fillSelect($("focus-select"), [["", "A mix of my topics"]].concat(CATS.map(function (c) { return [c, "Only " + c]; })), state.focus || "");
+    if (document.activeElement !== $("lang-select")) fillSelect($("lang-select"), LANGS.map(function (l) { return [l[0], l[1]]; }), u.lang);
+    $("lean-toggle").checked = u.lean !== false;
+    // generation
+    var gd = $("gen-dot"), bad = HOLD.indexOf(gen.status) >= 0;
+    gd.className = "dot" + (bad ? " bad" : " ok");
+    $("gen-status").textContent =
+      gen.status === "busy" ? "Writing new ideas now (" + Math.round(gen.pct || 0) + "%)." :
+      gen.status === "limit" ? "Today's limit is reached. Writing resumes tomorrow." :
+      gen.status === "nokey" ? "Waiting for an API key." :
+      gen.status === "auth" ? "The API key was rejected." :
+      gen.status === "rate" ? "The provider is limiting requests. Try again later." :
+      gen.status === "error" ? (gen.detail || "The last request failed.") :
+      "Ready. " + unseenCount() + " unread ideas are waiting." + (u.auto === false ? " Automatic writing is off." : "");
+    $("auto-toggle").checked = u.auto !== false;
+    $("stock-value").textContent = u.stock;
+    // appearance
+    setRadio("theme", u.theme); setRadio("size", u.size); setRadio("face", u.face); setRadio("bg", u.bg); setRadio("motion", u.motion); setRadio("spacing", u.spacing);
+    $("dropcap-toggle").checked = u.dropcap;
+    renderRemind();
+    // contact, only when the developer has set it
+    var links = [];
+    if (CONTACT.telegram) links.push(["Telegram", "@" + CONTACT.telegram, "https://t.me/" + CONTACT.telegram]);
+    if (CONTACT.instagram) links.push(["Instagram", "@" + CONTACT.instagram, "https://www.instagram.com/" + CONTACT.instagram + "/"]);
+    $("contact-block").hidden = !links.length;
+    var cl = $("contact-list");
+    if (cl.childElementCount !== links.length) {
+      cl.textContent = "";
+      links.forEach(function (l) {
+        var a = el("a", "srow");
+        a.href = l[2]; a.target = "_blank"; a.rel = "noopener";
+        var tx = el("span", "srow-text");
+        tx.appendChild(el("span", "srow-title", l[0]));
+        tx.appendChild(el("span", "srow-sub", l[1]));
+        a.appendChild(tx);
+        cl.appendChild(a);
+      });
+    }
+  }
+  function wireCenter() {
+    Array.prototype.forEach.call(document.querySelectorAll("#view-prefs [data-open]"), function (b) {
+      b.addEventListener("click", function () { goPage(b.dataset.open); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#view-prefs [data-back]"), function (b) {
+      b.addEventListener("click", backPage);
+    });
+    window.addEventListener("popstate", function (e) {
+      if (!$("view-prefs").classList.contains("active")) return;
+      openPage((e.state && e.state.sp) || "home", false);
+    });
+    $("display-name").addEventListener("input", function () {
+      state.ui.name = $("display-name").value.trim().slice(0, 40);
+      persist(); touchSync("prefs"); renderAccount(); renderCenter();
+    });
+    $("focus-select").addEventListener("change", function () { setFocus($("focus-select").value || null); renderCenter(); });
+    $("lang-select").addEventListener("change", function () {
+      state.ui.lang = langOf($("lang-select").value)[0];
+      persist(); touchSync("prefs"); renderCenter();
+      toast("New ideas will be written in " + langOf(state.ui.lang)[1]);
+    });
+    $("lean-toggle").addEventListener("change", function () { state.ui.lean = $("lean-toggle").checked; persist(); touchSync("prefs"); });
+    $("auto-toggle").addEventListener("change", function () {
+      state.ui.auto = $("auto-toggle").checked;
+      persist(); renderCenter();
+      if (state.ui.auto) maybeRefill(false);
+    });
+    var stocks = [10, 15, 20, 30];
+    var stepStock = function (d) {
+      var i = Math.max(0, Math.min(stocks.length - 1, stocks.indexOf(state.ui.stock) + d));
+      state.ui.stock = stocks[i];
+      persist(); renderCenter(); maybeRefill(false);
+    };
+    $("stock-down").addEventListener("click", function () { stepStock(-1); });
+    $("stock-up").addEventListener("click", function () { stepStock(1); });
+    ["theme", "size", "face", "bg", "motion", "spacing"].forEach(function (name) {
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function (r) {
+        r.addEventListener("change", function () { state.ui[name] = r.value; persist(); applyAppearance(); renderCenter(); });
+      });
+    });
+    $("dropcap-toggle").addEventListener("change", function () { state.ui.dropcap = $("dropcap-toggle").checked; persist(); applyAppearance(); });
+    $("remind-toggle").addEventListener("change", function () { setRemind($("remind-toggle").checked); });
+    $("remind-time").addEventListener("change", function () {
+      var v = $("remind-time").value;
+      if (/^\d\d:\d\d$/.test(v)) { state.ui.remind.time = v; state.ui.remind.last = ""; persist(); renderCenter(); }
+    });
+    $("remind-test").addEventListener("click", function () {
+      if (notifState() !== "granted") return;
+      notify("WisdomScroll", "This is how your daily reminder will look.").then(function (ok) { toast(ok ? "Test notification sent" : "The notification could not be shown"); });
+    });
+    $("export-all").addEventListener("click", exportAll);
+    $("restore-btn").addEventListener("click", function () { $("restore-file").value = ""; $("restore-file").click(); });
+    $("restore-file").addEventListener("change", function () { var f = $("restore-file").files && $("restore-file").files[0]; if (f) restoreFrom(f); });
+    $("clear-saved").addEventListener("click", clearSaved);
+    $("clear-btn").addEventListener("click", function () {
+      confirmBox("Clear all app data?", "Every idea, your saved ideas, preferences and API keys are removed from this browser, and this device is signed out of sync. This cannot be undone.", "Clear everything").then(function (yes) { if (yes) { clearData(); toast("All app data cleared"); } });
+    });
+    $("wipe-keys").addEventListener("click", wipeKeys);
+    setInterval(remindTick, 30000);
+    document.addEventListener("visibilitychange", remindTick);
+    remindTick();
+  }
+
   /* ---------- navigation ---------- */
   function show(name) {
     ["discover", "saved", "prefs"].forEach(function (v) {
@@ -2777,7 +3614,11 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
       if (t.dataset.view === name) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
     });
-    if (name === "prefs") renderSettings();
+    if (name === "prefs") {
+      // Settings always opens on its home page; any sub-page left in the history is dropped
+      try { if (history.state && history.state.sp) history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+      openPage("home", true);
+    }
   }
 
   /* ---------- start ---------- */
@@ -2803,6 +3644,8 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     if (ck.length > 600) ck.slice(0, ck.length - 600).forEach(function (k) { delete state.covers[k]; });
 
     recomputeTaste();
+    try { if (/^#settings/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    applyAppearance();
     renderFeed(); renderSaved(); renderSettings();
     $("check-toggle").addEventListener("change", function () {
       state.settings.check = $("check-toggle").checked;
@@ -2832,9 +3675,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     $("test-btn").addEventListener("click", testConnection);
     $("export-btn").addEventListener("click", doDownload);
     $("copy-btn").addEventListener("click", doCopy);
-    $("clear-btn").addEventListener("click", function () { $("clear-idle").hidden = true; $("clear-confirm").hidden = false; });
-    $("clear-no").addEventListener("click", function () { $("clear-confirm").hidden = true; $("clear-idle").hidden = false; });
-    $("clear-yes").addEventListener("click", clearData);
+    wireCenter();
     $("acct-signin").addEventListener("click", function () { signIn(false); });
     $("acct-signup").addEventListener("click", function () { signIn(true); });
     $("acct-signout").addEventListener("click", signOut);

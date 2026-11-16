@@ -1,5 +1,5 @@
 /* WisdomScroll service worker: keeps a copy of the app on the device so it opens offline. */
-const SHELL = "wisdomscroll-shell-v1";
+const SHELL = "wisdomscroll-shell-v2";
 const FONTS = "wisdomscroll-fonts-v1";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
@@ -54,4 +54,15 @@ self.addEventListener("fetch", (event) => {
     );
   }
   // Everything else (AI providers, sync, book covers) goes straight to the network.
+});
+
+// Tapping the daily reminder brings the app to the front, or opens it.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ("focus" in c) return c.focus(); }
+      return self.clients.openWindow("./");
+    })
+  );
 });
