@@ -230,6 +230,8 @@ textarea#export-text { width: 100%; min-height: 150px; background: var(--ink); c
 .switch input { width: 22px; height: 22px; flex: none; accent-color: var(--gold); }
 #music-embed iframe { display: block; width: 100%; height: 152px; border: 0; border-radius: 12px; }
 #music-embed:empty { display: none; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+#acct-msg:empty { display: none; }
 .sub-h { margin: 6px 0 0; font-size: .82rem; font-weight: 600; color: var(--muted); }
 .key-list { display: flex; flex-direction: column; gap: 10px; }
 .key-row { background: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 9px; }
@@ -376,6 +378,34 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
         <p class="sub">Feed your mind.</p>
         <div class="list">
           <div class="panel">
+            <h2>Account</h2>
+            <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
+            <div class="stack" id="acct-out">
+              <p>Sign in to have your API keys on all your devices. They are locked with your password before they leave this device.</p>
+              <div class="field">
+                <label for="acct-email">Email</label>
+                <input type="email" id="acct-email" autocomplete="username" autocapitalize="off" spellcheck="false" inputmode="email">
+              </div>
+              <div class="field">
+                <label for="acct-pass">Password</label>
+                <input type="password" id="acct-pass" autocomplete="current-password">
+              </div>
+              <div class="actions">
+                <button type="button" class="btn solid" id="acct-signin">Sign in</button>
+                <button type="button" class="btn" id="acct-signup">Create account</button>
+              </div>
+            </div>
+            <div class="stack" id="acct-in" hidden>
+              <p>Your API keys, the key in use, and your provider and model choice sync between your devices.</p>
+              <div class="actions">
+                <button type="button" class="btn" id="acct-sync">Sync now</button>
+                <button type="button" class="btn" id="acct-signout">Sign out</button>
+              </div>
+            </div>
+            <p class="note" id="acct-msg" role="status"></p>
+          </div>
+
+          <div class="panel">
             <h2>Daily limit</h2>
             <p>The most new ideas Claude writes for you in one day.</p>
             <div class="stepper">
@@ -467,7 +497,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 1.5</p>
+            <p>Version 1.6</p>
           </div>
         </div>
       </div>
@@ -612,6 +642,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     p = p || prov();
     memKey[p] = k;
     try { if (k) localStorage.setItem(KEY_API + "." + p, k); else localStorage.removeItem(KEY_API + "." + p); } catch (e) {}
+    touchSync();
   }
   var KEY_LIST = "wisdomscroll.keys", memList = [], shownKeys = {};
   function loadKeys() {
@@ -623,6 +654,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function storeKeys(a) {
     memList = a;
     try { localStorage.setItem(KEY_LIST, JSON.stringify(a)); } catch (e) {}
+    touchSync();
   }
   function rememberKey(k, p) {
     var a = loadKeys();
@@ -1761,10 +1793,264 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     });
   }
 
+  /* ---------- account and sync ----------
+     Sign-in and storage are a Supabase project. The publishable key below is meant to be public:
+     the database only lets a signed-in person read and write their own row. API keys are encrypted
+     on this device with a key derived from the password before they are uploaded. */
+  var SB_URL = "https://ovnnpyxliekeoddcsalm.supabase.co";
+  var SB_KEY = "sb_publishable_HrZwF0Rm4gdEJNUR3Mfkwg_h9NAu_zQ";
+  var KEY_SESSION = "wisdomscroll.session", KEY_VAULT = "wisdomscroll.vault";
+  var session = null, vault = null, vaultKey = null;
+  var applying = false, syncing = false, syncAgain = false, syncTimer = null, lastSyncTry = 0, acctBusy = false;
+  var acct = { msg: "", mood: "" };
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function b64(buf) {
+    var b = new Uint8Array(buf), out = "";
+    for (var i = 0; i < b.length; i++) out += String.fromCharCode(b[i]);
+    return btoa(out);
+  }
+  function unb64(t) {
+    var bin = atob(t), b = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+    return b;
+  }
+  function setAcct(msg, mood) { acct.msg = msg; acct.mood = mood || ""; renderAccount(); }
+  function setSession(d) {
+    session = {
+      at: d.access_token, rt: d.refresh_token,
+      exp: Date.now() + (d.expires_in || 3600) * 1000,
+      uid: (d.user && d.user.id) || (session && session.uid),
+      email: (d.user && d.user.email) || (session && session.email)
+    };
+    lsSet(KEY_SESSION, session);
+  }
+  function signOutLocal(msg) {
+    session = null; vault = null; vaultKey = null;
+    clearTimeout(syncTimer);
+    lsSet(KEY_SESSION, null);
+    lsSet(KEY_VAULT, null);
+    setAcct(msg || "", "");
+  }
+  async function sb(path, opts, asUser) {
+    opts = opts || {};
+    var h = { apikey: SB_KEY, "content-type": "application/json" };
+    if (opts.prefer) h.Prefer = opts.prefer;
+    if (asUser) { await freshSession(); h.Authorization = "Bearer " + session.at; }
+    var res = await fetch(SB_URL + path, { method: opts.method || "GET", headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    var text = await res.text(), data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (e) {}
+    if (!res.ok) {
+      throw {
+        status: res.status,
+        code: (data && (data.error_code || data.code || data.error)) || "",
+        message: (data && (data.msg || data.message || data.error_description)) || ""
+      };
+    }
+    return data;
+  }
+  async function freshSession() {
+    if (!session) throw { status: 401, code: "signed_out" };
+    if (session.exp - Date.now() > 60000) return;
+    try {
+      setSession(await sb("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: session.rt } }));
+    } catch (e) {
+      if (e && e.status) { signOutLocal("Your sign-in expired. Sign in again to keep syncing."); renderSettings(); throw { status: 401, code: "signed_out" }; }
+      throw e; // offline: keep the session and try again later
+    }
+  }
+  async function deriveKey(password, saltBytes) {
+    var base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt: saltBytes, iterations: 210000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  }
+  async function lock(obj) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, vaultKey, new TextEncoder().encode(JSON.stringify(obj)));
+    return { iv: b64(iv), ct: b64(ct) };
+  }
+  async function unlock(enc) {
+    var pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(enc.iv) }, vaultKey, unb64(enc.ct));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+  // what travels between devices: the saved keys, which one is in use, and the provider and model choice
+  function localPayload() {
+    return {
+      keys: loadKeys(),
+      active: { anthropic: getKey("anthropic"), gemini: getKey("gemini") },
+      provider: prov(),
+      models: state.settings.models
+    };
+  }
+  function applyPayload(p, mode) {
+    if (!p || !Array.isArray(p.keys)) return;
+    applying = true;
+    try {
+      var remoteKeys = p.keys.filter(function (x) { return x && x.k && PROVIDER[x.p]; });
+      var active = p.active || {};
+      if (mode === "replace") {
+        storeKeys(remoteKeys);
+        ["anthropic", "gemini"].forEach(function (pp) { setKey(active[pp] || "", pp); });
+        if (PROVIDER[p.provider]) state.settings.provider = p.provider;
+        if (p.models) ["anthropic", "gemini"].forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
+      } else {
+        var mine = loadKeys(), hadAny = mine.length > 0;
+        remoteKeys.forEach(function (x) { if (!mine.some(function (y) { return y.k === x.k && y.p === x.p; })) mine.push(x); });
+        storeKeys(mine);
+        ["anthropic", "gemini"].forEach(function (pp) { if (!getKey(pp) && active[pp]) setKey(active[pp], pp); });
+        if (!hadAny && PROVIDER[p.provider]) {
+          state.settings.provider = p.provider;
+          if (p.models) ["anthropic", "gemini"].forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
+        }
+      }
+      persist();
+    } finally { applying = false; }
+    tested = {};
+    releaseHold();
+    renderSettings();
+    renderEnd();
+    maybeRefill(false);
+  }
+  function touchSync() {
+    if (applying || !session || !vault) return;
+    vault.dirty = true;
+    lsSet(KEY_VAULT, vault);
+    if (syncing) { syncAgain = true; return; }
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(function () { syncNow(false); }, 1200);
+  }
+  function timeNow() {
+    try { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; }
+  }
+  function rowPath() { return "/rest/v1/wisdomscroll_sync?select=data,updated_at&user_id=eq." + encodeURIComponent(session.uid); }
+  async function syncNow(manual) {
+    if (!session || !vault || !vaultKey) return;
+    if (syncing) { syncAgain = true; return; }
+    syncing = true;
+    syncAgain = false;
+    lastSyncTry = Date.now();
+    if (manual) setAcct("Syncing", "");
+    try {
+      var rows = await sb(rowPath(), {}, true);
+      var row = rows && rows[0], remoteT = row ? (Date.parse(row.updated_at) || 0) : 0;
+      var push = !row || vault.dirty;
+      if (row && row.data && row.data.enc && remoteT > (vault.syncedAt || 0)) {
+        var remote = await unlock(row.data.enc);
+        applyPayload(remote, vault.dirty ? "union" : "replace"); // changes made on both sides are merged, never dropped
+      }
+      if (push) {
+        var t = Math.max(Date.now(), remoteT + 1); // always later than what is stored, whatever this device's clock says
+        await sb("/rest/v1/wisdomscroll_sync?on_conflict=user_id", {
+          method: "POST",
+          prefer: "resolution=merge-duplicates,return=minimal",
+          body: { user_id: session.uid, data: { v: 1, salt: vault.salt, enc: await lock(localPayload()) }, updated_at: new Date(t).toISOString() }
+        }, true);
+        remoteT = t;
+      }
+      vault.syncedAt = remoteT;
+      vault.dirty = syncAgain;
+      lsSet(KEY_VAULT, vault);
+      setAcct("Synced at " + timeNow(), "ok");
+    } catch (e) {
+      if (e && e.code === "signed_out") { /* message already set */ }
+      else if (e && e.name === "OperationError") setAcct("The saved keys could not be unlocked on this device. Sign out and sign in again.", "bad");
+      else if (e && e.status) setAcct("Sync failed (" + e.status + ")." + (e.message ? " " + e.message : ""), "bad");
+      else setAcct("Could not reach the sync service. Your keys still work on this device.", "bad");
+    }
+    syncing = false;
+    if (syncAgain && session) { syncAgain = false; syncNow(false); }
+  }
+  function authMessage(e) {
+    var c = (e && e.code) || "", m = (e && e.message) || "";
+    if (!e || !e.status) return "Could not reach the sign-in service. Check your internet connection.";
+    if (c === "invalid_credentials" || /invalid login/i.test(m)) return "Wrong email or password.";
+    if (c === "email_not_confirmed" || /not confirmed/i.test(m)) return "Confirm your email first: open the message that was sent to you, then sign in.";
+    if (c === "user_already_exists" || /already registered/i.test(m)) return "That email already has an account. Tap Sign in.";
+    if (c === "weak_password" || /password/i.test(m) && e.status === 422) return "Choose a longer password." + (m ? " " + m : "");
+    if (c === "signup_disabled" || /signups? not allowed/i.test(m)) return "New accounts are switched off for this app.";
+    if (e.status === 429) return "Too many attempts. Wait a few minutes and try again.";
+    return "Sign-in failed (" + e.status + ")." + (m ? " " + m : "");
+  }
+  async function signIn(isNew) {
+    if (acctBusy) return;
+    var email = $("acct-email").value.trim(), pass = $("acct-pass").value;
+    if (!/^\S+@\S+\.\S+$/.test(email)) { setAcct("Enter your email address.", "bad"); return; }
+    if (pass.length < 6) { setAcct("The password needs at least 6 characters.", "bad"); return; }
+    if (!window.crypto || !crypto.subtle) { setAcct("This browser cannot lock your keys, so sync is not available here.", "bad"); return; }
+    acctBusy = true;
+    setAcct(isNew ? "Creating your account" : "Signing in", "");
+    try {
+      var d;
+      if (isNew) {
+        d = await sb("/auth/v1/signup", { method: "POST", body: { email: email, password: pass } });
+        if (!d || !d.access_token) {
+          setAcct("Almost there. Open the confirmation email sent to " + email + ", then come back and tap Sign in.", "ok");
+          return;
+        }
+      } else {
+        d = await sb("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pass } });
+      }
+      setSession(d);
+      var rows = await sb(rowPath(), {}, true), row = rows && rows[0];
+      var salt = row && row.data && row.data.salt ? row.data.salt : b64(crypto.getRandomValues(new Uint8Array(16)));
+      vaultKey = await deriveKey(pass, unb64(salt));
+      vault = { k: b64(await crypto.subtle.exportKey("raw", vaultKey)), salt: salt, syncedAt: 0, dirty: true };
+      if (row && row.data && row.data.enc) {
+        var remote = null;
+        try { remote = await unlock(row.data.enc); }
+        catch (e) {
+          signOutLocal("Signed in, but the keys stored for this account could not be unlocked with this password. Nothing was changed.");
+          renderSettings();
+          return;
+        }
+        vault.syncedAt = Date.parse(row.updated_at) || 0;
+        lsSet(KEY_VAULT, vault);
+        applyPayload(remote, "union"); // keep what is on this device and add what the account has
+        vault.dirty = true;
+      }
+      lsSet(KEY_VAULT, vault);
+      $("acct-pass").value = "";
+      setAcct("Signed in", "ok");
+      renderSettings();
+      await syncNow(false);
+    } catch (e) {
+      if (session && !vault) signOutLocal("");
+      setAcct(authMessage(e), "bad");
+    } finally {
+      acctBusy = false;
+      renderAccount();
+    }
+  }
+  async function signOut() {
+    try { if (session) await sb("/auth/v1/logout", { method: "POST" }, true); } catch (e) {}
+    signOutLocal("Signed out. Your keys stay on this device.");
+    renderSettings();
+  }
+  async function initAccount() {
+    session = lsGet(KEY_SESSION);
+    vault = lsGet(KEY_VAULT);
+    if (!session || !session.rt || !vault || !vault.k) { session = null; vault = null; renderAccount(); return; }
+    try {
+      vaultKey = await crypto.subtle.importKey("raw", unb64(vault.k), { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
+    } catch (e) { signOutLocal("Sign in again to keep syncing."); return; }
+    renderAccount();
+    syncNow(false);
+  }
+  function renderAccount() {
+    var inn = !!session, dot = $("acct-dot");
+    $("acct-out").hidden = inn;
+    $("acct-in").hidden = !inn;
+    dot.className = "dot" + (acct.mood === "ok" || (inn && !acct.mood) ? " ok" : acct.mood === "bad" ? " bad" : "");
+    $("acct-status").textContent = inn ? "Signed in as " + (session.email || "your account") : "Not signed in";
+    $("acct-msg").textContent = acct.msg;
+    $("acct-signin").disabled = acctBusy;
+    $("acct-signup").disabled = acctBusy;
+  }
+
   /* ---------- settings ---------- */
   var tested = {}; // per provider: undefined = not tested, true/false after a test
   function renderSettings() {
     rollDay();
+    renderAccount();
     renderMusic();
     var p = prov(), info = PROVIDER[p];
     $("limit-value").textContent = state.settings.limit;
@@ -1809,6 +2095,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function setProvider(p) {
     state.settings.provider = p === "gemini" ? "gemini" : "anthropic";
     persist();
+    touchSync();
     releaseHold();
     $("test-result").textContent = "";
     renderSettings();
@@ -1954,6 +2241,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   function clearData() {
     try { localStorage.removeItem(KEY); } catch (e) {}
+    signOutLocal("");
     setKey("", "anthropic");
     setKey("", "gemini");
     storeKeys([]);
@@ -2012,7 +2300,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     });
     $("limit-down").addEventListener("click", function () { changeLimit(-10); });
     $("limit-up").addEventListener("click", function () { changeLimit(10); });
-    $("model").addEventListener("change", function () { state.settings.models[prov()] = $("model").value; persist(); });
+    $("model").addEventListener("change", function () { state.settings.models[prov()] = $("model").value; persist(); touchSync(); });
     $("provider").addEventListener("change", function () { setProvider($("provider").value); });
     $("key-save").addEventListener("click", saveKey);
     $("test-btn").addEventListener("click", testConnection);
@@ -2021,6 +2309,15 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     $("clear-btn").addEventListener("click", function () { $("clear-idle").hidden = true; $("clear-confirm").hidden = false; });
     $("clear-no").addEventListener("click", function () { $("clear-confirm").hidden = true; $("clear-idle").hidden = false; });
     $("clear-yes").addEventListener("click", clearData);
+    $("acct-signin").addEventListener("click", function () { signIn(false); });
+    $("acct-signup").addEventListener("click", function () { signIn(true); });
+    $("acct-signout").addEventListener("click", signOut);
+    $("acct-sync").addEventListener("click", function () { syncNow(true); });
+    $("acct-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") signIn(false); });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && session && Date.now() - lastSyncTry > 20000) syncNow(false);
+    });
+    initAccount();
     $("sound-btn").addEventListener("click", function () { setSound(!state.settings.sound); });
     $("sound-toggle").addEventListener("change", function () { setSound($("sound-toggle").checked); });
     $("music-btn").addEventListener("click", function (e) {
