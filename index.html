@@ -233,6 +233,14 @@ textarea#export-text { width: 100%; min-height: 150px; background: var(--ink); c
 #music-embed:empty { display: none; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.card.parked { display: none; }
+button.chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; }
+button.chip::after { content: ""; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; opacity: .85; }
+.feed[data-focus] button.chip { background: var(--gold); color: #1b1407; border-color: var(--gold); }
+.topic-box { align-items: stretch; width: min(440px, 100%); max-height: 100%; overflow-y: auto; background: var(--charcoal); border: 1px solid var(--line); border-radius: 20px; padding: 22px 18px; }
+.topic-box h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 1.5rem; text-wrap: balance; }
+.topic-box .chips { justify-content: flex-start; }
+.topic-box .chip-btn:first-child { flex-basis: 100%; text-align: center; }
 .chip-btn { min-height: 38px; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); font-size: .84rem; font-weight: 600; color: var(--muted); }
 .chip-btn[aria-pressed="true"] { color: var(--gold); border-color: rgba(220,181,108,.6); background: rgba(220,181,108,.09); }
 .profile { display: flex; align-items: center; gap: 14px; }
@@ -522,7 +530,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 2.0</p>
+            <p>Version 2.1</p>
           </div>
         </div>
       </div>
@@ -538,6 +546,15 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
         <button type="button" class="btn" id="sheet-copy">Copy text</button>
         <button type="button" class="btn" id="sheet-close">Close</button>
       </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="topic-sheet" role="dialog" aria-modal="true" aria-label="Choose what to read" hidden>
+    <div class="sheet-box topic-box">
+      <h2>What do you want to read now?</h2>
+      <p class="note">Pick a mix, or stay on one topic for a while.</p>
+      <div class="chips" id="topic-options"></div>
+      <div class="actions"><button type="button" class="btn" id="topic-close">Close</button></div>
     </div>
   </div>
 
@@ -633,6 +650,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     s.stamp = s.stamp && typeof s.stamp === "object" ? s.stamp : { keys: 0, prefs: 0 };
     s.settings.topics = s.settings.topics && typeof s.settings.topics === "object" ? s.settings.topics : {};
     s.settings.check = s.settings.check !== false;
+    s.focus = CATS.indexOf(s.focus) >= 0 ? s.focus : null;
     return s;
   }
   function freshState() {
@@ -1030,7 +1048,11 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     var a = el("article", "card g" + (card.g % 6));
     a.dataset.id = card.id;
     var top = el("div", "card-top");
-    top.appendChild(el("span", "chip", card.category));
+    var chip = el("button", "chip", card.category);
+    chip.type = "button";
+    chip.setAttribute("aria-label", "Topic: " + card.category + ". Choose what to read");
+    chip.addEventListener("click", openTopicSheet);
+    top.appendChild(chip);
     var body = el("div", "card-body");
     body.appendChild(el("p", "idea " + sizeClass(card.text), card.text));
     var cap = el("div", "caption");
@@ -1419,6 +1441,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       });
     }, { root: feed, rootMargin: "200% 0px" });
     Array.prototype.forEach.call(feed.children, watch);
+    applyFocus();
     var target = null;
     if (state.pos) target = feed.querySelector('[data-id="' + state.pos + '"]');
     if (!target) {
@@ -1442,7 +1465,53 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       maybeRefill(false);
     });
   }
-  function unseenCount() { return state.cards.filter(function (c) { return !c.seen; }).length; }
+  /* ---------- reading one topic at a time ---------- */
+  function fitsFocus(c) { return !state.focus || c.seen || c.category === state.focus || c.id === currentId || c.id === state.pos; }
+  function unseenCount() { return state.cards.filter(function (c) { return !c.seen && fitsFocus(c); }).length; }
+  // Unread cards from other topics are set aside, not deleted: they come back when the mix is chosen again.
+  function applyFocus() {
+    if (state.focus) feed.dataset.focus = state.focus; else delete feed.dataset.focus;
+    var cur = currentId && currentId !== "end" ? feed.querySelector('[data-id="' + currentId + '"]') : null;
+    var before = cur ? cur.offsetTop : null;
+    state.cards.forEach(function (c) {
+      var node = feed.querySelector('[data-id="' + c.id + '"]');
+      if (node) node.classList.toggle("parked", !fitsFocus(c));
+    });
+    if (cur && cur.offsetTop !== before) feed.scrollTop = cur.offsetTop; // keep the same card on screen
+  }
+  function renderTopicSheet() {
+    var box = $("topic-options");
+    box.textContent = "";
+    var add = function (label, cat) {
+      var b = el("button", "chip-btn", label);
+      b.type = "button";
+      b.setAttribute("aria-pressed", (state.focus || null) === cat ? "true" : "false");
+      b.addEventListener("click", function () { setFocus(cat); });
+      box.appendChild(b);
+    };
+    add("Mix of my topics", null);
+    CATS.forEach(function (c) { add(c, c); });
+  }
+  function openTopicSheet() { renderTopicSheet(); $("topic-sheet").hidden = false; }
+  function closeTopicSheet() { $("topic-sheet").hidden = true; }
+  function setFocus(cat) {
+    state.focus = cat || null;
+    persist();
+    closeTopicSheet();
+    applyFocus();
+    renderEnd();
+    toast(cat ? "Showing only " + cat : "Showing a mix of your topics");
+    if (cat) {
+      // go to the first unread idea of that topic, or to the progress screen while more are written
+      var next = state.cards.find(function (c) { return !c.seen && c.category === cat; });
+      var node = next ? feed.querySelector('[data-id="' + next.id + '"]') : endEl;
+      var here = currentCard();
+      if (node && !(here && here.category === cat && !next)) {
+        try { feed.scrollTo({ top: node.offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = node.offsetTop; }
+      }
+    }
+    if (unseenCount() < LOW_STOCK) maybeRefill(true);
+  }
 
   /* ---------- ambient sound: made by the app itself, a different texture for every card ---------- */
   var MOOD_OF = {
@@ -1690,7 +1759,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       case "auth": title = "Your API key was rejected"; text = "Check the key and the provider in Settings, then try again."; action = "Open Settings"; go = toSettings; break;
       case "rate": title = "The API is at its limit"; text = "Your key hit a rate or spending limit. Try again in a while."; action = "Try again"; break;
       case "error": title = "Could not get new ideas"; text = gen.detail || "The request failed. Your earlier and saved ideas are still here."; action = "Try again"; break;
-      default: title = "You are up to date"; text = "More ideas arrive as you read."; action = "Get more ideas";
+      default: title = "You are up to date"; text = state.focus ? "You have read every " + state.focus + " idea so far." : "More ideas arrive as you read."; action = "Get more ideas";
     }
     if (busy) endEl.appendChild(el("div", "pulse"));
     endEl.appendChild(el("h2", null, title));
@@ -1760,11 +1829,11 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   function pickSlots(n) {
     var cats = [];
-    for (var i = 0; i < n; i++) cats.push(nextFromDeck());
+    for (var i = 0; i < n; i++) cats.push(state.focus || nextFromDeck()); // one topic chosen: every place goes to it
     // a light lean toward what the reader likes: at most two places per batch
     var on = enabledCats();
     var fav = on.filter(function (c) { return (state.taste[c] || 0) > 0; }).sort(function (a, b) { return state.taste[b] - state.taste[a]; }).slice(0, 2);
-    if (n >= 6) {
+    if (n >= 6 && !state.focus) {
       fav.forEach(function (f, k) {
         if (cats.filter(function (c) { return c === f; }).length >= 2) return;
         var idx = cats.length - 1 - k;
@@ -1899,6 +1968,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       c.g = lastG;
       state.cards.push(c);
       var node = cardEl(c, false);
+      if (!fitsFocus(c)) node.classList.add("parked");
       frag.appendChild(node);
       nodes.push(node);
     });
@@ -1956,13 +2026,13 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       }
       // topics may have been switched off while this batch was being written
       var onNow = enabledCats();
-      cands = cands.filter(function (c) { return onNow.indexOf(c.category) >= 0; });
+      cands = cands.filter(function (c) { return onNow.indexOf(c.category) >= 0 || c.category === state.focus; });
       if (!cands.length) throw { topicsChanged: true };
       // topics whose idea did not survive the checks go back to the front of the queue, so the balance holds
       var got = {}, missing = [];
       cands.forEach(function (c) { got[c.category] = (got[c.category] || 0) + 1; });
       slots.forEach(function (sl) { if (got[sl.cat] > 0) got[sl.cat]--; else missing.push(sl.cat); });
-      state.deck = missing.concat(state.deck).slice(0, CATS.length * 2);
+      if (!slots.every(function (sl) { return sl.cat === slots[0].cat; })) state.deck = missing.concat(state.deck).slice(0, CATS.length * 2);
       gen.pct = 96; gen.note = "adding to your feed";
       renderProgress();
       var fresh = finalize(cands);
@@ -1988,7 +2058,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     gen.busy = false;
     renderProgress();
     // the checks removed a lot: top the feed up once more, but never in a loop
-    if (added && added < n / 2 && !gen.chained && unseenCount() < LOW_STOCK) { gen.chained = true; maybeRefill(false); }
+    if (gen.status === "idle" && !gen.chained && unseenCount() < LOW_STOCK) { gen.chained = true; maybeRefill(false); }
     else gen.chained = false;
   }
 
@@ -2450,7 +2520,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function pruneTopics() {
     var on = enabledCats(), keep = currentId && currentId !== "end" ? currentId : state.pos;
     var before = state.cards.length;
-    state.cards = state.cards.filter(function (c) { return c.seen || c.id === keep || on.indexOf(c.category) >= 0; });
+    state.cards = state.cards.filter(function (c) { return c.seen || c.id === keep || on.indexOf(c.category) >= 0 || c.category === state.focus; });
     if (state.cards.length !== before) { persist(); renderFeed(); }
   }
   var topicTimer = null;
@@ -2784,6 +2854,8 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       if (!actx) return;
       try { if (document.hidden) actx.suspend(); else if (state.settings.sound) wakeSound(); } catch (e) {}
     });
+    $("topic-close").addEventListener("click", closeTopicSheet);
+    $("topic-sheet").addEventListener("click", function (e) { if (e.target === $("topic-sheet")) closeTopicSheet(); });
     $("sheet-close").addEventListener("click", closeSheet);
     $("sheet-save").addEventListener("click", saveShareImage);
     $("sheet-copy").addEventListener("click", function () { if (shareFor) copyCard(shareFor); });
