@@ -453,6 +453,11 @@ html[data-motion="reduced"] .burst { display: none; }
 .contact-btn i { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--charcoal); border: 1px solid rgba(220,181,108,.5); color: var(--gold); transition: transform .16s ease; }
 .contact-btn:active i { transform: scale(.92); }
 .contact-btn svg.ico { width: 24px; height: 24px; }
+.contact-icons { gap: 34px; }
+.contact-btn { gap: 6px; min-width: 96px; font-size: .86rem; }
+.contact-btn i { width: 64px; height: 64px; margin-bottom: 3px; background: linear-gradient(145deg, #ecd197, #b98d3f); border-color: transparent; color: #1b1407; box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+.contact-btn svg.ico { width: 28px; height: 28px; stroke-width: 1.9; }
+.contact-btn small { font-size: .76rem; font-weight: 500; color: var(--muted); }
 
 </style>
 </head>
@@ -525,8 +530,8 @@ html[data-motion="reduced"] .burst { display: none; }
           <div id="contact-home" hidden>
             <div class="sgroup-label center">Contact us</div>
             <div class="contact-icons">
-              <a class="contact-btn" id="contact-tg" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /></svg></i><span>Telegram</span></a>
-              <a class="contact-btn" id="contact-ig" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /> <circle cx="12" cy="13" r="3" /></svg></i><span>Instagram</span></a>
+              <a class="contact-btn" id="contact-tg" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /></svg></i><span>Telegram</span><small id="contact-tg-name"></small></a>
+              <a class="contact-btn" id="contact-ig" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /> <circle cx="12" cy="13" r="3" /></svg></i><span>Instagram</span><small id="contact-ig-name"></small></a>
             </div>
           </div>
         </div>
@@ -3547,7 +3552,7 @@ html[data-motion="reduced"] .burst { display: none; }
     [["contact-tg", CONTACT.telegram, "https://t.me/"], ["contact-ig", CONTACT.instagram, "https://www.instagram.com/"]].forEach(function (c) {
       var n = $(c[0]);
       n.hidden = !c[1];
-      if (c[1]) { n.href = c[2] + c[1]; n.setAttribute("aria-label", n.textContent + " @" + c[1]); }
+      if (c[1]) { n.href = c[2] + c[1]; $(c[0] + "-name").textContent = "@" + c[1]; }
     });
     var cl = $("contact-list");
     if (cl.childElementCount !== links.length) {
