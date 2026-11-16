@@ -447,6 +447,12 @@ html[data-motion="reduced"] .spage, html[data-motion="reduced"] .toast, html[dat
 html[data-motion="reduced"] .burst { display: none; }
 @media (prefers-reduced-motion: reduce) { .spage, .spage.active { transition: none; } }
 @media (min-width: 700px) { .srow { min-height: 54px; } }
+.sgroup-label.center { text-align: center; margin-top: 28px; }
+.contact-icons { display: flex; justify-content: center; gap: 28px; padding: 4px 0 8px; }
+.contact-btn { display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 76px; color: var(--cream); font-size: .78rem; font-weight: 600; text-decoration: none; }
+.contact-btn i { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--charcoal); border: 1px solid rgba(220,181,108,.5); color: var(--gold); transition: transform .16s ease; }
+.contact-btn:active i { transform: scale(.92); }
+.contact-btn svg.ico { width: 24px; height: 24px; }
 
 </style>
 </head>
@@ -514,6 +520,14 @@ html[data-motion="reduced"] .burst { display: none; }
             <button type="button" class="srow" data-open="help"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="m4.93 4.93 4.24 4.24" /> <path d="m14.83 9.17 4.24-4.24" /> <path d="m14.83 14.83 4.24 4.24" /> <path d="m9.17 14.83-4.24 4.24" /> <circle cx="12" cy="12" r="4" /></svg><span class="srow-text"><span class="srow-title">Help &amp; Support</span><span class="srow-sub">Questions and troubleshooting</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span><span class="srow-sub">How your information is handled</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="terms"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12h-5" /> <path d="M15 8h-5" /> <path d="M19 17V5a2 2 0 0 0-2-2H4" /> <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></svg><span class="srow-text"><span class="srow-title">Terms of Use</span><span class="srow-sub">The conditions for using the app</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+
+          <div id="contact-home" hidden>
+            <div class="sgroup-label center">Contact us</div>
+            <div class="contact-icons">
+              <a class="contact-btn" id="contact-tg" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /></svg></i><span>Telegram</span></a>
+              <a class="contact-btn" id="contact-ig" target="_blank" rel="noopener" hidden><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /> <circle cx="12" cy="13" r="3" /></svg></i><span>Instagram</span></a>
+            </div>
           </div>
         </div>
       </div>
@@ -3529,6 +3543,12 @@ html[data-motion="reduced"] .burst { display: none; }
     if (CONTACT.telegram) links.push(["Telegram", "@" + CONTACT.telegram, "https://t.me/" + CONTACT.telegram]);
     if (CONTACT.instagram) links.push(["Instagram", "@" + CONTACT.instagram, "https://www.instagram.com/" + CONTACT.instagram + "/"]);
     $("contact-block").hidden = !links.length;
+    $("contact-home").hidden = !links.length;
+    [["contact-tg", CONTACT.telegram, "https://t.me/"], ["contact-ig", CONTACT.instagram, "https://www.instagram.com/"]].forEach(function (c) {
+      var n = $(c[0]);
+      n.hidden = !c[1];
+      if (c[1]) { n.href = c[2] + c[1]; n.setAttribute("aria-label", n.textContent + " @" + c[1]); }
+    });
     var cl = $("contact-list");
     if (cl.childElementCount !== links.length) {
       cl.textContent = "";
