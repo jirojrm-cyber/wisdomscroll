@@ -381,10 +381,10 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>Account</h2>
             <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
             <div class="stack" id="acct-out">
-              <p>Sign in to have your API keys on all your devices. They are locked with your password before they leave this device.</p>
+              <p>Choose a username and password to have your API keys on all your devices. They are locked with your password before they leave this device. There is no password reset, so keep the password somewhere safe.</p>
               <div class="field">
-                <label for="acct-email">Email</label>
-                <input type="email" id="acct-email" autocomplete="username" autocapitalize="off" spellcheck="false" inputmode="email">
+                <label for="acct-email">Username</label>
+                <input type="text" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
               </div>
               <div class="field">
                 <label for="acct-pass">Password</label>
@@ -497,7 +497,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
             <h2>About WisdomScroll</h2>
             <p>Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
             <p>Book covers come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. A cover can be missing or show a different edition.</p>
-            <p>Version 1.6</p>
+            <p>Version 1.7</p>
           </div>
         </div>
       </div>
@@ -1800,6 +1800,14 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   var SB_URL = "https://ovnnpyxliekeoddcsalm.supabase.co";
   var SB_KEY = "sb_publishable_HrZwF0Rm4gdEJNUR3Mfkwg_h9NAu_zQ";
   var KEY_SESSION = "wisdomscroll.session", KEY_VAULT = "wisdomscroll.vault";
+  // The sign-in service identifies accounts by an email-shaped name, so a username is stored as
+  // username@<this app's own address>. No mail is ever sent there.
+  var NAME_DOMAIN = "jirojrm-cyber.github.io";
+  function accountName(email) {
+    email = String(email || "");
+    var tail = "@" + NAME_DOMAIN;
+    return email.slice(-tail.length) === tail ? email.slice(0, -tail.length) : email;
+  }
   var session = null, vault = null, vaultKey = null;
   var applying = false, syncing = false, syncAgain = false, syncTimer = null, lastSyncTry = 0, acctBusy = false;
   var acct = { msg: "", mood: "" };
@@ -1962,9 +1970,11 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   function authMessage(e) {
     var c = (e && e.code) || "", m = (e && e.message) || "";
     if (!e || !e.status) return "Could not reach the sign-in service. Check your internet connection.";
-    if (c === "invalid_credentials" || /invalid login/i.test(m)) return "Wrong email or password.";
-    if (c === "email_not_confirmed" || /not confirmed/i.test(m)) return "Confirm your email first: open the message that was sent to you, then sign in.";
-    if (c === "user_already_exists" || /already registered/i.test(m)) return "That email already has an account. Tap Sign in.";
+    if (c === "invalid_credentials" || /invalid login/i.test(m)) return "Wrong username or password.";
+    if (c === "email_not_confirmed" || /not confirmed/i.test(m)) return "This account was created while email confirmation was on, so it cannot sign in. Switch off Confirm email in the Supabase project and create the account again with a new username.";
+    if (c === "user_already_exists" || /already registered/i.test(m)) return "That username is taken. If it is yours, tap Sign in.";
+    if (c === "email_address_invalid" || /email address .*invalid/i.test(m)) return "The sign-in service did not accept this username. Try one with only letters and numbers.";
+    if (c === "email_provider_disabled") return "Password sign-in is switched off in the Supabase project.";
     if (c === "weak_password" || /password/i.test(m) && e.status === 422) return "Choose a longer password." + (m ? " " + m : "");
     if (c === "signup_disabled" || /signups? not allowed/i.test(m)) return "New accounts are switched off for this app.";
     if (e.status === 429) return "Too many attempts. Wait a few minutes and try again.";
@@ -1972,8 +1982,14 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
   }
   async function signIn(isNew) {
     if (acctBusy) return;
-    var email = $("acct-email").value.trim(), pass = $("acct-pass").value;
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setAcct("Enter your email address.", "bad"); return; }
+    var typed = $("acct-email").value.trim().toLowerCase(), pass = $("acct-pass").value, email, byName = typed.indexOf("@") < 0;
+    if (byName) {
+      if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(typed)) { setAcct("Choose a username of 3 to 30 letters, numbers, dots, dashes or underscores.", "bad"); return; }
+      email = typed + "@" + NAME_DOMAIN;
+    } else {
+      if (!/^\S+@\S+\.\S+$/.test(typed)) { setAcct("Enter your username.", "bad"); return; }
+      email = typed; // an account made earlier with an email address still works
+    }
     if (pass.length < 6) { setAcct("The password needs at least 6 characters.", "bad"); return; }
     if (!window.crypto || !crypto.subtle) { setAcct("This browser cannot lock your keys, so sync is not available here.", "bad"); return; }
     acctBusy = true;
@@ -1983,7 +1999,9 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
       if (isNew) {
         d = await sb("/auth/v1/signup", { method: "POST", body: { email: email, password: pass } });
         if (!d || !d.access_token) {
-          setAcct("Almost there. Open the confirmation email sent to " + email + ", then come back and tap Sign in.", "ok");
+          setAcct(byName
+            ? "The sign-in service is still set to confirm accounts by email, which a username cannot receive. In the Supabase project, switch off Confirm email in the Email sign-in settings, then create the account again with a new username."
+            : "Almost there. Open the confirmation email sent to " + email + ", then come back and tap Sign in.", byName ? "bad" : "ok");
           return;
         }
       } else {
@@ -2040,7 +2058,7 @@ body { position: fixed; inset: 0; width: 100%; height: 100%; overscroll-behavior
     $("acct-out").hidden = inn;
     $("acct-in").hidden = !inn;
     dot.className = "dot" + (acct.mood === "ok" || (inn && !acct.mood) ? " ok" : acct.mood === "bad" ? " bad" : "");
-    $("acct-status").textContent = inn ? "Signed in as " + (session.email || "your account") : "Not signed in";
+    $("acct-status").textContent = inn ? "Signed in as " + (accountName(session.email) || "your account") : "Not signed in";
     $("acct-msg").textContent = acct.msg;
     $("acct-signin").disabled = acctBusy;
     $("acct-signup").disabled = acctBusy;
