@@ -454,6 +454,15 @@ html[data-motion="reduced"] .burst { display: none; }
 .contact-btn:active i { transform: scale(.92); }
 .contact-btn svg.ico { width: 24px; height: 24px; }
 
+
+/* "Newest" arrow on Discover */
+.newest { position: absolute; z-index: 6; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 58px); display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 5px 10px 5px 13px; border-radius: 999px; background: rgba(8,13,24,.62); border: 1px solid rgba(220,181,108,.55); color: var(--gold); font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: slide .3s ease both; }
+.newest[hidden] { display: none; }
+.newest svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; animation: nudge 1.8s ease-in-out infinite; }
+.newest:active { transform: scale(.95); }
+@keyframes nudge { 0%, 60%, 100% { transform: none; } 30% { transform: translateY(3px); } }
+html[data-motion="reduced"] .newest, html[data-motion="reduced"] .newest svg { animation: none; }
+@media (prefers-reduced-motion: reduce) { .newest, .newest svg { animation: none; } }
 </style>
 </head>
 <body>
@@ -472,6 +481,7 @@ html[data-motion="reduced"] .burst { display: none; }
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.500V5.500l10-2v12"/><circle cx="6.500" cy="17.500" r="2.500"/><circle cx="16.500" cy="15.500" r="2.500"/></svg>
         </a>
       </div>
+      <button type="button" class="newest" id="newest-btn" hidden aria-label="Go to the newest ideas"><span>Newest</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></button>
       <div class="feed" id="feed" tabindex="0" aria-label="Ideas feed"></div>
     </section>
 
@@ -1057,7 +1067,7 @@ html[data-motion="reduced"] .burst { display: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.0";
+  var APP_VERSION = "3.1";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1974,7 +1984,51 @@ html[data-motion="reduced"] .burst { display: none; }
       }
       maybeRefill(false);
     });
+    updateNewest();
   }
+  /* ---------- "Newest" arrow: jump to the most recently written unread ideas ---------- */
+  function birth(c) { var m = /^c([0-9a-z]{8})/.exec((c && c.id) || ""); return m ? parseInt(m[1], 36) : 0; }
+  function newestPlan() {
+    var cur = currentCard(), at = cur ? state.cards.indexOf(cur) : -1;
+    var unread = state.cards.filter(function (c) { return !c.seen && fitsFocus(c) && c !== cur && birth(c) > 0; });
+    if (!unread.length) return null;
+    var newest = unread.reduce(function (a, c) { return birth(c) > birth(a) ? c : a; });
+    var next = null;
+    for (var i = at + 1; i < state.cards.length; i++) { if (fitsFocus(state.cards[i])) { next = state.cards[i]; break; } }
+    if (next === newest) return null; // the newest idea is already the next swipe
+    return { cur: cur, unread: unread };
+  }
+  function updateNewest() {
+    var b = $("newest-btn");
+    if (!b) return;
+    var show = currentId !== "end" && !!newestPlan();
+    if (b.hidden === !show) return;
+    b.hidden = !show;
+  }
+  function jumpNewest() {
+    var plan = newestPlan();
+    if (!plan) { updateNewest(); return; }
+    var list = plan.unread.slice().sort(function (a, b) { return birth(b) - birth(a); }); // newest first
+    var curNode = plan.cur ? feed.querySelector('[data-id="' + plan.cur.id + '"]') : null;
+    // put them straight after the card on screen, newest first, in the stored order and on the page
+    state.cards = state.cards.filter(function (c) { return list.indexOf(c) < 0; });
+    var at = plan.cur ? state.cards.indexOf(plan.cur) + 1 : state.cards.length;
+    Array.prototype.splice.apply(state.cards, [at, 0].concat(list));
+    var anchor = curNode ? curNode.nextSibling : endEl;
+    list.forEach(function (c) {
+      var n = feed.querySelector('[data-id="' + c.id + '"]');
+      if (n) feed.insertBefore(n, anchor);
+    });
+    if (curNode) feed.scrollTop = curNode.offsetTop; // a card moved from above must not shift the one on screen
+    persist();
+    var first = feed.querySelector('[data-id="' + list[0].id + '"]');
+    $("newest-btn").hidden = true;
+    if (first) requestAnimationFrame(function () {
+      var reduce = state.ui.motion === "reduced" || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+      try { feed.scrollTo({ top: first.offsetTop, behavior: reduce ? "auto" : "smooth" }); } catch (e) { feed.scrollTop = first.offsetTop; }
+    });
+  }
+
   /* ---------- reading one topic at a time ---------- */
   function fitsFocus(c) { return !state.focus || c.category === state.focus || c.id === currentId || c.id === state.pos; }
   function unseenCount() { return state.cards.filter(function (c) { return !c.seen && fitsFocus(c); }).length; }
@@ -2500,6 +2554,7 @@ html[data-motion="reduced"] .burst { display: none; }
     if (state.concepts.length > 700) state.concepts = state.concepts.slice(-700);
     if (state.memo.length > 900) state.memo = state.memo.slice(-900);
     if (atEnd && nodes.length) { try { feed.scrollTo({ top: nodes[0].offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = nodes[0].offsetTop; } }
+    updateNewest();
   }
   function lowStock() { return (state.ui && state.ui.stock) || LOW_STOCK; }
   var HOLD = ["error", "rate", "auth", "nokey"]; // states that wait for a tap; never retried automatically
@@ -3302,6 +3357,7 @@ html[data-motion="reduced"] .burst { display: none; }
     var n = ordered.filter(function (c) { return !state.focus || c.category === state.focus; }).length;
     toast("Shuffled " + n + (n === 1 ? " idea" : " ideas"));
     maybeRefill(false); // new ideas are still written when the unread ones run low
+    setTimeout(updateNewest, 300);
   }
 
   /* ---------- Settings Center: pages, confirmations, appearance, reminders, data ---------- */
@@ -3715,6 +3771,7 @@ html[data-motion="reduced"] .burst { display: none; }
     $("export-btn").addEventListener("click", doDownload);
     $("copy-btn").addEventListener("click", doCopy);
     wireCenter();
+    $("newest-btn").addEventListener("click", jumpNewest);
     $("acct-signin").addEventListener("click", function () { signIn(false); });
     $("acct-signup").addEventListener("click", function () { signIn(true); });
     $("acct-signout").addEventListener("click", signOut);
