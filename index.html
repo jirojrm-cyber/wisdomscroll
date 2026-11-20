@@ -500,6 +500,33 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 .col-label { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .col-n { color: var(--muted); font-size: .82rem; }
 #col-sheet .actions, #name-sheet .actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* v3.3: welcome guide and sharing */
+.welcome { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px calc(env(safe-area-inset-bottom, 0px) + 14px); background: radial-gradient(120% 80% at 50% 0%, #1a2440 0%, var(--ink) 60%); }
+.welcome[hidden] { display: none; }
+.wbox { position: relative; width: min(440px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 34px 6px 4px; }
+.wskip { position: absolute; top: 0; right: 4px; }
+.wstep { display: flex; flex-direction: column; gap: 14px; animation: slide .3s ease both; }
+.wstep[hidden] { display: none; }
+.wstep h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 1.9rem; line-height: 1.15; text-wrap: balance; }
+.wlogo { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center; border: 1px solid rgba(220,181,108,.45); background: linear-gradient(150deg, #16203a, #0a101d); }
+.wlogo svg { width: 34px; height: 34px; fill: none; stroke: var(--gold); stroke-width: 1.4; stroke-linejoin: round; }
+.wtag { margin: -6px 0 0; color: var(--gold); font-weight: 600; letter-spacing: .04em; }
+.wlist { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 9px; color: var(--muted); font-size: .95rem; line-height: 1.4; }
+.wlist b { color: var(--cream); font-weight: 600; }
+.wlist.num { padding-left: 1.4em; }
+.wstack { display: flex; flex-direction: column; gap: 12px; }
+.wstack a.btn { text-decoration: none; display: flex; align-items: center; }
+.wstack .btn { align-self: stretch; text-align: center; justify-content: center; }
+.wdone { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(140,200,150,.4); background: rgba(140,200,150,.08); color: #bfe3c6; font-size: .92rem; }
+.note.small { font-size: .78rem; }
+.wnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 6px; }
+.wnav .btn { min-width: 108px; justify-content: center; }
+.wnav #wl-back[hidden] { display: inline-flex; visibility: hidden; }
+.wdots { display: flex; gap: 7px; }
+.wdots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(244,236,220,.22); transition: background .2s, width .2s; }
+.wdots i.on { width: 20px; border-radius: 4px; background: var(--gold); }
+.about-share { justify-content: center; margin: 2px 0 14px; display: flex; }
 </style>
 </head>
 <body>
@@ -572,6 +599,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Information</div>
           <div class="sgroup">
+            <button type="button" class="srow" data-share-app><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" /> <circle cx="6" cy="12" r="3" /> <circle cx="18" cy="19" r="3" /> <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" /> <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" /></svg><span class="srow-text"><span class="srow-title">Share WisdomScroll</span><span class="srow-sub">Send the app to a friend</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="about"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="M12 16v-4" /> <path d="M12 8h.01" /></svg><span class="srow-text"><span class="srow-title">About WisdomScroll</span><span class="srow-sub" id="row-about">Version and credits</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="help"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="m4.93 4.93 4.24 4.24" /> <path d="m14.83 9.17 4.24-4.24" /> <path d="m14.83 14.83 4.24 4.24" /> <path d="m9.17 14.83-4.24 4.24" /> <circle cx="12" cy="12" r="4" /></svg><span class="srow-text"><span class="srow-title">Help &amp; Support</span><span class="srow-sub">Questions and troubleshooting</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span><span class="srow-sub">How your information is handled</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
@@ -936,6 +964,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <div class="note" id="app-version"></div>
           </div>
 
+          <div class="actions about-share"><button type="button" class="btn solid" data-share-app>Share WisdomScroll</button></div>
+
           <div class="sgroup pad" id="install-panel" hidden>
             <p class="note" id="install-note"></p>
             <div class="actions"><button type="button" class="btn solid" id="install-btn" hidden>Install WisdomScroll</button></div>
@@ -975,10 +1005,15 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       <div class="spage" data-page="help">
         <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>Help &amp; Support</h2></header>
         <div class="page">
+          <div class="sgroup">
+            <button type="button" class="srow" id="help-welcome"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /> <path d="M20 3v4" /> <path d="M22 5h-4" /> <path d="M4 17v2" /> <path d="M5 18H3" /></svg><span class="srow-text"><span class="srow-title">Show the welcome guide</span><span class="srow-sub">What the app does and how to set it up</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+
           <div class="sgroup-label">Frequently asked questions</div>
           <div class="sgroup faq">
             <details><summary>Are these real quotations?</summary><p>No. Each card states an idea from the named book in the AI's own words. The app checks each idea twice, but nothing reads the book itself, so treat a card as a pointer to the book and not as a quotation.</p></details>
-            <details><summary>Why do I need an API key?</summary><p>The ideas are written by an AI service that charges per use. The app has no server of its own, so it uses a key from your own Anthropic or Google account. Add it in AI &amp; Generation.</p></details>
+            <details><summary>Why do I need an API key?</summary><p>The ideas are written by an AI service. The app has no server of its own, so it uses a key from your own account. A Google Gemini key is free to create at aistudio.google.com: sign in with Google and choose Get API key. Add it in AI &amp; Generation.</p></details>
+            <details><summary>How do I share the app with a friend?</summary><p>Tap Share WisdomScroll in Settings and send the link. Your friend opens it, adds it to the Home Screen and adds their own key. Your key, ideas and saved cards are never shared.</p></details>
             <details><summary>What happens to ideas after I swipe past them?</summary><p>They stay on this device. Swipe back to see them, or tap Discover to shuffle every stored idea into a new order. The app keeps the most recent 300 and remembers older books and ideas so they are not repeated.</p></details>
             <details><summary>How do I read only one topic?</summary><p>Tap the topic label at the top of any card, or use Reading Preferences, and choose a topic. Choose Mix of my topics to go back.</p></details>
             <details><summary>Does it work offline?</summary><p>Yes, for the ideas already on the device. Writing new ideas, loading covers and syncing need a connection.</p></details>
@@ -1081,6 +1116,59 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     </div>
   </div>
 
+  <div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-label="Welcome to WisdomScroll" hidden>
+    <div class="wbox">
+      <button type="button" class="wskip link" id="wl-skip">Not now</button>
+      <section class="wstep">
+        <span class="wlogo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7.2 4.5 3.5 5v13c3.7-.5 6.5 0 8.5 1.5 2-1.5 4.8-2 8.5-1.5V5C16.8 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/></svg></span>
+        <h2>Welcome to WisdomScroll</h2>
+        <p class="wtag">Feed your mind.</p>
+        <p class="note">One idea from a real book with every swipe, instead of endless scrolling.</p>
+        <ul class="wlist">
+          <li><b>Swipe up</b> for the next idea.</li>
+          <li><b>Like, save and share</b> the ones that stay with you.</li>
+          <li><b>Tap the topic label</b> to read one subject or a mix.</li>
+          <li><b>Headphones</b> read ideas aloud, hands-free.</li>
+        </ul>
+      </section>
+      <section class="wstep" hidden>
+        <h2>Connect a free AI key</h2>
+        <p class="note">New ideas are written by AI using your own key. A Google Gemini key is free and takes about a minute.</p>
+        <div id="wl-key-form" class="wstack">
+          <ol class="wlist num">
+            <li>Open Google AI Studio and sign in with Google.</li>
+            <li>Tap <b>Get API key</b>, create one, and copy it.</li>
+            <li>Paste it here.</li>
+          </ol>
+          <a class="btn" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
+          <div class="field"><input type="password" id="wl-key" placeholder="Paste your key" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="API key"></div>
+          <button type="button" class="btn solid" id="wl-key-save">Save key</button>
+          <p class="note" id="wl-key-msg" role="status"></p>
+          <p class="note">Already use WisdomScroll on another device? <button type="button" class="link" id="wl-signin">Sign in to sync</button></p>
+        </div>
+        <p class="wdone" id="wl-key-done" hidden>Key saved. Your first ideas are being written.</p>
+        <p class="note small">Your key stays on this device. It is only sent to the AI provider.</p>
+      </section>
+      <section class="wstep" hidden>
+        <h2>Keep it on your Home Screen</h2>
+        <p class="note">It then opens full-screen like a normal app and works offline.</p>
+        <ol class="wlist num" id="wl-inst-apple" hidden>
+          <li>Open this page in <b>Safari</b>.</li>
+          <li>Tap <b>Share</b> at the bottom of the screen.</li>
+          <li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+        </ol>
+        <button type="button" class="btn solid" id="wl-inst-btn" hidden>Install WisdomScroll</button>
+        <p class="note" id="wl-inst-other" hidden>Open your browser's menu and choose <b>Install app</b> or <b>Add to Home screen</b>.</p>
+        <p class="wdone" id="wl-inst-done" hidden>WisdomScroll is already installed on this device.</p>
+      </section>
+      <div class="wnav">
+        <button type="button" class="btn" id="wl-back" style="visibility:hidden">Back</button>
+        <span class="wdots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <button type="button" class="btn solid" id="wl-next">Next</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet" id="col-sheet" role="dialog" aria-modal="true" aria-label="Collections" hidden>
     <div class="sheet-box topic-box">
       <h2>Add to collection</h2>
@@ -1137,7 +1225,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.2";
+  var APP_VERSION = "3.3";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1238,6 +1326,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       spacing: pick(ui.spacing, ["normal", "relaxed"], "normal"),
       dropcap: ui.dropcap !== false,
       lean: ui.lean !== false,
+      welcomed: ui.welcomed === true,
       auto: ui.auto !== false,
       stock: pick(+ui.stock, [10, 15, 20, 30], 15),
       remind: { on: rm.on === true, time: /^\d\d:\d\d$/.test(rm.time || "") ? rm.time : "20:00", last: typeof rm.last === "string" ? rm.last : "" }
@@ -2067,6 +2156,74 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     updateNewest(true);
     if (listen.on && listen.id !== currentId) speakCurrent();
   }
+  /* ---------- sharing the app ---------- */
+  var APP_URL = "https://jirojrm-cyber.github.io/wisdomscroll/";
+  function appUrl() { return /github\.io$/.test(location.hostname) ? location.origin + location.pathname.replace(/[^/]*$/, "") : APP_URL; }
+  function shareApp() {
+    var url = appUrl(), text = "WisdomScroll: one idea from a great book with every swipe. Feed your mind.";
+    var copy = function () {
+      var done = function () { toast("Link copied. Paste it to a friend"); };
+      try { navigator.clipboard.writeText(url).then(done, function () { prompt("Copy this link:", url); }); }
+      catch (e) { prompt("Copy this link:", url); }
+    };
+    if (navigator.share) {
+      navigator.share({ title: "WisdomScroll", text: text, url: url }).catch(function (e) { if (!e || e.name !== "AbortError") copy(); });
+    } else copy();
+  }
+
+  /* ---------- welcome guide for first-time visitors ---------- */
+  var wl = { step: 0, inst: null };
+  function hasAnyKey() { return !!(getKey("anthropic") || getKey("gemini") || loadKeys().length); }
+  function renderWelcome() {
+    var n = 3;
+    Array.prototype.forEach.call(document.querySelectorAll("#welcome .wstep"), function (p, i) { p.hidden = i !== wl.step; });
+    Array.prototype.forEach.call(document.querySelectorAll("#welcome .wdots i"), function (d, i) { d.classList.toggle("on", i === wl.step); });
+    $("wl-back").style.visibility = wl.step === 0 ? "hidden" : "visible";
+    $("wl-next").textContent = wl.step === n - 1 ? "Start reading" : "Next";
+    $("wl-skip").hidden = wl.step === n - 1;
+    var keyed = hasAnyKey();
+    $("wl-key-done").hidden = !keyed;
+    $("wl-key-form").hidden = keyed;
+    if (wl.inst) {
+      var st = wl.inst.standalone();
+      $("wl-inst-done").hidden = !st;
+      $("wl-inst-apple").hidden = st || !wl.inst.apple;
+      $("wl-inst-btn").hidden = st || !wl.inst.canPrompt();
+      $("wl-inst-other").hidden = st || wl.inst.apple || wl.inst.canPrompt();
+    }
+  }
+  function openWelcome() { wl.step = 0; renderWelcome(); $("welcome").hidden = false; }
+  function closeWelcome() {
+    $("welcome").hidden = true;
+    state.ui.welcomed = true;
+    persist();
+    renderSettings(); renderEnd();
+  }
+  function wireWelcome(inst) {
+    wl.inst = inst;
+    $("wl-next").addEventListener("click", function () { if (wl.step >= 2) closeWelcome(); else { wl.step++; renderWelcome(); } });
+    $("wl-back").addEventListener("click", function () { if (wl.step > 0) { wl.step--; renderWelcome(); } });
+    $("wl-skip").addEventListener("click", closeWelcome);
+    $("wl-key-save").addEventListener("click", function () {
+      var v = $("wl-key").value.trim(), out = $("wl-key-msg");
+      if (!v) { out.textContent = "Paste your key first."; return; }
+      $("api-key").value = v;
+      saveKey();
+      $("wl-key").value = "";
+      out.textContent = "";
+      renderWelcome();
+      toast("Key saved · your first ideas are being written");
+    });
+    $("wl-signin").addEventListener("click", function () { closeWelcome(); show("prefs"); goPage("account"); });
+    $("wl-inst-btn").addEventListener("click", function () { inst.prompt(); setTimeout(renderWelcome, 800); });
+    $("help-welcome").addEventListener("click", openWelcome);
+    // first visit with no key and no sign-in: show the guide; anyone already set up never sees it
+    if (state.ui.welcomed !== true) {
+      if (hasAnyKey() || session) { state.ui.welcomed = true; persist(); }
+      else openWelcome();
+    }
+  }
+
   /* ---------- Listen mode: read each idea aloud and move on by itself ---------- */
   var listen = { on: false, id: null, timer: null, voices: [] };
   var canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
@@ -4059,6 +4216,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("copy-btn").addEventListener("click", doCopy);
     wireCenter();
     wireCollections();
+    Array.prototype.forEach.call(document.querySelectorAll("[data-share-app]"), function (b) { b.addEventListener("click", shareApp); });
     if (canSpeak) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
     renderListen();
     $("listen-btn").addEventListener("click", function () { setListen(!listen.on); });
@@ -4095,6 +4253,12 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       installEvent.prompt();
       installEvent = null;
       showInstall();
+    });
+    wireWelcome({
+      canPrompt: function () { return !!installEvent; },
+      prompt: function () { if (installEvent) { installEvent.prompt(); installEvent = null; showInstall(); } },
+      standalone: function () { return standalone; },
+      apple: isApple
     });
     showInstall();
     window.addEventListener("online", function () { toast("Back online"); if (session) syncNow(false); maybeRefill(false); });
