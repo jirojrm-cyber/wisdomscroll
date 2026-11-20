@@ -469,6 +469,35 @@ html[data-motion="reduced"] .burst { display: none; }
 html[data-motion="reduced"] .newest { transition: opacity .2s ease; }
 html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .newest { transition: opacity .2s ease; } .newest svg, .newest::after { animation: none !important; } }
+
+/* v3.2: listen and collections */
+.topbtns { gap: 8px; }
+#listen-btn[hidden] { display: none; }
+#listen-btn[aria-pressed="true"] { background: rgba(220,181,108,.16); }
+#listen-btn[aria-pressed="true"] svg { animation: listenPulse 1.6s ease-in-out infinite; }
+@keyframes listenPulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+html[data-motion="reduced"] #listen-btn svg { animation: none; }
+.col-bar { margin: 4px 0 14px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.col-bar::-webkit-scrollbar { display: none; }
+.col-bar .chip-btn { flex: none; white-space: nowrap; }
+.chip-add { border-style: dashed; color: var(--gold); }
+.col-tools { display: flex; align-items: center; gap: 14px; margin: -4px 2px 12px; }
+.col-name { flex: 1; min-width: 0; font-family: var(--serif); font-size: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.danger-link { color: #e58a78; }
+.col-empty { margin: 8px 2px 16px; }
+.item .row { align-items: flex-end; }
+.item-acts { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex: none; }
+.col-options { display: flex; flex-direction: column; gap: 8px; align-self: stretch; }
+.col-opt { width: 100%; }
+@media (max-width: 360px) { .topbtns { gap: 6px; right: 10px; } .topbtn { width: 36px; height: 36px; } .topbtn svg { width: 19px; height: 19px; } }
+.col-opt { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--line); text-align: left; color: var(--cream); }
+.col-opt[aria-pressed="true"] { border-color: rgba(220,181,108,.6); background: rgba(220,181,108,.08); }
+.col-check { width: 20px; height: 20px; flex: none; border-radius: 6px; border: 1.5px solid var(--muted); position: relative; }
+.col-opt[aria-pressed="true"] .col-check { background: var(--gold); border-color: var(--gold); }
+.col-opt[aria-pressed="true"] .col-check::after { content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid #1b1407; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.col-label { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-n { color: var(--muted); font-size: .82rem; }
+#col-sheet .actions, #name-sheet .actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -483,6 +512,9 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
         <button type="button" class="topbtn" id="sound-btn" aria-pressed="false" aria-label="Turn ambient sound on">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.500v5h3.500L12 18.500v-13L7.500 9.500z"/><path class="on" d="M15.500 9a4.200 4.200 0 0 1 0 6M18 6.500a7.800 7.800 0 0 1 0 11"/><path class="off" d="M16 9.500l5 5M21 9.500l-5 5"/></svg>
         </button>
+        <button type="button" class="topbtn" id="listen-btn" aria-pressed="false" aria-label="Read aloud, hands-free" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+        </button>
         <a class="topbtn" id="music-btn" href="#" target="_blank" rel="noopener" aria-label="Choose a Spotify playlist">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.500V5.500l10-2v12"/><circle cx="6.500" cy="17.500" r="2.500"/><circle cx="16.500" cy="15.500" r="2.500"/></svg>
         </a>
@@ -494,6 +526,13 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
       <div class="page">
         <h1>Saved</h1>
         <p class="sub" id="saved-count"></p>
+        <div class="chips col-bar" id="col-bar" hidden></div>
+        <div class="col-tools" id="col-tools" hidden>
+          <span class="col-name" id="col-name"></span>
+          <button type="button" class="link" id="col-rename">Rename</button>
+          <button type="button" class="link danger-link" id="col-delete">Delete</button>
+        </div>
+        <p class="note col-empty" id="col-empty" hidden>Nothing here yet. Open All and tap “Add to collection” on an idea.</p>
         <div class="list" id="saved-list"></div>
         <div class="empty" id="saved-empty" hidden>
           <svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.500L5 21V4a1 1 0 0 1 1-1z"/></svg>
@@ -1040,6 +1079,29 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     </div>
   </div>
 
+  <div class="sheet" id="col-sheet" role="dialog" aria-modal="true" aria-label="Collections" hidden>
+    <div class="sheet-box topic-box">
+      <h2>Add to collection</h2>
+      <p class="note" id="col-none">No collections yet. Make one for ideas that belong together.</p>
+      <div class="col-options" id="col-options"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="col-new">+ New collection</button>
+        <button type="button" class="btn solid" id="col-close">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="name-sheet" role="dialog" aria-modal="true" aria-labelledby="name-title" hidden>
+    <div class="sheet-box topic-box">
+      <h2 id="name-title"></h2>
+      <div class="field"><input type="text" id="name-input" maxlength="40" placeholder="e.g. For hard days" autocomplete="off" aria-labelledby="name-title"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="name-cancel">Cancel</button>
+        <button type="button" class="btn solid" id="name-ok">Save</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet" id="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text" hidden>
     <div class="sheet-box topic-box confirm-box">
       <h2 id="confirm-title"></h2>
@@ -1073,10 +1135,19 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.1";
+  var APP_VERSION = "3.2";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
+  function cleanCollections(list) {
+    if (!Array.isArray(list)) return [];
+    var seen = {};
+    return list.filter(function (c) { return c && typeof c.id === "string" && typeof c.name === "string" && c.name.trim() && !seen[c.id] && (seen[c.id] = 1); })
+      .slice(0, 40)
+      .map(function (c) {
+        return { id: c.id, name: c.name.trim().slice(0, 40), ids: Array.isArray(c.ids) ? c.ids.filter(function (x) { return typeof x === "string"; }).slice(0, 2000) : [] };
+      });
+  }
   function langOf(code) { return LANGS.find(function (l) { return l[0] === code; }) || LANGS[0]; }
   function wideScript(code) { return /^(zh|ja|ko)/.test(code || ""); }
   var CATS = ["Psychology", "Self-confidence", "Personal Growth", "Philosophy", "Discipline", "Productivity", "Leadership", "Business", "Communication", "Relationships", "History", "Science", "Finance", "Creativity", "Health", "Technology", "Economics", "Biography"];
@@ -1151,6 +1222,7 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     s.settings.topics = s.settings.topics && typeof s.settings.topics === "object" ? s.settings.topics : {};
     s.settings.check = s.settings.check !== false;
     s.focus = CATS.indexOf(s.focus) >= 0 ? s.focus : null;
+    s.collections = cleanCollections(s.collections);
     var ui = s.ui && typeof s.ui === "object" ? s.ui : {}, rm = ui.remind && typeof ui.remind === "object" ? ui.remind : {};
     var pick = function (v, list, d) { return list.indexOf(v) >= 0 ? v : d; };
     s.ui = {
@@ -1991,7 +2063,83 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
       maybeRefill(false);
     });
     updateNewest(true);
+    if (listen.on && listen.id !== currentId) speakCurrent();
   }
+  /* ---------- Listen mode: read each idea aloud and move on by itself ---------- */
+  var listen = { on: false, id: null, timer: null, voices: [] };
+  var canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
+  function loadVoices() { try { listen.voices = speechSynthesis.getVoices() || []; } catch (e) { listen.voices = []; } }
+  function speechLang(text) {
+    if (/[぀-ヿ]/.test(text)) return "ja-JP";
+    if (/[가-힯]/.test(text)) return "ko-KR";
+    if (/[一-鿿]/.test(text)) return state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN";
+    var map = { en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", id: "id-ID", ja: "ja-JP", ko: "ko-KR", "zh-Hans": "zh-CN", "zh-Hant": "zh-TW" };
+    if (state.ui.lang === "en") return "en-US";
+    return map[state.ui.lang] || "en-US";
+  }
+  function pickVoice(lang) {
+    if (!listen.voices.length) loadVoices();
+    var base = lang.split("-")[0].toLowerCase();
+    var same = listen.voices.filter(function (v) { return (v.lang || "").toLowerCase().replace("_", "-").indexOf(base) === 0; });
+    if (!same.length) return null;
+    var exact = same.filter(function (v) { return (v.lang || "").replace("_", "-").toLowerCase() === lang.toLowerCase(); });
+    var pool = exact.length ? exact : same;
+    var good = pool.filter(function (v) { return /premium|enhanced|natural|neural|siri|samantha|daniel|google/i.test(v.name); });
+    return (good[0] || pool.find(function (v) { return v.default; }) || pool[0]);
+  }
+  function stopSpeaking() {
+    clearTimeout(listen.timer);
+    listen.id = null;
+    try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {}
+  }
+  function speakCard(c) {
+    if (!listen.on || !c) return;
+    if (listen.id === c.id) return;
+    stopSpeaking();
+    listen.id = c.id;
+    var lang = speechLang(c.text);
+    var u = new SpeechSynthesisUtterance(c.text + (lang.indexOf("en") === 0 ? "  —  " + c.book + ", by " + c.author + "." : "  —  " + c.book + ", " + c.author + "."));
+    u.lang = lang;
+    var v = pickVoice(lang);
+    if (v) u.voice = v;
+    u.rate = 0.94;
+    u.pitch = 1;
+    var id = c.id;
+    u.onend = function () {
+      if (!listen.on || listen.id !== id || currentId !== id) return;
+      listen.timer = setTimeout(function () {
+        if (!listen.on || currentId !== id) return;
+        var node = feed.querySelector('[data-id="' + id + '"]'), next = node && node.nextElementSibling;
+        while (next && next.classList.contains("parked")) next = next.nextElementSibling;
+        if (!next || next === endEl) { listen.id = null; return; } // nothing written yet: wait here
+        try { feed.scrollTo({ top: next.offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = next.offsetTop; }
+      }, 1400);
+    };
+    u.onerror = function () { if (listen.id === id) listen.id = null; };
+    try { speechSynthesis.speak(u); } catch (e) {}
+  }
+  function speakCurrent() {
+    if (!listen.on || currentId === "end" || !$("view-discover").classList.contains("active")) return;
+    speakCard(currentCard());
+  }
+  function renderListen() {
+    var b = $("listen-btn");
+    if (!b) return;
+    b.hidden = !canSpeak;
+    b.setAttribute("aria-pressed", String(listen.on));
+    b.setAttribute("aria-label", listen.on ? "Stop reading aloud" : "Read aloud, hands-free");
+  }
+  function setListen(on) {
+    listen.on = !!on && canSpeak;
+    stopSpeaking();
+    renderListen();
+    if (listen.on) {
+      // iPhone only lets speech start from a tap, so the first words are spoken right here
+      speakCurrent();
+      toast("Reading aloud · it moves on by itself");
+    } else toast("Stopped reading aloud");
+  }
+
   /* ---------- "Newest" arrow: jump to the most recently written unread ideas ---------- */
   function birth(c) { var m = /^c([0-9a-z]{8})/.exec((c && c.id) || ""); return m ? parseInt(m[1], 36) : 0; }
   function newestPlan() {
@@ -2676,27 +2824,144 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     if (btn) { setSaveState(btn, !was); if (!was) pop(btn); }
     renderSaved();
   }
+  var colSel = null; // the collection shown in Saved; null shows everything
+  function colById(id) { return state.collections.find(function (c) { return c.id === id; }) || null; }
+  function savedIn(col) {
+    if (!col) return state.saved;
+    return state.saved.filter(function (c) { return col.ids.indexOf(c.id) >= 0; });
+  }
+  function colsChanged() { persistNow(); touchSync("prefs"); renderSaved(); }
   function renderSaved() {
     var list = $("saved-list");
     list.textContent = "";
-    var n = state.saved.length;
+    if (colSel && !colById(colSel)) colSel = null;
+    var col = colById(colSel), shown = savedIn(col), n = state.saved.length;
     $("saved-count").textContent = n === 0 ? "Your kept ideas" : n + (n === 1 ? " idea kept" : " ideas kept");
+    // collection chips
+    var bar = $("col-bar");
+    bar.textContent = "";
+    bar.hidden = n === 0;
+    var chip = function (label, id) {
+      var b = el("button", "chip-btn", label);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(colSel === id));
+      b.addEventListener("click", function () { colSel = id; renderSaved(); });
+      return b;
+    };
+    bar.appendChild(chip("All · " + n, null));
+    state.collections.forEach(function (c) { bar.appendChild(chip(c.name + " · " + savedIn(c).length, c.id)); });
+    var add = el("button", "chip-btn chip-add", "+ New collection");
+    add.type = "button";
+    add.addEventListener("click", function () { newCollection(null); });
+    bar.appendChild(add);
+    // tools for the open collection
+    $("col-tools").hidden = !col;
+    if (col) $("col-name").textContent = col.name;
     $("saved-empty").hidden = n > 0;
-    state.saved.forEach(function (c) {
+    $("col-empty").hidden = !(col && n > 0 && !shown.length);
+    shown.forEach(function (c) {
       var item = el("div", "item");
       item.appendChild(el("span", "cat", c.category));
       item.appendChild(el("p", "text", c.text));
       var row = el("div", "row");
       var src = srcEl(c, true);
       ensureCover(c, src.querySelector(".cover"));
-      var rm = el("button", "link", "Remove");
+      var acts = el("div", "item-acts");
+      var inCols = state.collections.filter(function (k) { return k.ids.indexOf(c.id) >= 0; }).length;
+      var cb = el("button", "link", inCols ? "Collections (" + inCols + ")" : "Add to collection");
+      cb.type = "button";
+      cb.addEventListener("click", function () { openColSheet(c.id); });
+      var rm = el("button", "link", col ? "Take out" : "Remove");
       rm.type = "button";
-      rm.setAttribute("aria-label", "Remove this idea from saved");
-      rm.addEventListener("click", function () { toggleSave(c.id); });
+      rm.setAttribute("aria-label", col ? "Take this idea out of " + col.name : "Remove this idea from saved");
+      rm.addEventListener("click", function () {
+        if (col) { col.ids = col.ids.filter(function (x) { return x !== c.id; }); colsChanged(); }
+        else toggleSave(c.id);
+      });
+      acts.appendChild(cb);
+      acts.appendChild(rm);
       row.appendChild(src);
-      row.appendChild(rm);
+      row.appendChild(acts);
       item.appendChild(row);
       list.appendChild(item);
+    });
+  }
+  function askName(title, value) {
+    return new Promise(function (resolve) {
+      var sheet = $("name-sheet"), input = $("name-input");
+      $("name-title").textContent = title;
+      input.value = value || "";
+      var done = function (v) {
+        sheet.hidden = true;
+        $("name-ok").onclick = null; $("name-cancel").onclick = null; sheet.onclick = null; input.onkeydown = null;
+        resolve(v);
+      };
+      $("name-ok").onclick = function () { var v = input.value.trim().slice(0, 40); if (v) done(v); else input.focus(); };
+      $("name-cancel").onclick = function () { done(null); };
+      sheet.onclick = function (e) { if (e.target === sheet) done(null); };
+      input.onkeydown = function (e) { if (e.key === "Enter") $("name-ok").click(); };
+      sheet.hidden = false;
+      setTimeout(function () { input.focus(); }, 50);
+    });
+  }
+  function newCollection(withId) {
+    if (state.collections.length >= 40) { toast("You can keep up to 40 collections"); return Promise.resolve(null); }
+    return askName("New collection", "").then(function (name) {
+      if (!name) return null;
+      var c = { id: "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name, ids: withId ? [withId] : [] };
+      state.collections.push(c);
+      colsChanged();
+      return c;
+    });
+  }
+  var colFor = null;
+  function renderColSheet() {
+    var box = $("col-options");
+    box.textContent = "";
+    state.collections.forEach(function (c) {
+      var on = c.ids.indexOf(colFor) >= 0;
+      var b = el("button", "col-opt");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(on));
+      b.appendChild(el("span", "col-check"));
+      b.appendChild(el("span", "col-label", c.name));
+      b.appendChild(el("span", "col-n", String(savedIn(c).length)));
+      b.addEventListener("click", function () {
+        if (c.ids.indexOf(colFor) >= 0) c.ids = c.ids.filter(function (x) { return x !== colFor; });
+        else c.ids.push(colFor);
+        colsChanged();
+        renderColSheet();
+      });
+      box.appendChild(b);
+    });
+    $("col-none").hidden = state.collections.length > 0;
+  }
+  function openColSheet(id) {
+    colFor = id;
+    renderColSheet();
+    $("col-sheet").hidden = false;
+  }
+  function wireCollections() {
+    $("col-close").addEventListener("click", function () { $("col-sheet").hidden = true; });
+    $("col-sheet").addEventListener("click", function (e) { if (e.target === $("col-sheet")) $("col-sheet").hidden = true; });
+    $("col-new").addEventListener("click", function () {
+      $("col-sheet").hidden = true;
+      newCollection(colFor).then(function (c) { if (c) toast("Added to " + c.name); $("col-sheet").hidden = false; renderColSheet(); });
+    });
+    $("col-rename").addEventListener("click", function () {
+      var col = colById(colSel);
+      if (!col) return;
+      askName("Rename collection", col.name).then(function (name) { if (name) { col.name = name; colsChanged(); } });
+    });
+    $("col-delete").addEventListener("click", function () {
+      var col = colById(colSel);
+      if (!col) return;
+      confirmBox("Delete “" + col.name + "”?", "The collection is deleted. The ideas in it stay in Saved.", "Delete collection").then(function (yes) {
+        if (!yes) return;
+        state.collections = state.collections.filter(function (c) { return c !== col; });
+        colSel = null;
+        colsChanged();
+      });
     });
   }
 
@@ -2789,7 +3054,7 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
   }
   // what travels between devices: the saved keys, which one is in use, and the provider and model choice
   function prefsOf() {
-    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name };
+    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name, collections: state.collections };
   }
   // What travels between devices: API keys, saved and liked ideas, removals, preferences, and the lists that prevent repeats.
   function localPayload() {
@@ -2846,6 +3111,7 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     if (typeof pr.lang === "string") state.ui.lang = langOf(pr.lang)[0];
     if (typeof pr.lean === "boolean") state.ui.lean = pr.lean;
     if (typeof pr.name === "string" && pr.name) state.ui.name = pr.name.slice(0, 40);
+    if (Array.isArray(pr.collections)) { state.collections = cleanCollections(pr.collections); if (typeof renderSaved === "function") renderSaved(); }
   }
   function mergeRemote(p, firstTime) {
     if (!p) return;
@@ -3722,6 +3988,8 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     ["discover", "saved", "prefs"].forEach(function (v) {
       $("view-" + v).classList.toggle("active", v === name);
     });
+    if (name !== "discover") stopSpeaking();
+    else if (listen.on) setTimeout(speakCurrent, 250);
     if (name !== "discover" && $("newest-btn")) { clearTimeout(newestTimer); $("newest-btn").classList.remove("show"); newestFor = null; }
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
       if (t.dataset.view === name) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
@@ -3788,6 +4056,11 @@ html[data-motion="reduced"] .newest svg, html[data-motion="reduced"] .newest::af
     $("export-btn").addEventListener("click", doDownload);
     $("copy-btn").addEventListener("click", doCopy);
     wireCenter();
+    wireCollections();
+    if (canSpeak) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
+    renderListen();
+    $("listen-btn").addEventListener("click", function () { setListen(!listen.on); });
+    document.addEventListener("visibilitychange", function () { if (document.hidden && listen.on) { setListen(false); } });
     $("newest-btn").addEventListener("click", jumpNewest);
     $("acct-signin").addEventListener("click", function () { signIn(false); });
     $("acct-signup").addEventListener("click", function () { signIn(true); });
