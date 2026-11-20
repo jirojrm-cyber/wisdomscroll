@@ -531,6 +531,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 .wdots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(244,236,220,.22); transition: background .2s, width .2s; }
 .wdots i.on { width: 20px; border-radius: 4px; background: var(--gold); }
 .about-share { justify-content: center; margin: 2px 0 14px; display: flex; }
+
+#pw-sheet .actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+#pw-sheet { z-index: 45; }
 </style>
 </head>
 <body>
@@ -635,14 +638,14 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <p class="note">No online account is needed. WisdomScroll works fully on this device, and this name is only shown here.</p>
           </div>
 
-          <div class="sgroup-label">Sync between devices (optional)</div>
+          <div class="sgroup-label">Account and sync (optional)</div>
           <div class="sgroup pad">
             <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
             <div class="stack" id="acct-out">
-              <p class="note">If you use more than one device, a sync sign-in keeps your saved ideas, likes, topics and API keys the same on all of them. Everything is locked with your password before it leaves this device. There is no password reset, so keep the password somewhere safe.</p>
+              <p class="note">A free account keeps your saved ideas, collections, likes, topics and API keys the same on every device. Your API keys are encrypted with your password before they leave this device. Forgot your password? You can reset it by email; your saved ideas are kept, and you add your API key again.</p>
               <div class="field">
-                <label for="acct-email">Username</label>
-                <input type="text" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <label for="acct-email">Email</label>
+                <input type="email" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="you@example.com" inputmode="email">
               </div>
               <div class="field">
                 <label for="acct-pass">Password</label>
@@ -650,17 +653,20 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               </div>
               <div class="actions">
                 <button type="button" class="btn solid" id="acct-signin">Sign in</button>
-                <button type="button" class="btn" id="acct-signup">Create sync sign-in</button>
+                <button type="button" class="btn" id="acct-signup">Create account</button>
               </div>
+              <p class="note"><button type="button" class="link" id="acct-forgot">Forgot password?</button></p>
+              <p class="note small">Made your account with a username before? Type the username instead of an email to sign in.</p>
             </div>
             <div class="stack" id="acct-in" hidden>
               <div>
                 <div class="pname" id="acct-name"></div>
                 <div class="note" id="acct-sub"></div>
               </div>
-              <p class="note">Saved and liked ideas, your topics, and your API keys sync between your devices, about every 20 seconds while the app is open. Your API keys belong to this sign-in: signing out removes them from this device, and signing in brings them back.</p>
+              <p class="note">Saved and liked ideas, collections, your topics and your API keys sync between your devices, about every 20 seconds while the app is open. Your API keys belong to this account: signing out removes them from this device, and signing in brings them back.</p>
               <div class="actions">
                 <button type="button" class="btn" id="acct-sync">Sync now</button>
+                <button type="button" class="btn" id="acct-password">Change password</button>
                 <button type="button" class="btn" id="acct-signout">Sign out</button>
               </div>
             </div>
@@ -886,7 +892,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           </div>
           <div class="sgroup-label">Other services</div>
           <div class="sgroup pad">
-            <p class="note">Book titles and authors are sent to Open Library to find covers and confirm that a book exists. Fonts load from Google Fonts. If you turn on sync, your data is encrypted on this device with your password and then stored with the sync service.</p>
+            <p class="note">Book titles and authors are sent to Open Library to find covers and confirm that a book exists. Fonts load from Google Fonts. If you create an account, your email address, saved ideas, collections and preferences are stored with the sync service, where only your account can read them. Your API keys are encrypted on this device with your password before they are stored.</p>
           </div>
           <div class="sgroup-label">API keys</div>
           <div class="sgroup">
@@ -1021,7 +1027,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <details><summary>What happens to ideas after I swipe past them?</summary><p>They stay on this device. Swipe back to see them, or tap Discover to shuffle every stored idea into a new order. The app keeps the most recent 300 and remembers older books and ideas so they are not repeated.</p></details>
             <details><summary>How do I read only one topic?</summary><p>Tap the topic label at the top of any card, or use Reading Preferences, and choose a topic. Choose Mix of my topics to go back.</p></details>
             <details><summary>Does it work offline?</summary><p>Yes, for the ideas already on the device. Writing new ideas, loading covers and syncing need a connection.</p></details>
-            <details><summary>How do I use it on another device?</summary><p>Open the same address there and add it to the Home Screen. To carry your saved ideas and keys across, create a sync sign-in in Account and sign in on each device.</p></details>
+            <details><summary>How do I use it on another device?</summary><p>Open the same address there and add it to the Home Screen. To carry your saved ideas and keys across, create an account in Settings, Account, and sign in on each device.</p></details>
+            <details><summary>I forgot my password</summary><p>In Settings, Account, type your email and tap Forgot password. Open the link in the email on the same device and choose a new password. Your saved ideas are kept; add your API key again afterwards. Accounts made with a username cannot be reset by email: contact the developer through Contact us.</p></details>
           </div>
 
           <div class="sgroup-label">If new ideas stop arriving</div>
@@ -1062,7 +1069,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           <p><strong>AI providers.</strong> When ideas are written, a request goes directly from your device to the provider you selected, Anthropic or Google, authenticated with your API key. It contains the writing instructions, your chosen topics and language, and lists of the books, authors and ideas already shown to you. Each provider processes the request under its own terms and privacy policy.</p>
           <p><strong>Open Library.</strong> Book titles and author names are sent to Open Library, run by the Internet Archive, to find covers and to confirm that a book exists.</p>
           <p><strong>Google Fonts.</strong> The app's typefaces are loaded from Google's font service.</p>
-          <p><strong>Optional sync.</strong> If you create a sync sign-in, the sync service (Supabase) stores your username, a protected form of your password, and one encrypted record containing your saved and liked ideas, preferences and API keys. The record is encrypted on your device with a key derived from your password before it is uploaded.</p>
+          <p><strong>Optional account.</strong> If you create an account, the sync service (Supabase) stores your email address, a protected form of your password, and one record with your saved and liked ideas, collections and preferences. Database rules let only your signed-in account read or change that record. Your API keys are encrypted on your device with a key made from your password before they are stored, so they cannot be read by the service or by the developer. Your email address is used only to sign in and to send password-reset links you ask for.</p>
           <p><strong>Spotify.</strong> The music button only opens the playlist link you chose. The app does not connect to your Spotify account.</p>
           <p><strong>Hosting.</strong> The app's files are served by GitHub Pages, which, like any web host, can log requests for those files.</p>
           <h3>What the app does not do</h3>
@@ -1173,6 +1180,20 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     </div>
   </div>
 
+  <div class="sheet" id="pw-sheet" role="dialog" aria-modal="true" aria-labelledby="pw-title" hidden>
+    <div class="sheet-box topic-box">
+      <h2 id="pw-title"></h2>
+      <p class="note" id="pw-note"></p>
+      <div class="field"><label for="pw-new">New password</label><input type="password" id="pw-new" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-again">New password again</label><input type="password" id="pw-again" autocomplete="new-password"></div>
+      <p class="note" id="pw-msg" role="status"></p>
+      <div class="actions">
+        <button type="button" class="btn" id="pw-cancel">Cancel</button>
+        <button type="button" class="btn solid" id="pw-save">Save password</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet" id="col-sheet" role="dialog" aria-modal="true" aria-label="Collections" hidden>
     <div class="sheet-box topic-box">
       <h2>Add to collection</h2>
@@ -1229,7 +1250,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.3";
+  var APP_VERSION = "3.4";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -3130,7 +3151,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
   /* ---------- account and sync ----------
      Sign-in and storage are a Supabase project. The publishable key below is meant to be public:
-     the database only lets a signed-in person read and write their own row. API keys are encrypted
+     the database only lets a signed-in person read and write their own row. Saved ideas and
+     preferences are stored as they are, so they survive a password reset; API keys are encrypted
      on this device with a key derived from the password before they are uploaded. */
   var SB_URL = "https://ovnnpyxliekeoddcsalm.supabase.co";
   var SB_KEY = "sb_publishable_HrZwF0Rm4gdEJNUR3Mfkwg_h9NAu_zQ";
@@ -3179,7 +3201,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     opts = opts || {};
     var h = { apikey: SB_KEY, "content-type": "application/json" };
     if (opts.prefer) h.Prefer = opts.prefer;
-    if (asUser) { await freshSession(); h.Authorization = "Bearer " + session.at; }
+    if (opts.token) h.Authorization = "Bearer " + opts.token;
+    else if (asUser) { await freshSession(); h.Authorization = "Bearer " + session.at; }
     var res = await fetch(SB_URL + path, { method: opts.method || "GET", headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined });
     var text = await res.text(), data = null;
     try { data = text ? JSON.parse(text) : null; } catch (e) {}
@@ -3238,6 +3261,27 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       concepts: state.concepts.slice(-400)
     };
   }
+  // Row format 3: the API keys are encrypted with the password; everything else is stored as it is.
+  var KEY_FIELDS = ["keys", "active", "provider", "models", "keysAt"];
+  async function packRow(p) {
+    var keysPart = {}, plain = {};
+    Object.keys(p).forEach(function (k) { if (KEY_FIELDS.indexOf(k) >= 0) keysPart[k] = p[k]; else plain[k] = p[k]; });
+    return { v: 3, salt: vault.salt, keysEnc: await lock(keysPart), plain: plain };
+  }
+  // Returns the remote payload. With format 3, keysLocked is set when the keys cannot be opened with this
+  // device's key (the password was reset or changed elsewhere); the rest of the data is still there.
+  async function readRow(data) {
+    if (data && data.v >= 3 && data.plain) {
+      var r = {}, k;
+      for (k in data.plain) r[k] = data.plain[k];
+      r.v = 2;
+      try { var kp = await unlock(data.keysEnc); for (k in kp) if (KEY_FIELDS.indexOf(k) >= 0) r[k] = kp[k]; }
+      catch (e) { r.keysLocked = true; }
+      return r;
+    }
+    return await unlock(data.enc); // format 2: everything encrypted
+  }
+  function hasRowData(d) { return !!(d && (d.enc || d.plain)); }
   function mergeGone(a, b) {
     var out = {}, k;
     for (k in (a || {})) out[k] = a[k];
@@ -3374,8 +3418,15 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       var hasRow = !!(head && head[0]), remoteT = hasRow ? (Date.parse(head[0].updated_at) || 0) : 0, remote = null;
       if (hasRow && remoteT > (vault.syncedAt || 0)) {
         var rows = await sb(rowPath("data,updated_at"), {}, true), row = rows && rows[0];
-        if (row && row.data && row.data.enc) {
-          remote = await unlock(row.data.enc);
+        if (row && hasRowData(row.data)) {
+          remote = await readRow(row.data);
+          if (remote.keysLocked) {
+            // the password was changed on another device: this device's key no longer fits
+            syncing = false;
+            signOutLocal("Your password was changed on another device. Sign in again with the new password to keep syncing.");
+            renderSettings();
+            return;
+          }
           remoteT = Date.parse(row.updated_at) || remoteT;
           mergeRemote(remote, false); // both sides are merged, so nothing saved on either device is lost
         }
@@ -3386,7 +3437,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         await sb("/rest/v1/wisdomscroll_sync?on_conflict=user_id", {
           method: "POST",
           prefer: "resolution=merge-duplicates,return=minimal",
-          body: { user_id: session.uid, data: { v: 2, salt: vault.salt, enc: await lock(mine) }, updated_at: new Date(t).toISOString() }
+          body: { user_id: session.uid, data: await packRow(mine), updated_at: new Date(t).toISOString() }
         }, true);
         remoteT = t;
       }
@@ -3406,72 +3457,169 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function authMessage(e) {
     var c = (e && e.code) || "", m = (e && e.message) || "";
     if (!e || !e.status) return "Could not reach the sign-in service. Check your internet connection.";
-    if (c === "invalid_credentials" || /invalid login/i.test(m)) return "Wrong username or password.";
+    if (c === "invalid_credentials" || /invalid login/i.test(m)) return "Wrong email or password. Forgot it? Tap Forgot password.";
     if (c === "email_not_confirmed" || /not confirmed/i.test(m)) return "This account was created while email confirmation was on, so it cannot sign in. Switch off Confirm email in the Supabase project and create the account again with a new username.";
-    if (c === "user_already_exists" || /already registered/i.test(m)) return "That username is taken. If it is yours, tap Sign in.";
-    if (c === "email_address_invalid" || /email address .*invalid/i.test(m)) return "The sign-in service did not accept this username. Try one with only letters and numbers.";
+    if (c === "user_already_exists" || /already registered/i.test(m)) return "An account with this email already exists. Tap Sign in, or Forgot password if you need a new password.";
+    if (c === "same_password") return "That is already your password. Choose a different one.";
+    if (c === "over_email_send_rate_limit" || /rate limit/i.test(m)) return "Too many emails were sent just now. Wait a while and try again.";
+    if (c === "email_address_invalid" || /email address .*invalid/i.test(m)) return "The sign-in service did not accept this email address. Check it for typos.";
     if (c === "email_provider_disabled") return "Password sign-in is switched off in the Supabase project.";
     if (c === "weak_password" || /password/i.test(m) && e.status === 422) return "Choose a longer password." + (m ? " " + m : "");
     if (c === "signup_disabled" || /signups? not allowed/i.test(m)) return "New accounts are switched off for this app.";
     if (e.status === 429) return "Too many attempts. Wait a few minutes and try again.";
     return "Sign-in failed (" + e.status + ")." + (m ? " " + m : "");
   }
+  function readLogin() {
+    var typed = $("acct-email").value.trim().toLowerCase();
+    if (!typed) return { err: "Enter your email address." };
+    if (typed.indexOf("@") < 0) {
+      // accounts made before email sign-in used a username
+      if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(typed)) return { err: "Enter your email address." };
+      return { email: typed + "@" + NAME_DOMAIN, byName: true };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(typed)) return { err: "That email address does not look right." };
+    return { email: typed, byName: typed.slice(-NAME_DOMAIN.length - 1) === "@" + NAME_DOMAIN };
+  }
   async function signIn(isNew) {
     if (acctBusy) return;
-    var typed = $("acct-email").value.trim().toLowerCase(), pass = $("acct-pass").value, email, byName = typed.indexOf("@") < 0;
-    if (byName) {
-      if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(typed)) { setAcct("Choose a username of 3 to 30 letters, numbers, dots, dashes or underscores.", "bad"); return; }
-      email = typed + "@" + NAME_DOMAIN;
-    } else {
-      if (!/^\S+@\S+\.\S+$/.test(typed)) { setAcct("Enter your username.", "bad"); return; }
-      email = typed; // an account made earlier with an email address still works
-    }
-    if (pass.length < 6) { setAcct("The password needs at least 6 characters.", "bad"); return; }
+    var who = readLogin(), pass = $("acct-pass").value;
+    if (who.err) { setAcct(who.err, "bad"); return; }
+    if (isNew && who.byName) { setAcct("New accounts use an email address, so a forgotten password can be reset by email.", "bad"); return; }
+    if (pass.length < 8 && isNew) { setAcct("Choose a password of at least 8 characters.", "bad"); return; }
+    if (pass.length < 6) { setAcct("Enter your password.", "bad"); return; }
     if (!window.crypto || !crypto.subtle) { setAcct("This browser cannot lock your keys, so sync is not available here.", "bad"); return; }
     acctBusy = true;
     setAcct(isNew ? "Creating your account" : "Signing in", "");
     try {
       var d;
       if (isNew) {
-        d = await sb("/auth/v1/signup", { method: "POST", body: { email: email, password: pass } });
+        d = await sb("/auth/v1/signup", { method: "POST", body: { email: who.email, password: pass } });
         if (!d || !d.access_token) {
-          setAcct(byName
-            ? "The sign-in service is still set to confirm accounts by email, which a username cannot receive. In the Supabase project, switch off Confirm email in the Email sign-in settings, then create the account again with a new username."
-            : "Almost there. Open the confirmation email sent to " + email + ", then come back and tap Sign in.", byName ? "bad" : "ok");
+          setAcct("Almost there. Open the confirmation email sent to " + who.email + ", then come back and tap Sign in.", "ok");
           return;
         }
       } else {
-        d = await sb("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pass } });
+        d = await sb("/auth/v1/token?grant_type=password", { method: "POST", body: { email: who.email, password: pass } });
       }
       setSession(d);
-      var rows = await sb(rowPath(), {}, true), row = rows && rows[0];
-      var salt = row && row.data && row.data.salt ? row.data.salt : b64(crypto.getRandomValues(new Uint8Array(16)));
-      vaultKey = await deriveKey(pass, unb64(salt));
-      vault = { k: b64(await crypto.subtle.exportKey("raw", vaultKey)), salt: salt, syncedAt: 0, dirty: true };
-      if (row && row.data && row.data.enc) {
-        var remote = null;
-        try { remote = await unlock(row.data.enc); }
-        catch (e) {
-          signOutLocal("Signed in, but the keys stored for this account could not be unlocked with this password. Nothing was changed.");
-          renderSettings();
-          return;
-        }
-        vault.syncedAt = Date.parse(row.updated_at) || 0;
-        lsSet(KEY_VAULT, vault);
-        mergeRemote(remote, true); // keep what is on this device and add what the account has
-        vault.dirty = true;
-      }
-      lsSet(KEY_VAULT, vault);
+      await openAccount(pass, "Signed in");
       $("acct-pass").value = "";
-      setAcct("Signed in", "ok");
-      renderSettings();
-      await syncNow(false);
     } catch (e) {
       if (session && !vault) signOutLocal("");
       setAcct(authMessage(e), "bad");
     } finally {
       acctBusy = false;
       renderAccount();
+    }
+  }
+  // After a successful sign-in (or a password reset): make this device's key from the password and
+  // combine what the account holds with what is on this device.
+  async function openAccount(pass, okMsg) {
+    var rows = await sb(rowPath(), {}, true), row = rows && rows[0];
+    var salt = row && row.data && row.data.salt ? row.data.salt : b64(crypto.getRandomValues(new Uint8Array(16)));
+    vaultKey = await deriveKey(pass, unb64(salt));
+    vault = { k: b64(await crypto.subtle.exportKey("raw", vaultKey)), salt: salt, syncedAt: 0, dirty: true };
+    var note = "";
+    if (row && hasRowData(row.data)) {
+      var remote = null;
+      try { remote = await readRow(row.data); }
+      catch (e) { remote = null; note = " The older synced copy could not be opened with this password, so this device's ideas and keys are now the account's copy."; }
+      if (remote) {
+        if (remote.keysLocked) note = " Your API keys stored in the account were locked with your old password, so they could not be brought back. Add your key again in AI & Generation.";
+        delete remote.keysLocked;
+        vault.syncedAt = Date.parse(row.updated_at) || 0;
+        lsSet(KEY_VAULT, vault);
+        mergeRemote(remote, true); // keep what is on this device and add what the account has
+        vault.dirty = true;
+      }
+    }
+    lsSet(KEY_VAULT, vault);
+    setAcct(okMsg + "." + note, note ? "" : "ok");
+    renderSettings();
+    await syncNow(false);
+    if (note) setAcct(okMsg + "." + note, "");
+  }
+  /* forgotten password: Supabase emails a link that opens the app with a one-time token */
+  async function forgotPassword() {
+    var who = readLogin();
+    if (who.err) { setAcct("Type the email address of your account above, then tap Forgot password.", "bad"); return; }
+    if (who.byName) { setAcct("Accounts made with a username cannot be reset by email. Ask the developer for help (Settings, Contact us), or create a new account with your email.", "bad"); return; }
+    if (acctBusy) return;
+    acctBusy = true;
+    setAcct("Sending the reset link", "");
+    try {
+      await sb("/auth/v1/recover?redirect_to=" + encodeURIComponent(appUrl()), { method: "POST", body: { email: who.email } });
+      setAcct("If an account uses " + who.email + ", a reset link is on its way. Open it on this device. It can take a few minutes; check your spam folder too.", "ok");
+    } catch (e) {
+      setAcct(e && e.status === 429 ? "Too many reset emails were sent just now. Wait a while and try again." : authMessage(e), "bad");
+    } finally { acctBusy = false; renderAccount(); }
+  }
+  var pwMode = null, pwToken = null;
+  function openPwSheet(mode) {
+    pwMode = mode;
+    $("pw-title").textContent = mode === "reset" ? "Choose a new password" : "Change password";
+    $("pw-note").textContent = mode === "reset"
+      ? "Set a new password for " + (pwToken && pwToken.email ? pwToken.email : "your account") + ". Your saved ideas are kept. API keys stored in the account were locked with the old password, so you may need to add your key again."
+      : "Your other devices will ask you to sign in again with the new password.";
+    $("pw-new").value = ""; $("pw-again").value = ""; $("pw-msg").textContent = "";
+    $("pw-sheet").hidden = false;
+    setTimeout(function () { $("pw-new").focus(); }, 60);
+  }
+  async function savePassword() {
+    var a = $("pw-new").value, b = $("pw-again").value, out = $("pw-msg");
+    if (a.length < 8) { out.textContent = "Use at least 8 characters."; return; }
+    if (a !== b) { out.textContent = "The two passwords do not match."; return; }
+    if (acctBusy) return;
+    acctBusy = true;
+    $("pw-save").disabled = true;
+    out.textContent = "Saving";
+    try {
+      if (pwMode === "reset") {
+        var user = await sb("/auth/v1/user", { method: "PUT", token: pwToken.at, body: { password: a } });
+        setSession({ access_token: pwToken.at, refresh_token: pwToken.rt, expires_in: pwToken.left, user: user });
+        pwToken = null;
+        $("pw-sheet").hidden = true;
+        show("prefs"); goPage("account");
+        await openAccount(a, "Your password was changed and you are signed in");
+        toast("New password saved");
+      } else {
+        if (!session || !vault) throw { status: 401 };
+        await sb("/auth/v1/user", { method: "PUT", body: { password: a } }, true);
+        vaultKey = await deriveKey(a, unb64(vault.salt));
+        vault.k = b64(await crypto.subtle.exportKey("raw", vaultKey));
+        vault.dirty = true;
+        lsSet(KEY_VAULT, vault);
+        $("pw-sheet").hidden = true;
+        setAcct("Password changed.", "ok");
+        await syncNow(false); // the API keys are locked again with the new password
+        toast("Password changed");
+      }
+    } catch (e) {
+      out.textContent = pwMode === "reset" && e && (e.status === 401 || e.status === 403)
+        ? "This reset link has expired. Request a new one from Settings, Account, Forgot password."
+        : authMessage(e);
+    } finally {
+      acctBusy = false;
+      $("pw-save").disabled = false;
+      renderAccount();
+    }
+  }
+  // The reset email opens the app with the token after "#". Read it once and remove it from the address.
+  function readResetLink() {
+    var h = location.hash || "";
+    if (!/access_token=|error_code=|error=/.test(h)) return;
+    var q = new URLSearchParams(h.slice(1));
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    if (q.get("type") === "recovery" && q.get("access_token")) {
+      var email = "";
+      try { email = JSON.parse(atob(q.get("access_token").split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || ""; } catch (e) {}
+      pwToken = { at: q.get("access_token"), rt: q.get("refresh_token"), left: +q.get("expires_in") || 3600, email: email };
+      state.ui.welcomed = true; // someone resetting a password already knows the app
+      if ($("welcome")) $("welcome").hidden = true;
+      openPwSheet("reset");
+    } else if (q.get("error") || q.get("error_code")) {
+      show("prefs"); goPage("account");
+      setAcct(/expired/i.test(q.get("error_code") + q.get("error_description")) ? "That reset link has expired or was already used. Tap Forgot password to get a new one." : "That link did not work: " + (q.get("error_description") || q.get("error")).replace(/\+/g, " "), "bad");
     }
   }
   // API keys belong to the account: signing out takes them off this device, after a last sync so nothing is lost.
@@ -3499,6 +3647,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     renderSettings(); renderEnd();
   }
   async function initAccount() {
+    readResetLink();
+    window.addEventListener("hashchange", readResetLink);
     session = lsGet(KEY_SESSION);
     vault = lsGet(KEY_VAULT);
     if (!session || !session.rt || !vault || !vault.k) { session = null; vault = null; renderAccount(); return; }
@@ -4228,6 +4378,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("newest-btn").addEventListener("click", jumpNewest);
     $("acct-signin").addEventListener("click", function () { signIn(false); });
     $("acct-signup").addEventListener("click", function () { signIn(true); });
+    $("acct-forgot").addEventListener("click", forgotPassword);
+    $("acct-password").addEventListener("click", function () { openPwSheet("change"); });
+    $("pw-save").addEventListener("click", savePassword);
+    $("pw-again").addEventListener("keydown", function (e) { if (e.key === "Enter") savePassword(); });
+    $("pw-cancel").addEventListener("click", function () { $("pw-sheet").hidden = true; pwToken = null; });
     $("acct-signout").addEventListener("click", signOut);
     $("acct-sync").addEventListener("click", function () { syncNow(true); });
     $("acct-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") signIn(false); });
