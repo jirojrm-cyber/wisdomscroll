@@ -765,6 +765,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <select id="provider">
                 <option value="anthropic">Anthropic Claude</option>
                 <option value="gemini">Google Gemini</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="doubao">Doubao (Volcano Engine)</option>
               </select>
             </div>
             <div class="field">
@@ -888,7 +890,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           </div>
           <div class="sgroup-label">Sent to the AI provider</div>
           <div class="sgroup pad">
-            <p class="note">To write ideas, the app sends a request to the provider you chose, Anthropic or Google, using your API key. The request contains the writing instructions, your topics and language, and the lists of books, authors and ideas already shown. It does not contain your name or your sign-in. The provider handles that request under its own policies.</p>
+            <p class="note">To write ideas, the app sends a request to the provider you chose (Anthropic, Google, DeepSeek or Volcano Engine), using your API key. The request contains the writing instructions, your topics and language, and the lists of books, authors and ideas already shown. It does not contain your name or your sign-in. The provider handles that request under its own policies.</p>
           </div>
           <div class="sgroup-label">Other services</div>
           <div class="sgroup pad">
@@ -993,7 +995,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Acknowledgements</div>
           <div class="sgroup pad">
-            <p class="note">Ideas are written through the Anthropic Claude API or the Google Gemini API, using your own key. Book covers and catalogue lookups come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>; a cover can be missing or show a different edition. Optional sync runs on Supabase. Background music opens in Spotify. The app is hosted on GitHub Pages.</p>
+            <p class="note">Ideas are written through the Anthropic Claude, Google Gemini, DeepSeek or Volcano Engine Doubao API, using your own key. Book covers and catalogue lookups come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>; a cover can be missing or show a different edition. Optional sync runs on Supabase. Background music opens in Spotify. The app is hosted on GitHub Pages.</p>
           </div>
 
           <div class="sgroup-label">Open-source licenses</div>
@@ -1022,10 +1024,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           <div class="sgroup-label">Frequently asked questions</div>
           <div class="sgroup faq">
             <details><summary>Are these real quotations?</summary><p>No. Each card states an idea from the named book in the AI's own words. The app checks each idea twice, but nothing reads the book itself, so treat a card as a pointer to the book and not as a quotation.</p></details>
-            <details><summary>Why do I need an API key?</summary><p>The ideas are written by an AI service. The app has no server of its own, so it uses a key from your own account. A Google Gemini key is free to create at aistudio.google.com: sign in with Google and choose Get API key. Add it in AI &amp; Generation.</p></details>
+            <details><summary>Why do I need an API key?</summary><p>The ideas are written by an AI service. The app has no server of its own, so it uses a key from your own account. A Google Gemini key is free to create at aistudio.google.com. In mainland China, DeepSeek (platform.deepseek.com) and Doubao (Volcano Engine Ark console) work without a VPN and cost very little. Add the key in AI &amp; Generation.</p></details>
             <details><summary>How do I share the app with a friend?</summary><p>Tap Share WisdomScroll in Settings and send the link. Your friend opens it, adds it to the Home Screen and adds their own key. Your key, ideas and saved cards are never shared.</p></details>
             <details><summary>What happens to ideas after I swipe past them?</summary><p>They stay on this device. Swipe back to see them, or tap Discover to shuffle every stored idea into a new order. The app keeps the most recent 300 and remembers older books and ideas so they are not repeated.</p></details>
             <details><summary>How do I read only one topic?</summary><p>Tap the topic label at the top of any card, or use Reading Preferences, and choose a topic. Choose Mix of my topics to go back.</p></details>
+            <details><summary>How do I use DeepSeek or Doubao?</summary><p><b>DeepSeek:</b> create a key at platform.deepseek.com under API keys, add a little credit, then choose DeepSeek in AI &amp; Generation and save the key. <b>Doubao:</b> in the Volcano Engine Ark console, create an API key and open (activate) a Doubao model, then choose Doubao in AI &amp; Generation, save the key, and pick the model, or choose Other model ID and type the model ID or your endpoint ID (ep-…). Tap Test connection to check.</p></details>
             <details><summary>Does it work offline?</summary><p>Yes, for the ideas already on the device. Writing new ideas, loading covers and syncing need a connection.</p></details>
             <details><summary>How do I use it on another device?</summary><p>Open the same address there and add it to the Home Screen. To carry your saved ideas and keys across, create an account in Settings, Account, and sign in on each device.</p></details>
             <details><summary>I forgot my password</summary><p>In Settings, Account, type your email and tap Forgot password. Open the link in the email on the same device and choose a new password. Your saved ideas are kept; add your API key again afterwards. Accounts made with a username cannot be reset by email: contact the developer through Contact us.</p></details>
@@ -1066,7 +1069,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           <h3>What the app keeps</h3>
           <p>WisdomScroll stores your feed, saved and liked ideas, preferences, display name, API keys and sync sign-in state in your browser's local storage on your own device. The developer of the app does not receive this information and runs no server that collects it.</p>
           <h3>What leaves your device</h3>
-          <p><strong>AI providers.</strong> When ideas are written, a request goes directly from your device to the provider you selected, Anthropic or Google, authenticated with your API key. It contains the writing instructions, your chosen topics and language, and lists of the books, authors and ideas already shown to you. Each provider processes the request under its own terms and privacy policy.</p>
+          <p><strong>AI providers.</strong> When ideas are written, a request goes directly from your device to the provider you selected, Anthropic, Google, DeepSeek or Volcano Engine (ByteDance), authenticated with your API key. It contains the writing instructions, your chosen topics and language, and lists of the books, authors and ideas already shown to you. Each provider processes the request under its own terms and privacy policy.</p>
           <p><strong>Open Library.</strong> Book titles and author names are sent to Open Library, run by the Internet Archive, to find covers and to confirm that a book exists.</p>
           <p><strong>Google Fonts.</strong> The app's typefaces are loaded from Google's font service.</p>
           <p><strong>Optional account.</strong> If you create an account, the sync service (Supabase) stores your email address, a protected form of your password, and one record with your saved and liked ideas, collections and preferences. Database rules let only your signed-in account read or change that record. Your API keys are encrypted on your device with a key made from your password before they are stored, so they cannot be read by the service or by the developer. Your email address is used only to sign in and to send password-reset links you ask for.</p>
@@ -1152,6 +1155,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <li>Paste it here.</li>
           </ol>
           <a class="btn" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
+          <p class="note small">In mainland China? <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">DeepSeek</a> and <a href="https://console.volcengine.com/ark" target="_blank" rel="noopener">Doubao</a> work without a VPN (paid, very cheap). Choose the provider below.</p>
+          <div class="field"><label for="wl-provider">Provider</label><select id="wl-provider"><option value="gemini">Google Gemini (free)</option><option value="deepseek">DeepSeek</option><option value="doubao">Doubao (Volcano Engine)</option><option value="anthropic">Anthropic Claude</option></select></div>
           <div class="field"><input type="password" id="wl-key" placeholder="Paste your key" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="API key"></div>
           <button type="button" class="btn solid" id="wl-key-save">Save key</button>
           <p class="note" id="wl-key-msg" role="status"></p>
@@ -1250,7 +1255,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.4";
+  var APP_VERSION = "3.5";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1295,13 +1300,23 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       ["gemini-3.5-flash-lite", "Gemini 3.5 Flash-Lite (fastest, cheapest)"],
       ["gemini-3.8-flash", "Gemini 3.8 Flash (balanced)"],
       ["gemini-3.1-pro-preview", "Gemini 3.1 Pro preview (most capable)"]
+    ],
+    deepseek: [
+      ["deepseek-v4-flash", "DeepSeek V4 Flash (fast, cheap)"],
+      ["deepseek-v4-pro", "DeepSeek V4 Pro (most capable)"]
+    ],
+    doubao: [
+      ["doubao-seed-1-6-251015", "Doubao Seed 1.6"]
     ]
   };
-  var FIRST_MODEL = { anthropic: "claude-sonnet-5-5", gemini: "gemini-3.8-flash" };
+  var FIRST_MODEL = { anthropic: "claude-sonnet-5-5", gemini: "gemini-3.8-flash", deepseek: "deepseek-v4-flash", doubao: "doubao-seed-1-6-251015" };
   var PROVIDER = {
     anthropic: { name: "Anthropic Claude", who: "Anthropic", keyLabel: "Anthropic API key", ph: "sk-ant-..." },
-    gemini: { name: "Google Gemini", who: "Google", keyLabel: "Gemini API key", ph: "AIza..." }
+    gemini: { name: "Google Gemini", who: "Google", keyLabel: "Gemini API key", ph: "AIza..." },
+    deepseek: { name: "DeepSeek", who: "DeepSeek", keyLabel: "DeepSeek API key", ph: "sk-..." },
+    doubao: { name: "Doubao (Volcano Engine)", who: "Volcano Engine", keyLabel: "Volcano Engine Ark API key", ph: "Ark API key" }
   };
+  var PIDS = Object.keys(PROVIDER);
 
   var KEY = "wisdomscroll.v1", KEY_API = "wisdomscroll.key";
   var BATCH = 12, LOW_STOCK = 15, MAX_CARDS = 300;
@@ -1379,7 +1394,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           if (!s.settings.models) s.settings.models = { anthropic: s.settings.model || FIRST_MODEL.anthropic, gemini: FIRST_MODEL.gemini };
           s.settings.models.anthropic = s.settings.models.anthropic || FIRST_MODEL.anthropic;
           s.settings.models.gemini = s.settings.models.gemini || FIRST_MODEL.gemini;
-          s.settings.provider = s.settings.provider === "gemini" ? "gemini" : "anthropic";
+          s.settings.provider = PROVIDER[s.settings.provider] ? s.settings.provider : "anthropic";
+          PIDS.forEach(function (pp) { if (!s.settings.models[pp]) s.settings.models[pp] = FIRST_MODEL[pp]; });
           s.settings.sound = s.settings.sound === true;
           if (!s.settings.music || !s.settings.music.id || !s.settings.music.type) s.settings.music = null;
           if (Array.isArray(s.models)) s.models = { anthropic: s.models };
@@ -1439,10 +1455,14 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     storeKeys(loadKeys().filter(function (x) { return !(x.k === k && x.p === p); }));
     if (getKey(p) === k) setKey("", p);
   }
+  function activeKeys() { var o = {}; PIDS.forEach(function (pp) { o[pp] = getKey(pp); }); return o; }
+  function clearActiveKeys() { PIDS.forEach(function (pp) { setKey("", pp); }); }
   function maskKey(k) { return k.length > 14 ? k.slice(0, 7) + "\u2026" + k.slice(-4) : "\u2026" + k.slice(-4); }
   function guessProvider(k) {
     if (/^sk-ant/i.test(k)) return "anthropic";
     if (/^AIza/.test(k)) return "gemini";
+    if (/^sk-[a-f0-9]{32}$/.test(k)) return "deepseek";
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(k)) return "doubao";
     return null;
   }
 
@@ -1603,6 +1623,55 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       }
     }
   };
+  // DeepSeek and Volcano Engine Ark both speak the OpenAI chat-completions format.
+  function openAiLike(base, opts) {
+    opts = opts || {};
+    var body = function (model, prompt, maxTokens, wantJson, stream) {
+      var b = { model: model, messages: [{ role: "user", content: prompt }] };
+      if (maxTokens) b.max_tokens = Math.max(maxTokens, 16);
+      if (stream) b.stream = true;
+      if (wantJson && opts.json) b.response_format = { type: "json_object" };
+      if (opts.noThinking) b.thinking = { type: "disabled" }; // quicker, and the answer does not wait behind long reasoning
+      return JSON.stringify(b);
+    };
+    return {
+      base: base,
+      headers: function (key) { return { Authorization: "Bearer " + key, "content-type": "application/json" }; },
+      listModels: function (key) {
+        return fetch(base + "/models", { headers: this.headers(key) }).then(okJson).then(function (d) {
+          return (d.data || []).filter(function (m) {
+            return m && m.id && !/(embedding|seedream|seedance|seed3d|tts|asr|vision-only|image|video)/i.test(m.id);
+          }).map(function (m) { return [m.id, m.display_name || m.name || m.id]; });
+        });
+      },
+      complete: function (key, model, prompt, maxTokens, wantJson) {
+        return fetch(base + "/chat/completions", { method: "POST", headers: this.headers(key), body: body(model, prompt, maxTokens, wantJson, false) })
+          .then(okJson).then(function (d) {
+            var c = (d.choices || [])[0], text = (c && c.message && c.message.content) || "";
+            if (!text) throw { status: 200, message: "The model returned no text" + (c && c.finish_reason ? " (" + c.finish_reason + ")." : ".") };
+            return text;
+          });
+      },
+      stream: function (key, model, prompt, wantJson, onText) {
+        var text = "", why = "";
+        return fetch(base + "/chat/completions", { method: "POST", headers: this.headers(key), body: body(model, prompt, 0, wantJson, true) })
+          .then(function (res) {
+            return readSSE(res, function (d) {
+              var c = (d.choices || [])[0];
+              var add = c && c.delta && c.delta.content;
+              if (add) { text += add; onText(text); }
+              if (c && c.finish_reason) why = c.finish_reason;
+              if (d.error) why = d.error.message || why;
+            });
+          }).then(function () {
+            if (!text) throw { status: 200, message: "The model returned no text" + (why ? " (" + why + ")." : ".") };
+            return text;
+          });
+      }
+    };
+  }
+  providers.deepseek = openAiLike("https://api.deepseek.com", { json: true, noThinking: true });
+  providers.doubao = openAiLike("https://ark.cn-beijing.volces.com/api/v3", { noThinking: true });
   function ai() { return providers[prov()]; }
   function isAuthError(e) {
     var st = e && e.status, m = (e && e.message) || "";
@@ -2232,6 +2301,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("wl-key-save").addEventListener("click", function () {
       var v = $("wl-key").value.trim(), out = $("wl-key-msg");
       if (!v) { out.textContent = "Paste your key first."; return; }
+      if ($("wl-provider")) { state.settings.provider = $("wl-provider").value; persist(); }
       $("api-key").value = v;
       saveKey();
       $("wl-key").value = "";
@@ -2667,7 +2737,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     switch (gen.status) {
       case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books, writing the ideas and checking them against each book."; break;
       case "limit": title = "That is today's " + state.settings.limit + " ideas"; text = "Come back tomorrow, or raise the daily limit in Settings."; break;
-      case "nokey": title = "Add your API key"; text = "New ideas are written by AI through your own API key, from Anthropic or Google. Add it in Settings to keep the feed going."; action = "Open Settings"; go = toSettings; break;
+      case "nokey": title = "Add your API key"; text = "New ideas are written by AI through your own API key, from Anthropic, Google, DeepSeek or Volcano Engine (Doubao). Add it in Settings to keep the feed going."; action = "Open Settings"; go = toSettings; break;
       case "auth": title = "Your API key was rejected"; text = "Check the key and the provider in Settings, then try again."; action = "Open Settings"; go = toSettings; break;
       case "rate": title = "The API is at its limit"; text = "Your key hit a rate or spending limit. Try again in a while."; action = "Try again"; break;
       case "error": title = "Could not get new ideas"; text = gen.detail || "The request failed. Your earlier and saved ideas are still here."; action = "Try again"; break;
@@ -2974,7 +3044,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       persist();
       if (e && e.topicsChanged) { setStatus("idle"); setTimeout(function () { maybeRefill(false); }, 400); }
       else if (isAuthError(e)) setStatus("auth");
-      else if (/credit balance|purchase credits|billing|exceeded your current quota|quota/i.test(m)) setStatus("error", "Your " + who + " API account has no usable credit or quota. Add credit or check billing with " + who + ", or switch provider in Settings." + tail(e));
+      else if ((st === 402 || /credit balance|purchase credits|billing|exceeded your current quota|quota|insufficient balance|overdue|arrear|account balance/i.test(m))) setStatus("error", "Your " + who + " API account has no usable credit or quota. Add credit or check billing with " + who + ", or switch provider in Settings." + tail(e));
       else if (st === 429) setStatus("rate");
       else if (st === 400 || st === 403 || st === 404) setStatus("error", "The request was refused. Check the model chosen in Settings." + tail(e));
       else if (st >= 500) setStatus("error", "The AI service is overloaded or unavailable right now. Try again shortly.");
@@ -3070,17 +3140,30 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       list.appendChild(item);
     });
   }
-  function askName(title, value) {
+  function askModelId() {
+    var p = prov();
+    askName(p === "doubao" ? "Model ID or endpoint ID (ep-\u2026)" : "Model ID", curModel(), "e.g. " + FIRST_MODEL[p]).then(function (v) {
+      if (v) {
+        state.settings.models[p] = v.replace(/\s+/g, "");
+        persist(); touchSync(); releaseHold(); tested[p] = undefined;
+        $("test-result").textContent = "Model set to " + state.settings.models[p] + ". Tap Test connection to check it.";
+      }
+      renderSettings(); renderEnd();
+    });
+  }
+  function askName(title, value, placeholder) {
     return new Promise(function (resolve) {
       var sheet = $("name-sheet"), input = $("name-input");
       $("name-title").textContent = title;
       input.value = value || "";
+      input.placeholder = placeholder || "e.g. For hard days";
+      input.maxLength = placeholder ? 80 : 40;
       var done = function (v) {
         sheet.hidden = true;
         $("name-ok").onclick = null; $("name-cancel").onclick = null; sheet.onclick = null; input.onkeydown = null;
         resolve(v);
       };
-      $("name-ok").onclick = function () { var v = input.value.trim().slice(0, 40); if (v) done(v); else input.focus(); };
+      $("name-ok").onclick = function () { var v = input.value.trim().slice(0, input.maxLength); if (v) done(v); else input.focus(); };
       $("name-cancel").onclick = function () { done(null); };
       sheet.onclick = function (e) { if (e.target === sheet) done(null); };
       input.onkeydown = function (e) { if (e.key === "Enter") $("name-ok").click(); };
@@ -3247,7 +3330,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     return {
       v: 2,
       keys: loadKeys(),
-      active: { anthropic: getKey("anthropic"), gemini: getKey("gemini") },
+      active: activeKeys(),
       provider: prov(),
       models: state.settings.models,
       keysAt: state.stamp.keys || 0,
@@ -3330,7 +3413,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         var active = p.active || {}, rAt = p.keysAt || 0, lAt = state.stamp.keys || 0;
         var setModels = function () {
           if (PROVIDER[p.provider]) state.settings.provider = p.provider;
-          if (p.models) ["anthropic", "gemini"].forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
+          if (p.models) PIDS.forEach(function (pp) { if (p.models[pp]) state.settings.models[pp] = p.models[pp]; });
         };
         if (firstTime || p.keysAt === undefined) {
           // first sign-in on this device: keep what is here and add what the account has
@@ -3338,13 +3421,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           remoteKeys.forEach(function (x) { if (!mine.some(function (y) { return y.k === x.k && y.p === x.p; })) mine.push(x); });
           extra = mine.length > remoteKeys.length;
           storeKeys(mine);
-          ["anthropic", "gemini"].forEach(function (pp) { if (!getKey(pp) && active[pp]) setKey(active[pp], pp); });
+          PIDS.forEach(function (pp) { if (!getKey(pp) && active[pp]) setKey(active[pp], pp); });
           if (!hadAny) setModels();
           state.stamp.keys = extra ? Date.now() : Math.max(lAt, rAt);
           keysChanged = true;
         } else if (rAt > lAt) {
           storeKeys(remoteKeys);
-          ["anthropic", "gemini"].forEach(function (pp) { setKey(active[pp] || "", pp); });
+          PIDS.forEach(function (pp) { setKey(active[pp] || "", pp); });
           setModels();
           state.stamp.keys = rAt;
           keysChanged = true;
@@ -3636,7 +3719,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     } catch (e) {}
     try { if (session) await sb("/auth/v1/logout", { method: "POST" }, true); } catch (e) {}
     if (stored) {
-      setKey("", "anthropic"); setKey("", "gemini");
+      clearActiveKeys();
       storeKeys([]);
       shownKeys = {}; tested = {};
       if (HOLD.indexOf(gen.status) >= 0) gen.status = "idle";
@@ -3718,6 +3801,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       if (m[0] === cur) o.selected = true;
       sel.appendChild(o);
     });
+    var other = el("option", null, "Other model ID\u2026");
+    other.value = "__other";
+    sel.appendChild(other);
   }
   // Unread cards from topics that were switched off leave the feed.
   function pruneTopics() {
@@ -3764,7 +3850,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (HOLD.indexOf(gen.status) >= 0) gen.status = "idle";
   }
   function setProvider(p) {
-    state.settings.provider = p === "gemini" ? "gemini" : "anthropic";
+    state.settings.provider = PROVIDER[p] ? p : "anthropic";
     persist();
     touchSync();
     releaseHold();
@@ -3783,7 +3869,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("api-key").value = "";
     tested[prov()] = undefined;
     releaseHold();
-    out.textContent = switched ? "This looks like " + (g === "anthropic" ? "an " : "a ") + PROVIDER[g].who + " key, so the provider was switched to " + PROVIDER[g].name + ". Key saved." : "Key saved.";
+    out.textContent = switched ? "This looks like " + (/^[AEIOU]/.test(PROVIDER[g].who) ? "an " : "a ") + PROVIDER[g].who + " key, so the provider was switched to " + PROVIDER[g].name + ". Key saved." : "Key saved.";
     renderSettings();
     renderEnd();
     maybeRefill(false);
@@ -3900,8 +3986,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function clearData() {
     try { localStorage.removeItem(KEY); } catch (e) {}
     signOutLocal("");
-    setKey("", "anthropic");
-    setKey("", "gemini");
+    clearActiveKeys();
     storeKeys([]);
     shownKeys = {};
     clearTimeout(soundTimer); stopVoice(voice); voice = null; lastSoundId = null;
@@ -4103,7 +4188,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function exportAll() {
     var withKeys = $("export-keys").checked;
     var data = { app: "WisdomScroll", format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), includesApiKeys: withKeys, state: JSON.parse(JSON.stringify(state)) };
-    if (withKeys) data.keys = { list: loadKeys(), active: { anthropic: getKey("anthropic"), gemini: getKey("gemini") } };
+    if (withKeys) data.keys = { list: loadKeys(), active: activeKeys() };
     saveFile("wisdomscroll-backup-" + today() + ".json", JSON.stringify(data, null, 1), "application/json", $("export-all-result"));
   }
   function restoreFrom(file) {
@@ -4126,7 +4211,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         state = loadState();
         if (d.keys && Array.isArray(d.keys.list)) {
           storeKeys(d.keys.list.filter(function (x) { return x && x.k && PROVIDER[x.p]; }));
-          ["anthropic", "gemini"].forEach(function (pp) { if (d.keys.active && d.keys.active[pp]) setKey(d.keys.active[pp], pp); });
+          PIDS.forEach(function (pp) { if (d.keys.active && d.keys.active[pp]) setKey(d.keys.active[pp], pp); });
         }
         recomputeTaste();
         persistNow();
@@ -4157,7 +4242,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     confirmBox("Remove all API keys?", "Every saved API key is removed from this browser and this device is signed out of sync. Keys stored with your sync sign-in are not deleted, and return if you sign in again.", "Remove keys").then(function (yes) {
       if (!yes) return;
       signOutLocal("");
-      setKey("", "anthropic"); setKey("", "gemini");
+      clearActiveKeys();
       storeKeys([]);
       shownKeys = {}; tested = {};
       if (HOLD.indexOf(gen.status) >= 0) gen.status = "idle";
@@ -4328,7 +4413,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         localStorage.removeItem(KEY_API);
       }
     } catch (e) {}
-    ["anthropic", "gemini"].forEach(function (pp) { var kk = getKey(pp); if (kk) rememberKey(kk, pp); });
+    PIDS.forEach(function (pp) { var kk = getKey(pp); if (kk) rememberKey(kk, pp); });
     if (state.cards.length > MAX_CARDS) {
       var drop = state.cards.length - MAX_CARDS;
       state.cards = state.cards.filter(function (c) { return !(c.seen && c.id !== state.pos && drop-- > 0); });
@@ -4362,7 +4447,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     });
     $("limit-down").addEventListener("click", function () { changeLimit(-10); });
     $("limit-up").addEventListener("click", function () { changeLimit(10); });
-    $("model").addEventListener("change", function () { state.settings.models[prov()] = $("model").value; persist(); touchSync(); });
+    $("model").addEventListener("change", function () {
+      if ($("model").value === "__other") { askModelId(); return; }
+      state.settings.models[prov()] = $("model").value; persist(); touchSync(); releaseHold();
+    });
     $("provider").addEventListener("change", function () { setProvider($("provider").value); });
     $("key-save").addEventListener("click", saveKey);
     $("test-btn").addEventListener("click", testConnection);
