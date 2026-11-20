@@ -1,7 +1,7 @@
 /* WisdomScroll service worker: keeps a copy of the app on the device so it opens offline. */
-const SHELL = "wisdomscroll-shell-v2";
+const SHELL = "wisdomscroll-shell-v3";
 const FONTS = "wisdomscroll-fonts-v1";
-const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
+const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
