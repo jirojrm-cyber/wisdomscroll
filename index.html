@@ -635,14 +635,14 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
                 <input type="text" id="display-name" maxlength="40" autocomplete="nickname" placeholder="Your name">
               </div>
             </div>
-            <p class="note">No online account is needed. WisdomScroll works fully on this device, and this name is only shown here.</p>
+            <p class="note">Shown only in this app. No account needed.</p>
           </div>
 
           <div class="sgroup-label">Account and sync (optional)</div>
           <div class="sgroup pad">
             <div class="status"><span class="dot" id="acct-dot"></span><span id="acct-status">Not signed in</span></div>
             <div class="stack" id="acct-out">
-              <p class="note">A free account keeps your saved ideas, collections, likes, topics and API keys the same on every device. Your API keys are encrypted with your password before they leave this device. Forgot your password? You can reset it by email; your saved ideas are kept, and you add your API key again.</p>
+              <p class="note">Optional. Sign in to keep your saved ideas and API keys on all your devices.</p>
               <div class="field">
                 <label for="acct-email">Email</label>
                 <input type="email" id="acct-email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="you@example.com" inputmode="email">
@@ -656,14 +656,14 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
                 <button type="button" class="btn" id="acct-signup">Create account</button>
               </div>
               <p class="note"><button type="button" class="link" id="acct-forgot">Forgot password?</button></p>
-              <p class="note small">Made your account with a username before? Type the username instead of an email to sign in.</p>
+              <p class="note small">Old username account? Type your username instead.</p>
             </div>
             <div class="stack" id="acct-in" hidden>
               <div>
                 <div class="pname" id="acct-name"></div>
                 <div class="note" id="acct-sub"></div>
               </div>
-              <p class="note">Saved and liked ideas, collections, your topics and your API keys sync between your devices, about every 20 seconds while the app is open. Your API keys belong to this account: signing out removes them from this device, and signing in brings them back.</p>
+              <p class="note">Your saved ideas, collections, topics and API keys stay in sync on all your devices. Signing out removes your keys from this device.</p>
               <div class="actions">
                 <button type="button" class="btn" id="acct-sync">Sync now</button>
                 <button type="button" class="btn" id="acct-password">Change password</button>
@@ -685,7 +685,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <label for="focus-select">Show in Discover</label>
               <select id="focus-select"></select>
             </div>
-            <p class="note">You can also change this by tapping the topic label on any card.</p>
+            <p class="note">Or tap the topic label on any card.</p>
           </div>
 
           <div class="sgroup-label">Topics in my mix</div>
@@ -707,13 +707,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <label for="lang-select">Write new ideas in</label>
               <select id="lang-select"></select>
             </div>
-            <p class="note">This applies to ideas written from now on. Ideas already in your feed keep their language. Book titles stay in English so their covers can be found.</p>
+            <p class="note">Applies to new ideas. Book titles stay in English.</p>
           </div>
 
           <div class="sgroup-label">Sound and music</div>
           <div class="sgroup pad">
             <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Ambient sound that changes with each swipe</span></label>
-            <p class="note">The app makes these sounds itself, with a different mood for each topic.</p>
+            <p class="note">A different mood for each topic.</p>
             <div class="field">
               <label for="music-link">Your Spotify playlist link</label>
               <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -726,7 +726,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <h3 class="sub-h">Or pick a reading playlist</h3>
             <div class="actions" id="music-presets"></div>
             <div id="music-embed"></div>
-            <p class="note">The music note on the Discover screen opens this playlist in Spotify. The ambient sound pauses when you start your music.</p>
+            <p class="note">The music note on Discover opens this playlist.</p>
           </div>
         </div>
       </div>
@@ -748,7 +748,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             </div>
           </div>
           <div class="sgroup pad">
-            <p class="note"><strong>How reminders work.</strong> WisdomScroll has no server, so nothing can wake it once it is fully closed. A reminder appears at your chosen time only while the app is open or still running in the background on this device. On iPhone and iPad, notifications need the app to be added to the Home Screen first.</p>
+            <p class="note">Reminders only appear while the app is open or in the background. On iPhone, add the app to your Home Screen first.</p>
           </div>
         </div>
       </div>
@@ -814,7 +814,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               </div>
             </div>
             <label class="switch" for="check-toggle"><input type="checkbox" id="check-toggle"><span>Double-check every idea against its book</span></label>
-            <p class="note">A second AI pass and a book-catalogue lookup remove ideas that do not clearly belong to the named book. It uses one extra AI request per batch. No check is perfect, so a wrong card can still appear now and then.</p>
+            <p class="note">Removes ideas that don't match their book. Uses one extra AI request per batch.</p>
           </div>
         </div>
       </div>
@@ -833,7 +833,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <label><input type="radio" name="theme" id="theme-navy" value="navy"><span>Midnight navy</span></label>
               <label><input type="radio" name="theme" id="theme-black" value="black"><span>True black</span></label>
             </div>
-            <p class="note">WisdomScroll is a dark app. True black saves a little battery on OLED screens.</p>
+            <p class="note">True black saves battery on OLED screens.</p>
           </div>
 
           <div class="sgroup-label">Text</div>
@@ -875,7 +875,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <label><input type="radio" name="motion" id="motion-full" value="full"><span>Full</span></label>
               <label><input type="radio" name="motion" id="motion-reduced" value="reduced"><span>Reduced</span></label>
             </div>
-            <p class="note">Reduced turns off the text entrance, button and refresh animations. Your device's own Reduce Motion setting is always respected.</p>
+            <p class="note">Reduced turns off most animations.</p>
           </div>
         </div>
       </div>
@@ -886,22 +886,22 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         <div class="page">
           <div class="sgroup-label">Stored on this device</div>
           <div class="sgroup pad">
-            <p class="note">Your feed, saved and liked ideas, preferences and API keys are kept in this browser's local storage on this device. The app has no analytics, advertising or tracking. The browser can clear local storage, so export a backup from time to time.</p>
+            <p class="note">Your ideas, settings and API keys are stored in this browser. No ads or tracking. Export a backup now and then.</p>
           </div>
           <div class="sgroup-label">Sent to the AI provider</div>
           <div class="sgroup pad">
-            <p class="note">To write ideas, the app sends a request to the provider you chose (Anthropic, Google, DeepSeek or Volcano Engine), using your API key. The request contains the writing instructions, your topics and language, and the lists of books, authors and ideas already shown. It does not contain your name or your sign-in. The provider handles that request under its own policies.</p>
+            <p class="note">To write ideas, the app sends your topics, language and recently shown books to your AI provider, using your key. Your name and account are never sent.</p>
           </div>
           <div class="sgroup-label">Other services</div>
           <div class="sgroup pad">
-            <p class="note">Book titles and authors are sent to Open Library to find covers and confirm that a book exists. Fonts load from Google Fonts. If you create an account, your email address, saved ideas, collections and preferences are stored with the sync service, where only your account can read them. Your API keys are encrypted on this device with your password before they are stored.</p>
+            <p class="note">Open Library finds book covers. Google Fonts supplies the typefaces. With an account, your ideas and settings are stored in the sync service, readable only by you; API keys are encrypted with your password.</p>
           </div>
           <div class="sgroup-label">API keys</div>
           <div class="sgroup">
             <button type="button" class="srow" data-open="ai"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /> <path d="M20 3v4" /> <path d="M22 5h-4" /> <path d="M4 17v2" /> <path d="M5 18H3" /></svg><span class="srow-text"><span class="srow-title">Manage API keys</span><span class="srow-sub" id="row-keys"></span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
           </div>
           <div class="sgroup pad">
-            <p class="note">Anyone who can open this browser can see and use the saved keys. Remove them before lending or selling this device.</p>
+            <p class="note">Anyone using this browser can see your keys. Remove them before lending this device.</p>
             <div class="actions">
               <button type="button" class="btn danger" id="wipe-keys">Remove all API keys and sign out</button>
             </div>
@@ -925,9 +925,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Back up</div>
           <div class="sgroup pad">
-            <p class="note">A backup holds your feed, saved and liked ideas and preferences as one JSON file.</p>
+            <p class="note">Saves your ideas and settings as one file.</p>
             <label class="switch" for="export-keys"><input type="checkbox" id="export-keys"><span>Include my API keys in the backup</span></label>
-            <p class="note">Off by default. A backup that includes keys must be kept private.</p>
+            <p class="note">Off by default. Keep such a file private.</p>
             <div class="actions">
               <button type="button" class="btn solid" id="export-all">Export all data</button>
               <span class="note" id="export-all-result" role="status"></span>
@@ -936,7 +936,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Restore</div>
           <div class="sgroup pad">
-            <p class="note">Restoring replaces what is on this device with the contents of a backup file.</p>
+            <p class="note">Replaces everything on this device with the backup.</p>
             <input type="file" id="restore-file" accept="application/json,.json" hidden>
             <div class="actions">
               <button type="button" class="btn" id="restore-btn">Restore from a backup file</button>
@@ -960,7 +960,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <button type="button" class="btn danger" id="clear-saved">Clear saved ideas</button>
               <button type="button" class="btn danger" id="clear-btn">Clear all app data</button>
             </div>
-            <p class="note">Clearing all app data removes every idea, your preferences and your API keys from this browser, and signs this device out of sync.</p>
+            <p class="note">Removes all ideas, settings and API keys from this browser and signs you out.</p>
           </div>
         </div>
       </div>
@@ -985,7 +985,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">What it is</div>
           <div class="sgroup pad">
-            <p class="note">Each card is an idea from the book named beneath it, written by AI in its own words. It is not a quotation from the author, and AI can get a book wrong. Check the book before you rely on a card.</p>
+            <p class="note">Each card is an AI-written summary of an idea from the named book, not a direct quote. AI can make mistakes.</p>
           </div>
 
           <div class="sgroup-label">Developer</div>
@@ -995,7 +995,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Acknowledgements</div>
           <div class="sgroup pad">
-            <p class="note">Ideas are written through the Anthropic Claude, Google Gemini, DeepSeek or Volcano Engine Doubao API, using your own key. Book covers and catalogue lookups come from <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>; a cover can be missing or show a different edition. Optional sync runs on Supabase. Background music opens in Spotify. The app is hosted on GitHub Pages.</p>
+            <p class="note">AI: Anthropic, Google, DeepSeek, Volcano Engine. Book covers: <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>. Sync: Supabase. Music: Spotify. Hosting: GitHub Pages.</p>
           </div>
 
           <div class="sgroup-label">Open-source licenses</div>
@@ -3606,9 +3606,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (row && hasRowData(row.data)) {
       var remote = null;
       try { remote = await readRow(row.data); }
-      catch (e) { remote = null; note = " The older synced copy could not be opened with this password, so this device's ideas and keys are now the account's copy."; }
+      catch (e) { remote = null; note = " This device's ideas are now your account's copy."; }
       if (remote) {
-        if (remote.keysLocked) note = " Your API keys stored in the account were locked with your old password, so they could not be brought back. Add your key again in AI & Generation.";
+        if (remote.keysLocked) note = " Please add your API key again in AI & Generation.";
         delete remote.keysLocked;
         vault.syncedAt = Date.parse(row.updated_at) || 0;
         lsSet(KEY_VAULT, vault);
@@ -3642,8 +3642,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     pwMode = mode;
     $("pw-title").textContent = mode === "reset" ? "Choose a new password" : "Change password";
     $("pw-note").textContent = mode === "reset"
-      ? "Set a new password for " + (pwToken && pwToken.email ? pwToken.email : "your account") + ". Your saved ideas are kept. API keys stored in the account were locked with the old password, so you may need to add your key again."
-      : "Your other devices will ask you to sign in again with the new password.";
+      ? "For " + (pwToken && pwToken.email ? pwToken.email : "your account") + "." + " Your saved ideas are kept; you may need to add your API key again."
+      : "Your other devices will ask you to sign in again.";
     $("pw-new").value = ""; $("pw-again").value = ""; $("pw-msg").textContent = "";
     $("pw-sheet").hidden = false;
     setTimeout(function () { $("pw-new").focus(); }, 60);
@@ -3708,7 +3708,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   // API keys belong to the account: signing out takes them off this device, after a last sync so nothing is lost.
   async function signOut() {
     if (!session) return;
-    var yes = await confirmBox("Sign out?", "Your API keys are removed from this device. They stay in your account and return when you sign in again. Your ideas and saved cards stay here.", "Sign out");
+    var yes = await confirmBox("Sign out?", "Your API keys leave this device and come back when you sign in. Your ideas stay here.", "Sign out");
     if (!yes) return;
     var stored = false;
     try {
@@ -4145,11 +4145,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (document.activeElement !== $("remind-time")) $("remind-time").value = r.time;
     dot.className = "dot" + (on ? " ok" : ns === "denied" ? " bad" : "");
     $("remind-status").textContent =
-      ns === "unsupported" ? "This browser cannot show notifications here. On iPhone or iPad, add WisdomScroll to the Home Screen and open it from there." :
-      ns === "denied" ? "Notifications are blocked for this app. Allow them in your browser or system settings, then switch this on." :
-      on ? "On. A reminder appears at " + r.time + " while the app is open or running in the background." :
-      ns === "granted" ? "Notifications are allowed, and the reminder is off." :
-      "Off. Switching it on asks your browser for permission.";
+      ns === "unsupported" ? "Not available here. On iPhone, open the app from your Home Screen." :
+      ns === "denied" ? "Notifications are blocked. Allow them in your phone settings first." :
+      on ? "On, daily at " + r.time + "." :
+      ns === "granted" ? "Off." :
+      "Off. Turning it on asks for permission.";
     $("remind-test").disabled = ns !== "granted";
   }
   function setRemind(want) {
