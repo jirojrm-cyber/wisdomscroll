@@ -457,6 +457,11 @@ html[data-motion="reduced"] .burst { display: none; }
 .contact-btn i.brand-tg img { width: 28px; height: 28px; display: block; margin-left: -2px; }
 .about-logo { overflow: hidden; padding: 0; border-color: rgba(220,181,108,.55); }
 .about-logo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.steps.big { font-size: .92rem; gap: 10px; color: var(--muted); }
+.steps.big b, .guide .note b { color: var(--cream); font-weight: 600; }
+.guide .sgroup .actions a.btn { text-decoration: none; }
+.guide .sgroup a.btn.solid { color: #1a1408; }
+.guide .sgroup a.btn { display: inline-flex; align-items: center; }
 
 
 /* "Newest" arrow on Discover */
@@ -613,6 +618,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Information</div>
           <div class="sgroup">
+            <button type="button" class="srow" data-open="guide"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /> <path d="M9 18h6" /> <path d="M10 22h4" /></svg><span class="srow-text"><span class="srow-title">How to use</span><span class="srow-sub">The basics, and getting a free AI key</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-share-app><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" /> <circle cx="6" cy="12" r="3" /> <circle cx="18" cy="19" r="3" /> <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" /> <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" /></svg><span class="srow-text"><span class="srow-title">Share WisdomScroll</span><span class="srow-sub">Send the app to a friend</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="about"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="M12 16v-4" /> <path d="M12 8h.01" /></svg><span class="srow-text"><span class="srow-title">About WisdomScroll</span><span class="srow-sub" id="row-about">Version and credits</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="help"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <path d="m4.93 4.93 4.24 4.24" /> <path d="m14.83 9.17 4.24-4.24" /> <path d="m14.83 14.83 4.24 4.24" /> <path d="m9.17 14.83-4.24 4.24" /> <circle cx="12" cy="12" r="4" /></svg><span class="srow-text"><span class="srow-title">Help &amp; Support</span><span class="srow-sub">Questions and troubleshooting</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
@@ -793,6 +799,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <button type="button" class="btn" id="test-btn">Test connection</button>
               <span class="note" id="test-result" role="status"></span>
             </div>
+          </div>
+
+          <div class="sgroup">
+            <button type="button" class="srow" data-open="guide" data-anchor="guide-gemini"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" /> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /></svg><span class="srow-text"><span class="srow-title">How to get a free API key</span><span class="srow-sub">Step by step, about 2 minutes</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
           </div>
 
           <div class="sgroup-label">Generation</div>
@@ -1016,6 +1026,56 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           <div class="sgroup">
             <button type="button" class="srow" data-open="policy"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg><span class="srow-text"><span class="srow-title">Privacy Policy</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
             <button type="button" class="srow" data-open="terms"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12h-5" /> <path d="M15 8h-5" /> <path d="M19 17V5a2 2 0 0 0-2-2H4" /> <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" /></svg><span class="srow-text"><span class="srow-title">Terms of Use</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== How to use ===== -->
+      <div class="spage" data-page="guide">
+        <header class="shead"><button type="button" class="sback" data-back><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg><span>Settings</span></button><h2>How to use</h2></header>
+        <div class="page guide">
+          <div class="sgroup-label">Reading</div>
+          <div class="sgroup pad">
+            <ol class="steps big">
+              <li><b>Swipe up</b> for the next idea, down to go back.</li>
+              <li><b>Like</b> ideas you enjoy; the feed leans toward them.</li>
+              <li><b>Save</b> ideas to keep them in Saved, and group them into collections there.</li>
+              <li><b>Share</b> makes an image of the idea, in three styles and sizes.</li>
+              <li>Tap the <b>topic label</b> on a card to read one topic or a mix.</li>
+              <li>Tap <b>Discover</b> again to shuffle all your ideas.</li>
+              <li><b>&#10002; fresh quotes</b> appears when newly written ideas are waiting; tap it to jump there.</li>
+              <li>The <b>headphones</b> read ideas aloud and move on by themselves.</li>
+            </ol>
+          </div>
+
+          <div class="sgroup-label" id="guide-gemini">Get a free Gemini API key</div>
+          <div class="sgroup pad">
+            <p class="note">New ideas are written by AI. Google Gemini is free to start and takes about 2 minutes.</p>
+            <ol class="steps big">
+              <li>Open <b>Google AI Studio</b> with the button below and sign in with your Google account.</li>
+              <li>Tap <b>Get API key</b> (in the menu &#9776; on a phone).</li>
+              <li>Tap <b>Create API key</b>. If asked, choose or create a project.</li>
+              <li>Tap <b>Copy</b> next to the new key.</li>
+              <li>Come back here and open <b>AI &amp; Generation</b>. Choose <b>Google Gemini</b>, paste the key and tap <b>Save key</b>.</li>
+              <li>Tap <b>Test connection</b>. &ldquo;Connected to Google Gemini&rdquo; means it works.</li>
+            </ol>
+            <div class="actions">
+              <a class="btn solid" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
+              <button type="button" class="btn" data-open="ai">AI &amp; Generation</button>
+            </div>
+            <p class="note small">Google AI Studio is not available in mainland China. There, use DeepSeek or Doubao below.</p>
+          </div>
+
+          <div class="sgroup-label">Other AI providers</div>
+          <div class="sgroup pad">
+            <p class="note"><b>DeepSeek:</b> at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com</a>, create an API key and add a little credit. Choose DeepSeek in AI &amp; Generation and save the key.</p>
+            <p class="note"><b>Doubao:</b> in the <a href="https://console.volcengine.com/ark" target="_blank" rel="noopener">Volcano Engine Ark console</a>, create an API key and activate a Doubao model. Choose Doubao, save the key, and set the model ID if needed.</p>
+            <p class="note"><b>Claude:</b> at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>, create an API key and add credit.</p>
+          </div>
+
+          <div class="sgroup-label">Good to know</div>
+          <div class="sgroup pad">
+            <p class="note">Your key stays on your device and is only sent to its AI provider. The daily limit in AI &amp; Generation keeps usage under control.</p>
           </div>
         </div>
       </div>
@@ -1274,7 +1334,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.6";
+  var APP_VERSION = "3.7";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -2796,7 +2856,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     switch (gen.status) {
       case "busy": busy = true; title = "Writing the next ideas"; text = "The AI is choosing books, writing the ideas and checking them against each book."; break;
       case "limit": title = "That is today's " + state.settings.limit + " ideas"; text = "Come back tomorrow, or raise the daily limit in Settings."; break;
-      case "nokey": title = "Add your API key"; text = "New ideas are written by AI through your own API key, from Anthropic, Google, DeepSeek or Volcano Engine (Doubao). Add it in Settings to keep the feed going."; action = "Open Settings"; go = toSettings; break;
+      case "nokey": title = "Add your API key"; text = "New ideas are written by AI with your own key. A Google Gemini key is free and takes about 2 minutes."; action = "Show me how"; go = function () { show("prefs"); goPage("guide"); setTimeout(function () { var g = $("guide-gemini"); if (g) g.scrollIntoView({ block: "start" }); }, 350); }; break;
       case "auth": title = "Your API key was rejected"; text = "Check the key and the provider in Settings, then try again."; action = "Open Settings"; go = toSettings; break;
       case "rate": title = "The API is at its limit"; text = "Your key hit a rate or spending limit. Try again in a while."; action = "Try again"; break;
       case "error": title = "Could not get new ideas"; text = gen.detail || "The request failed. Your earlier and saved ideas are still here."; action = "Try again"; break;
@@ -4379,7 +4439,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   }
   function wireCenter() {
     Array.prototype.forEach.call(document.querySelectorAll("#view-prefs [data-open]"), function (b) {
-      b.addEventListener("click", function () { goPage(b.dataset.open); });
+      b.addEventListener("click", function () {
+        goPage(b.dataset.open);
+        if (b.dataset.anchor) setTimeout(function () { var g = $(b.dataset.anchor); if (g) g.scrollIntoView({ block: "start", behavior: "smooth" }); }, 320);
+      });
     });
     Array.prototype.forEach.call(document.querySelectorAll("#view-prefs [data-back]"), function (b) {
       b.addEventListener("click", backPage);
