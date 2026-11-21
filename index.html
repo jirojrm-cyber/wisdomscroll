@@ -534,6 +534,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
 #pw-sheet .actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 #pw-sheet { z-index: 45; }
+
+#sheet .sheet-box { width: min(440px, 100%); }
+#sheet img { max-height: 54vh; }
+#sheet img.share-story { max-height: 58vh; }
+.share-opts { display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%; }
+.share-row { justify-content: center; flex-wrap: nowrap; gap: 6px; }
+.share-row .chip-btn { padding: 6px 14px; font-size: .8rem; }
 </style>
 </head>
 <body>
@@ -1112,6 +1119,18 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Share this idea" hidden>
     <div class="sheet-box">
       <img id="sheet-img" alt="The idea as a shareable image">
+      <div class="share-opts">
+        <div class="chips share-row" id="share-style" role="group" aria-label="Style">
+          <button type="button" class="chip-btn" data-v="midnight">Midnight</button>
+          <button type="button" class="chip-btn" data-v="parchment">Parchment</button>
+          <button type="button" class="chip-btn" data-v="noir">Noir</button>
+        </div>
+        <div class="chips share-row" id="share-size" role="group" aria-label="Size">
+          <button type="button" class="chip-btn" data-v="post">Post</button>
+          <button type="button" class="chip-btn" data-v="story">Story</button>
+          <button type="button" class="chip-btn" data-v="square">Square</button>
+        </div>
+      </div>
       <p class="note" id="sheet-note" role="status"></p>
       <div class="actions">
         <button type="button" class="btn solid" id="sheet-save">Share image</button>
@@ -1255,7 +1274,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.5";
+  var APP_VERSION = "3.6";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1367,6 +1386,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       dropcap: ui.dropcap !== false,
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
+      shareStyle: pick(ui.shareStyle, ["midnight", "parchment", "noir"], "midnight"),
+      shareSize: pick(ui.shareSize, ["post", "story", "square"], "post"),
       auto: ui.auto !== false,
       stock: pick(+ui.stock, [10, 15, 20, 30], 15),
       remind: { on: rm.on === true, time: /^\d\d:\d\d$/.test(rm.time || "") ? rm.time : "20:00", last: typeof rm.last === "string" ? rm.last : "" }
@@ -1965,126 +1986,150 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
   }
-  function drawCard(card, coverImg) {
-    var W = 1080, H = 1350, M = 84;
+  var SHARE_STYLES = {
+    midnight: { bg: "#0b1222", text: "#f4ecdc", muted: "#a9b1c2", accent: "#dcb56c", rule: "rgba(220,181,108,.75)", mark: "rgba(220,181,108,.22)", glow: true },
+    parchment: { bg: "#f2e8d5", text: "#2b2118", muted: "#7a6650", accent: "#9a6a2c", rule: "rgba(154,106,44,.6)", mark: "rgba(154,106,44,.16)", paper: true },
+    noir: { bg: "#050505", text: "#f5f2ea", muted: "#8f8f8f", accent: "#d6b06a", rule: "rgba(214,176,106,.6)", mark: "rgba(255,255,255,.08)" }
+  };
+  var SHARE_SIZES = { post: [1080, 1350], story: [1080, 1920], square: [1080, 1080] };
+  var shareLogo = null;
+  function loadShareLogo() {
+    if (shareLogo) return Promise.resolve(shareLogo);
+    return new Promise(function (res) {
+      var src = document.querySelector(".about-logo img");
+      if (!src || !src.src) { res(null); return; }
+      var im = new Image();
+      im.onload = function () { shareLogo = im; res(im); };
+      im.onerror = function () { res(null); };
+      im.src = src.src; // the logo is part of the page, so it can always be drawn
+    });
+  }
+  function drawCard(card, coverImg, styleName, sizeName) {
+    var st = SHARE_STYLES[styleName] || SHARE_STYLES.midnight, sz = SHARE_SIZES[sizeName] || SHARE_SIZES.post;
+    var W = sz[0], H = sz[1], M = 96;
     var cv = document.createElement("canvas");
     cv.width = W; cv.height = H;
     var ctx = cv.getContext("2d");
-    var SERIF = '"IM Fell English", "Iowan Old Style", Georgia, serif', SANS = 'Manrope, system-ui, -apple-system, sans-serif';
-    var GOLD = "#dcb56c", CREAM = "#f4ecdc", MUTED = "#a3abbd";
+    var SERIF = '"IM Fell English", "Iowan Old Style", Georgia, "Songti SC", serif', SANS = 'Manrope, system-ui, -apple-system, "PingFang SC", sans-serif';
 
-    ctx.fillStyle = "#0a101d";
+    // background
+    ctx.fillStyle = st.bg;
     ctx.fillRect(0, 0, W, H);
-    var v = GLOW[(card.g || 0) % 6];
-    glow(ctx, W, H, v.a, v.ax, v.ay, W * 0.95);
-    glow(ctx, W, H, v.b, v.bx, v.by, W * 1.0);
-    ctx.strokeStyle = "rgba(220,181,108,.16)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(W * 1.08, H * 0.16, W * 0.74, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // header: topic chip on the left, wordmark on the right
-    ctx.textBaseline = "middle";
-    ctx.font = "600 26px " + SANS;
-    var label = card.category.toUpperCase(), sp = 4, lw = 0, i;
-    for (i = 0; i < label.length; i++) lw += ctx.measureText(label[i]).width + sp;
-    roundRect(ctx, M, 92, lw - sp + 56, 64, 32);
-    ctx.strokeStyle = "rgba(220,181,108,.45)";
-    ctx.stroke();
-    ctx.fillStyle = GOLD;
-    var x = M + 28;
-    for (i = 0; i < label.length; i++) { ctx.fillText(label[i], x, 125); x += ctx.measureText(label[i]).width + sp; }
-    ctx.font = "34px " + SERIF;
-    ctx.fillStyle = "rgba(244,236,220,.78)";
-    ctx.textAlign = "right";
-    ctx.fillText("WisdomScroll", W - M, 124);
-    ctx.textAlign = "left";
-
-    // the idea, with a large gold first letter spanning two lines
-    var text = card.text, n = text.length;
-    var fs = n <= 125 ? 72 : n <= 205 ? 62 : 54, lh = fs * 1.28;
-    var first = text.charAt(0), rest = text.slice(1);
-    ctx.font = (fs * 2.9) + "px " + SERIF;
-    var capW = ctx.measureText(first).width + fs * 0.2;
-    ctx.font = fs + "px " + SERIF;
-    var maxW = W - 2 * M;
-    var lines = wrapLines(ctx, rest, function (k) { return k < 2 ? maxW - capW : maxW; });
-    var top = 230, bottom = 1010;
-    var blockH = Math.max(lines.length, 2) * lh;
-    var y0 = top + Math.max(0, (bottom - top - blockH) / 2);
-    ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = GOLD;
-    ctx.font = (fs * 2.9) + "px " + SERIF;
-    ctx.shadowColor = "rgba(220,181,108,.35)";
-    ctx.shadowBlur = 28;
-    ctx.fillText(first, M, y0 + fs * 0.95 + lh);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = CREAM;
-    ctx.font = fs + "px " + SERIF;
-    lines.forEach(function (ln, k) { ctx.fillText(ln, k < 2 ? M + capW : M, y0 + fs * 0.95 + k * lh); });
-
-    // ornament
-    var oy = Math.min(y0 + blockH + 46, 1040);
-    ctx.strokeStyle = GOLD;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(M, oy); ctx.lineTo(M + 108, oy); ctx.moveTo(M + 160, oy); ctx.lineTo(M + 268, oy); ctx.stroke();
-    ctx.save(); ctx.translate(M + 134, oy); ctx.rotate(Math.PI / 4); ctx.fillStyle = GOLD; ctx.fillRect(-8, -8, 16, 16); ctx.restore();
-
-    // book cover and source
-    var cx = M, cy = 1096, cw = 118, ch = 170;
-    if (coverImg) {
-      // keep the cover's own proportions, anchored to the bottom of the cover box
-      var ratio = coverImg.naturalWidth / coverImg.naturalHeight;
-      var iw = Math.min(cw + 30, Math.max(90, ch * ratio));
-      var ih = iw / ratio;
-      var iy = cy + ch - ih;
-      cw = iw;
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
-      ctx.fillStyle = "#111";
-      roundRect(ctx, cx, iy, iw, ih, 6);
-      ctx.fill();
-      ctx.restore();
-      ctx.save();
-      roundRect(ctx, cx, iy, iw, ih, 6);
-      ctx.clip();
-      ctx.drawImage(coverImg, cx, iy, iw, ih);
-      ctx.restore();
-    } else {
-    var cloth = clothOf(card.book);
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
-    var cg = ctx.createLinearGradient(cx, cy, cx + cw, cy + ch);
-    cg.addColorStop(0, cloth[0]); cg.addColorStop(1, cloth[1]);
-    ctx.fillStyle = cg;
-    roundRect(ctx, cx, cy, cw, ch, 8);
-    ctx.fill();
-    ctx.restore();
-    ctx.fillStyle = "rgba(0,0,0,.28)";
-    ctx.fillRect(cx, cy + 2, 10, ch - 4);
-    ctx.strokeStyle = "rgba(220,181,108,.65)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(cx + 22, cy + 13, cw - 35, ch - 26);
-    ctx.fillStyle = GOLD;
-    ctx.font = "66px " + SERIF;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(monoOf(card.book), cx + 22 + (cw - 35) / 2, cy + ch / 2 + 4);
+    if (st.glow) {
+      var v = GLOW[(card.g || 0) % 6];
+      glow(ctx, W, H, v.a, v.ax, v.ay, W * 0.9);
+      glow(ctx, W, H, v.b, v.bx, v.by, W * 0.95);
+      glow(ctx, W, H, [0, 0, 0, 0.35], 0.5, 1.15, W * 0.8);
     }
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
+    if (st.paper) {
+      // warm vignette and a fine grain, like an old page
+      glow(ctx, W, H, [255, 250, 238, 0.7], 0.45, 0.35, W * 0.75);
+      var vg = ctx.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+      vg.addColorStop(0, "rgba(120,80,30,0)"); vg.addColorStop(1, "rgba(120,80,30,.22)");
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+      var seed = 7;
+      for (var g = 0; g < 9000; g++) {
+        seed = (seed * 16807) % 2147483647;
+        var gx = seed % W; seed = (seed * 16807) % 2147483647;
+        var gy = seed % H;
+        ctx.fillStyle = g % 2 ? "rgba(90,60,20,.05)" : "rgba(255,255,255,.08)";
+        ctx.fillRect(gx, gy, 2, 2);
+      }
+      ctx.strokeStyle = "rgba(154,106,44,.35)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(36, 36, W - 72, H - 72);
+      ctx.strokeStyle = "rgba(154,106,44,.18)";
+      ctx.strokeRect(48, 48, W - 96, H - 96);
+    }
 
-    var tx = cx + cw + 38, tw = W - M - tx;
-    ctx.font = "700 42px " + SANS;
+    // footer: logo, name and motto
+    var footH = 150, footY = H - M - 40;
+    ctx.textBaseline = "middle";
+    var lx = M, ls = 64;
+    if (shareLogo) {
+      ctx.save(); roundRect(ctx, lx, footY - ls / 2, ls, ls, 15); ctx.clip();
+      ctx.drawImage(shareLogo, lx, footY - ls / 2, ls, ls); ctx.restore();
+      lx += ls + 22;
+    }
+    ctx.fillStyle = st.text;
+    ctx.font = "40px " + SERIF;
+    ctx.fillText("WisdomScroll", lx, footY - 14);
+    ctx.fillStyle = st.muted;
+    ctx.font = "500 24px " + SANS;
+    ctx.fillText("Feed your mind.", lx, footY + 24);
+    ctx.textAlign = "right";
+    ctx.fillStyle = st.muted;
+    ctx.font = "500 22px " + SANS;
+    ctx.fillText("One idea from a great book, every swipe", W - M, footY + 24);
+    ctx.textAlign = "left";
+    ctx.strokeStyle = st.rule;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(M, footY - 72); ctx.lineTo(W - M, footY - 72); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // the idea and its source form one block, centred in the space above the footer
+    var hasCover = !!coverImg, srcH = hasCover ? 200 : 120;
+    var text = card.text, n = text.length, wide = /[\u3000-\u9fff\uac00-\ud7af]/.test(text);
+    var maxW = W - 2 * M, room = (footY - 72 - 60) - (M + 80) - srcH - 150;
+    var fs = wide ? (n <= 50 ? 66 : n <= 90 ? 56 : 48) : (n <= 110 ? 74 : n <= 170 ? 64 : n <= 230 ? 56 : 50);
+    if (H >= 1900) fs = Math.round(fs * 1.4);
+    if (H <= 1080) fs = Math.round(fs * 0.92);
+    var lh, lines;
+    for (;;) {
+      lh = fs * 1.34;
+      ctx.font = fs + "px " + SERIF;
+      lines = wrapLines(ctx, text, function () { return maxW; });
+      if (lines.length * lh <= room || fs <= 34) break;
+      fs -= 2;
+    }
+    var blockH = lines.length * lh;
+    var total = fs * 0.9 + blockH + 40 + 110 + srcH; // quote mark, text, ornament, gap, source
+    var top = M + 80 + Math.max(0, ((footY - 72 - 60) - (M + 80) - total) / 2);
+    var y0 = top + fs * 0.9;
+    var srcTop = y0 + blockH + 40 + 110;
+    // a large opening quotation mark above the first line
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = st.mark;
+    ctx.font = (fs * 3.6) + "px " + SERIF;
+    ctx.fillText("\u201c", M - fs * 0.18, y0 + fs * 1.15);
+    ctx.fillStyle = st.text;
+    ctx.font = fs + "px " + SERIF;
+    lines.forEach(function (ln, k) { ctx.fillText(ln, M, y0 + fs * 0.98 + k * lh); });
+    // ornament under the text
+    var oy = y0 + blockH + 40;
+    ctx.strokeStyle = st.rule;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(M, oy); ctx.lineTo(M + 90, oy); ctx.moveTo(M + 134, oy); ctx.lineTo(M + 224, oy); ctx.stroke();
+    ctx.save(); ctx.translate(M + 112, oy); ctx.rotate(Math.PI / 4); ctx.fillStyle = st.accent; ctx.fillRect(-7, -7, 14, 14); ctx.restore();
+
+    // source
+    var tx = M, tw = maxW;
+    if (hasCover) {
+      var ch = srcH, ratio = coverImg.naturalWidth / coverImg.naturalHeight;
+      var cw = Math.max(100, Math.min(170, ch * ratio)), cy = srcTop;
+      ctx.save();
+      ctx.shadowColor = st.paper ? "rgba(60,40,10,.35)" : "rgba(0,0,0,.6)"; ctx.shadowBlur = 34; ctx.shadowOffsetY = 16;
+      ctx.fillStyle = "#222"; roundRect(ctx, M, cy, cw, ch, 6); ctx.fill();
+      ctx.restore();
+      ctx.save(); roundRect(ctx, M, cy, cw, ch, 6); ctx.clip(); ctx.drawImage(coverImg, M, cy, cw, ch); ctx.restore();
+      tx = M + cw + 40; tw = W - M - tx;
+    }
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "700 40px " + SANS;
     var tl = wrapLines(ctx, card.book, function () { return tw; }, 2);
-    var th = tl.length * 52 + 48;
-    var ty = cy + (ch - th) / 2 + 40;
-    ctx.fillStyle = CREAM;
-    tl.forEach(function (ln, k) { ctx.fillText(ln, tx, ty + k * 52); });
-    ctx.font = "400 33px " + SANS;
-    ctx.fillStyle = MUTED;
-    ctx.fillText(wrapLines(ctx, card.author, function () { return tw; }, 1)[0] || "", tx, ty + tl.length * 52 + 2);
+    var by = srcTop + (srcH - (tl.length * 50 + 44)) / 2 + 38;
+    if (!hasCover) {
+      ctx.fillStyle = st.accent;
+      ctx.font = "700 22px " + SANS;
+      ctx.fillText("FROM THE BOOK", tx, by - 46);
+    }
+    ctx.fillStyle = st.text;
+    ctx.font = "700 40px " + SANS;
+    tl.forEach(function (ln, k) { ctx.fillText(ln, tx, by + k * 50); });
+    ctx.fillStyle = st.muted;
+    ctx.font = "400 32px " + SANS;
+    ctx.fillText(wrapLines(ctx, card.author, function () { return tw; }, 1)[0] || "", tx, by + tl.length * 50 + 4);
     return cv;
   }
   var shareBlob = null, shareUrl = null, shareFor = null;
@@ -2103,35 +2148,49 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       im.crossOrigin = "anonymous"; // needed to draw it into the image; falls back to the drawn cover if refused
       im.onload = function () { finish(im.naturalWidth > 1 ? im : null); };
       im.onerror = function () { finish(null); };
-      im.src = "https://covers.openlibrary.org/b/id/" + id + "-L.jpg";
+      im.src = "https://covers.openlibrary.org/b/id/" + id + "-L.jpg?share=1";
     });
+  }
+  var shareCover = null;
+  function renderShare() {
+    var card = shareFor;
+    if (!card) return;
+    var style = state.ui.shareStyle || "midnight", size = state.ui.shareSize || "post";
+    Array.prototype.forEach.call(document.querySelectorAll("#share-style .chip-btn"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === style)); });
+    Array.prototype.forEach.call(document.querySelectorAll("#share-size .chip-btn"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === size)); });
+    var show = function (blob) {
+      if (!blob) { toast("Could not make the image"); return; }
+      if (shareUrl) URL.revokeObjectURL(shareUrl);
+      shareBlob = blob;
+      shareUrl = URL.createObjectURL(blob);
+      $("sheet-img").src = shareUrl;
+      $("sheet-img").className = "share-" + size;
+      $("sheet").hidden = false;
+    };
+    var render = function (img) {
+      try { drawCard(card, img, style, size).toBlob(show, "image/png"); }
+      catch (e) { if (img) { shareCover = null; render(null); } else toast("Could not make the image"); }
+    };
+    render(shareCover);
   }
   function shareCard(card) {
     var fontsReady = Promise.resolve();
     try {
       fontsReady = Promise.race([
-        Promise.all([document.fonts.load('72px "IM Fell English"'), document.fonts.load('700 42px Manrope'), document.fonts.load('400 33px Manrope'), document.fonts.load('600 26px Manrope')]),
+        Promise.all([document.fonts.load('72px "IM Fell English"'), document.fonts.load('700 40px Manrope'), document.fonts.load('400 32px Manrope'), document.fonts.load('500 24px Manrope')]),
         new Promise(function (r) { setTimeout(r, 1500); })
       ]).catch(function () {});
     } catch (e) {}
     toast("Making the image");
-    Promise.all([loadCoverImage(card), fontsReady]).then(function (r) {
-      var show = function (blob) {
-        if (!blob) { toast("Could not make the image"); return; }
-        if (shareUrl) URL.revokeObjectURL(shareUrl);
-        shareBlob = blob;
-        shareFor = card;
-        shareUrl = URL.createObjectURL(blob);
-        $("sheet-img").src = shareUrl;
-        $("sheet-note").textContent = "";
-        $("sheet").hidden = false;
-      };
-      var render = function (img) {
-        try { drawCard(card, img).toBlob(show, "image/png"); }
-        catch (e) { if (img) render(null); else toast("Could not make the image"); }
-      };
-      render(r[0]);
+    shareFor = card;
+    $("sheet-note").textContent = "";
+    Promise.all([loadCoverImage(card), fontsReady, loadShareLogo()]).then(function (r) {
+      shareCover = r[0];
+      renderShare();
     });
+  }
+  function shareText(card) {
+    return "“" + card.text + "”\n— " + card.book + ", " + card.author + "\n\nFrom WisdomScroll: " + appUrl();
   }
   function downloadShareImage(name) {
     var note = $("sheet-note");
@@ -2156,7 +2215,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var canShare = false;
     try { canShare = !!(file && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) {}
     if (!canShare) { downloadShareImage(name); return; }
-    navigator.share({ files: [file], title: "WisdomScroll" }).then(function () {
+    navigator.share({ files: [file], title: "WisdomScroll", text: shareFor ? shareText(shareFor) : undefined }).then(function () {
       note.textContent = "Shared.";
     }, function (e) {
       if (e && e.name === "AbortError") note.textContent = "Cancelled.";
@@ -2173,7 +2232,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     toastTimer = setTimeout(function () { t.classList.remove("show"); }, 1600);
   }
   function copyCard(card) {
-    var text = card.text + "\n" + card.book + ", " + card.author;
+    var text = shareText(card);
     try {
       navigator.clipboard.writeText(text).then(function () { toast("Copied"); }, function () { toast("Copy is not allowed here"); });
     } catch (e) { toast("Copy is not allowed here"); }
@@ -4544,6 +4603,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("sheet-close").addEventListener("click", closeSheet);
     $("sheet-save").addEventListener("click", saveShareImage);
     $("sheet-copy").addEventListener("click", function () { if (shareFor) copyCard(shareFor); });
+    Array.prototype.forEach.call(document.querySelectorAll("#share-style .chip-btn, #share-size .chip-btn"), function (b) {
+      b.addEventListener("click", function () {
+        if (b.parentNode.id === "share-style") state.ui.shareStyle = b.dataset.v; else state.ui.shareSize = b.dataset.v;
+        persist();
+        renderShare();
+      });
+    });
     $("sheet").addEventListener("click", function (e) { if (e.target === $("sheet")) closeSheet(); });
     var lastTap = { t: 0, x: 0, y: 0 };
     feed.addEventListener("pointerup", function (e) {
