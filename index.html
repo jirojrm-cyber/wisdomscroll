@@ -723,6 +723,30 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <p class="note">Applies to new ideas. Book titles stay in English.</p>
           </div>
 
+          <div class="sgroup-label">Read aloud</div>
+          <div class="sgroup pad" id="voice-box">
+            <div class="seg two" role="radiogroup" aria-label="Voice">
+              <label><input type="radio" name="vgender" value="female"><span>Female</span></label>
+              <label><input type="radio" name="vgender" value="male"><span>Male</span></label>
+            </div>
+            <div class="field">
+              <label for="voice-select">Voice</label>
+              <select id="voice-select"></select>
+            </div>
+            <p class="note small" id="voice-none" hidden>No voice for this language is installed on this device.</p>
+            <div class="seg four" role="radiogroup" aria-label="Speed">
+              <label><input type="radio" name="vspeed" value="0.75"><span>0.75&times;</span></label>
+              <label><input type="radio" name="vspeed" value="1"><span>1&times;</span></label>
+              <label><input type="radio" name="vspeed" value="1.25"><span>1.25&times;</span></label>
+              <label><input type="radio" name="vspeed" value="1.5"><span>1.5&times;</span></label>
+            </div>
+            <div class="actions">
+              <button type="button" class="btn" id="voice-preview">Preview</button>
+              <span class="note" id="voice-msg" role="status"></span>
+            </div>
+            <p class="note small">&#9733; marks Enhanced and Premium voices. On iPhone, download more in Settings &rsaquo; Accessibility &rsaquo; Spoken Content &rsaquo; Voices. The screen stays on while the app reads aloud.</p>
+          </div>
+
           <div class="sgroup-label">Sound and music</div>
           <div class="sgroup pad">
             <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Ambient sound that changes with each swipe</span></label>
@@ -1334,7 +1358,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.7";
+  var APP_VERSION = "3.8";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1446,6 +1470,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       dropcap: ui.dropcap !== false,
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
+      voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
+      voiceName: typeof ui.voiceName === "string" ? ui.voiceName.slice(0, 120) : "",
+      speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5"], "1"),
       shareStyle: pick(ui.shareStyle, ["midnight", "parchment", "noir"], "midnight"),
       shareSize: pick(ui.shareSize, ["post", "story", "square"], "post"),
       auto: ui.auto !== false,
@@ -2450,15 +2477,48 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (state.ui.lang === "en") return "en-US";
     return map[state.ui.lang] || "en-US";
   }
-  function pickVoice(lang) {
+  // Apple's voices carry a name but no gender, so the common ones are listed here.
+  var FEMALE_VOICES = /\b(samantha|ava|allison|susan|victoria|karen|moira|tessa|fiona|kate|serena|zoe|nicky|joelle|noelle|tingting|ting-ting|meijia|mei-jia|sinji|sin-ji|yu-?shu|shanshan|kyoko|o-ren|yuna|amelie|amélie|anna|paulina|monica|mónica|marisol|alice|luciana|joana|damayanti|sara|ellen|ioana|laura|melina|milena|mariska|zuzana|lekha|carmit|lana|kanya|yelda|isha|veena|catherine|martha|shelley|sandy|flo|grandma|kathy|vicki|princess|female|woman)\b/i;
+  var MALE_VOICES = /\b(daniel|alex|tom|aaron|arthur|fred|gordon|lee|oliver|rishi|evan|nathan|reed|eddy|rocko|grandpa|ralph|junior|albert|bruce|jorge|juan|diego|carlos|thomas|luca|xander|yannick|markus|otoya|hattori|li-?mu|maged|aleksandr|nicolas|felipe|jacques|reed|male|man)\b/i;
+  function voiceGender(v) {
+    var n = (v && v.name) || "";
+    if (FEMALE_VOICES.test(n)) return "female";
+    if (MALE_VOICES.test(n)) return "male";
+    return "";
+  }
+  function voiceQuality(v) { return /premium/i.test(v.name) ? 3 : /enhanced|natural|neural/i.test(v.name) ? 2 : /siri/i.test(v.name) ? 1 : 0; }
+  function voicesFor(lang) {
     if (!listen.voices.length) loadVoices();
     var base = lang.split("-")[0].toLowerCase();
-    var same = listen.voices.filter(function (v) { return (v.lang || "").toLowerCase().replace("_", "-").indexOf(base) === 0; });
+    return listen.voices.filter(function (v) { return (v.lang || "").toLowerCase().replace("_", "-").indexOf(base) === 0; });
+  }
+  function pickVoice(lang) {
+    var same = voicesFor(lang);
     if (!same.length) return null;
+    var chosen = state.ui.voiceName && same.find(function (v) { return v.name === state.ui.voiceName; });
+    if (chosen) return chosen;
     var exact = same.filter(function (v) { return (v.lang || "").replace("_", "-").toLowerCase() === lang.toLowerCase(); });
     var pool = exact.length ? exact : same;
-    var good = pool.filter(function (v) { return /premium|enhanced|natural|neural|siri|samantha|daniel|google/i.test(v.name); });
-    return (good[0] || pool.find(function (v) { return v.default; }) || pool[0]);
+    var g = state.ui.voiceGender || "female";
+    var match = pool.filter(function (v) { return voiceGender(v) === g; });
+    if (!match.length) match = same.filter(function (v) { return voiceGender(v) === g; });
+    var list = match.length ? match : pool;
+    list = list.slice().sort(function (a, b) { return voiceQuality(b) - voiceQuality(a) || (b.default ? 1 : 0) - (a.default ? 1 : 0); });
+    return list[0];
+  }
+  var RATE = { "0.75": 0.72, "1": 0.94, "1.25": 1.15, "1.5": 1.35 };
+  function speechRate() { return RATE[state.ui.speed] || 0.94; }
+  // Keep the screen on while reading aloud: iPhone pauses web apps when the screen turns off.
+  var wakeLock = null;
+  function holdScreen(on) {
+    try {
+      if (on && !wakeLock && navigator.wakeLock && document.visibilityState === "visible") {
+        navigator.wakeLock.request("screen").then(function (l) {
+          wakeLock = l;
+          l.addEventListener("release", function () { wakeLock = null; });
+        }).catch(function () {});
+      } else if (!on && wakeLock) { wakeLock.release(); wakeLock = null; }
+    } catch (e) {}
   }
   function stopSpeaking() {
     clearTimeout(listen.timer);
@@ -2475,7 +2535,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     u.lang = lang;
     var v = pickVoice(lang);
     if (v) u.voice = v;
-    u.rate = 0.94;
+    u.rate = speechRate();
     u.pitch = 1;
     var id = c.id;
     u.onend = function () {
@@ -2506,6 +2566,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     listen.on = !!on && canSpeak;
     stopSpeaking();
     renderListen();
+    holdScreen(listen.on);
     if (listen.on) {
       // iPhone only lets speech start from a tap, so the first words are spoken right here
       speakCurrent();
@@ -4412,6 +4473,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     setRadio("theme", u.theme); setRadio("size", u.size); setRadio("face", u.face); setRadio("bg", u.bg); setRadio("motion", u.motion); setRadio("spacing", u.spacing);
     $("dropcap-toggle").checked = u.dropcap;
     renderRemind();
+    renderVoices();
     // contact, only when the developer has set it
     var links = [];
     if (CONTACT.telegram) links.push(["Telegram", "@" + CONTACT.telegram, "https://t.me/" + CONTACT.telegram]);
@@ -4436,6 +4498,49 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         cl.appendChild(a);
       });
     }
+  }
+  function renderVoices() {
+    var sel = $("voice-select");
+    if (!sel || document.activeElement === sel) return;
+    var lang = state.ui.lang === "en" ? "en-US" : ({ "zh-Hans": "zh-CN", "zh-Hant": "zh-TW", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US";
+    var list = voicesFor(lang).slice().sort(function (a, b) { return voiceQuality(b) - voiceQuality(a) || a.name.localeCompare(b.name); });
+    sel.textContent = "";
+    var auto = el("option", null, "Best " + (state.ui.voiceGender === "male" ? "male" : "female") + " voice (automatic)");
+    auto.value = "";
+    sel.appendChild(auto);
+    [["female", "Female voices"], ["male", "Male voices"], ["", "Other voices"]].forEach(function (grp) {
+      var vs = list.filter(function (v) { return voiceGender(v) === grp[0]; });
+      if (!vs.length) return;
+      var og = document.createElement("optgroup");
+      og.label = grp[1];
+      vs.forEach(function (v) {
+        var o = el("option", null, v.name.replace(/\s*\((enhanced|premium)\)/i, "") + (voiceQuality(v) >= 2 ? " ★" : "") + "  · " + v.lang);
+        o.value = v.name;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    sel.value = state.ui.voiceName && list.some(function (v) { return v.name === state.ui.voiceName; }) ? state.ui.voiceName : "";
+    setRadio("vgender", state.ui.voiceGender);
+    setRadio("vspeed", state.ui.speed);
+    $("voice-none").hidden = list.length > 0 || !canSpeak;
+    $("voice-box").hidden = !canSpeak;
+  }
+  function previewVoice() {
+    if (!canSpeak) return;
+    var zh = /^zh/.test(state.ui.lang);
+    var lang = zh ? (state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN") : (state.ui.lang === "en" ? "en-US" : ({ es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US");
+    var sample = zh ? "滋养你的心灵。每次滑动，都是一本好书里的一个想法。" : "Feed your mind. One idea from a great book, with every swipe.";
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(sample);
+      u.lang = lang;
+      var v = pickVoice(lang);
+      if (v) u.voice = v;
+      u.rate = speechRate();
+      speechSynthesis.speak(u);
+      $("voice-msg").textContent = v ? "Voice: " + v.name : "";
+    } catch (e) {}
   }
   function wireCenter() {
     Array.prototype.forEach.call(document.querySelectorAll("#view-prefs [data-open]"), function (b) {
@@ -4480,6 +4585,17 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         r.addEventListener("change", function () { state.ui[name] = r.value; persist(); applyAppearance(); renderCenter(); });
       });
     });
+    ["vgender", "vspeed"].forEach(function (name) {
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function (r) {
+        r.addEventListener("change", function () {
+          if (name === "vgender") { state.ui.voiceGender = r.value; state.ui.voiceName = ""; } else state.ui.speed = r.value;
+          persist(); renderVoices(); previewVoice();
+        });
+      });
+    });
+    $("voice-select").addEventListener("change", function () { state.ui.voiceName = $("voice-select").value; persist(); previewVoice(); });
+    $("voice-preview").addEventListener("click", previewVoice);
+    if (canSpeak) { try { speechSynthesis.addEventListener("voiceschanged", function () { loadVoices(); renderVoices(); }); } catch (e) {} }
     $("dropcap-toggle").addEventListener("change", function () { state.ui.dropcap = $("dropcap-toggle").checked; persist(); applyAppearance(); });
     $("remind-toggle").addEventListener("change", function () { setRemind($("remind-toggle").checked); });
     $("remind-time").addEventListener("change", function () {
@@ -4584,7 +4700,12 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (canSpeak) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
     renderListen();
     $("listen-btn").addEventListener("click", function () { setListen(!listen.on); });
-    document.addEventListener("visibilitychange", function () { if (document.hidden && listen.on) { setListen(false); } });
+    // leaving the app pauses reading; coming back carries on from the card on screen
+    document.addEventListener("visibilitychange", function () {
+      if (!listen.on) return;
+      if (document.hidden) stopSpeaking();
+      else { holdScreen(true); setTimeout(speakCurrent, 400); }
+    });
     $("newest-btn").addEventListener("click", jumpNewest);
     $("acct-signin").addEventListener("click", function () { signIn(false); });
     $("acct-signup").addEventListener("click", function () { signIn(true); });
