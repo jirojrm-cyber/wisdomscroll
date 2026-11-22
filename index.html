@@ -1510,7 +1510,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
 (function () {
   "use strict";
 
-  var APP_VERSION = "4.3";
+  var APP_VERSION = "4.4";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1628,6 +1628,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       readMusic: ui.readMusic !== false,
       musicSrc: ui.musicV === 2 ? pick(ui.musicSrc, ["app", "spotify", "local"], "spotify") : "spotify",
       musicV: 2,
+      musicOff: ui.musicOff === true, // the listener removed the default playlist
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
       gvoice: typeof ui.gvoice === "string" && ui.gvoice ? ui.gvoice.slice(0, 40) : (ui.voiceGender === "male" ? "Charon" : "Sulafat"),
@@ -3044,6 +3045,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     if (spotifySource() && musicActive) return "Spotify, in its own app";
     return "music off";
   }
+  // the owner's chosen default: Spotify's "Peaceful Meditation"
+  var DEFAULT_PLAYLIST = { type: "playlist", id: "37i9dQZF1DWZqd5JICZI0u" };
   function spotifyMode() { return state.ui.musicSrc === "spotify" && !!state.settings.music; }
   function spotifySource() { return state.ui.musicSrc === "spotify"; }
   // Spotify chosen but no playlist yet: take the listener to where the link is pasted
@@ -3758,7 +3761,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
   }
   function setMusic(m, msg) {
     state.settings.music = m;
-    if (m) state.ui.musicSrc = "spotify"; // a linked playlist becomes the music source
+    if (m) { state.ui.musicSrc = "spotify"; state.ui.musicOff = false; } // a linked playlist becomes the music source
     touchSync("prefs");
     persist();
     $("music-result").textContent = msg || "";
@@ -3809,6 +3812,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     sp.hidden = !m;
     if (!m) $("sp-card").hidden = true;
     else if (spInfo[m.type + "/" + m.id]) showSpotifyCard(spInfo[m.type + "/" + m.id]);
+    else if (!renderMusic.asked) { renderMusic.asked = true; checkSpotify(m); } // show the saved playlist's name once
     setRadio("msrc", state.ui.musicSrc);
     $("msrc-app").hidden = state.ui.musicSrc !== "app";
     $("msrc-spotify").hidden = state.ui.musicSrc !== "spotify";
@@ -4532,7 +4536,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     if (pr.limit) state.settings.limit = Math.max(10, Math.min(200, +pr.limit || 50));
     if (pr.topics && typeof pr.topics === "object") state.settings.topics = pr.topics;
     state.settings.check = pr.check !== false;
-    state.settings.music = pr.music && pr.music.id && pr.music.type ? pr.music : null;
+    state.settings.music = pr.music && pr.music.id && pr.music.type ? pr.music : state.ui.musicOff ? null : DEFAULT_PLAYLIST;
     if (typeof pr.lang === "string") state.ui.lang = langOf(pr.lang)[0];
     if (typeof pr.lean === "boolean") state.ui.lean = pr.lean;
     if (typeof pr.name === "string" && pr.name) state.ui.name = pr.name.slice(0, 40);
@@ -5839,6 +5843,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       });
     });
     $("spotify-open").addEventListener("click", startSpotify);
+    if (!state.settings.music && !state.ui.musicOff) { state.settings.music = DEFAULT_PLAYLIST; persist(); renderMusic(); }
     $("local-add").addEventListener("click", function () { $("local-files").click(); });
     $("local-files").addEventListener("change", function () {
       var files = Array.prototype.slice.call($("local-files").files || []).filter(function (f) { return /^audio\//.test(f.type) || /\.(mp3|m4a|aac|wav|ogg|flac)$/i.test(f.name); });
@@ -5888,7 +5893,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       $("music-link").blur();
       setMusic(m, "Playlist saved.");
     });
-    $("music-clear").addEventListener("click", function () { $("music-link").value = ""; setMusic(null, "Playlist removed."); });
+    $("music-clear").addEventListener("click", function () { state.ui.musicOff = true; $("music-link").value = ""; setMusic(null, "Playlist removed."); });
     // browsers only allow sound after a touch: wake the audio on the first one, and after any interruption
     ["touchend", "click", "keydown"].forEach(function (ev) {
       document.addEventListener(ev, function () {
