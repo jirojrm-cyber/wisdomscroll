@@ -464,6 +464,11 @@ html[data-motion="reduced"] .burst { display: none; }
 .guide .sgroup a.btn { display: inline-flex; align-items: center; }
 .idea.km { line-height: 1.7; font-family: "Khmer Sangam MN", "Noto Serif Khmer", var(--serif); }
 html[data-dropcap="on"] .idea.km::first-letter { float: none; font-size: inherit; line-height: inherit; padding: 0; color: inherit; text-shadow: none; }
+.presets { display: flex; flex-direction: column; gap: 12px; }
+.preset-group { display: flex; flex-direction: column; gap: 6px; }
+.preset-label { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.preset-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-chips .chip-btn { font-size: .82rem; }
 
 
 /* "Newest" arrow on Discover */
@@ -754,23 +759,26 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             <p class="note small">&#9733; marks Enhanced and Premium iPhone voices. Download more in iPhone Settings &rsaquo; Accessibility &rsaquo; Spoken Content &rsaquo; Voices.</p>
           </div>
 
-          <div class="sgroup-label">Sound and music</div>
-          <div class="sgroup pad">
-            <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Ambient sound that changes with each swipe</span></label>
-            <p class="note">A different mood for each topic.</p>
+          <div class="sgroup-label">Background music</div>
+          <div class="sgroup pad" id="music-box">
+            <p class="note">Plays in Spotify while you read. Tap the &#9835; button on Discover to start it.</p>
+            <div id="music-presets" class="presets"></div>
             <div class="field">
-              <label for="music-link">Your Spotify playlist link</label>
-              <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+              <label for="music-link">Or your own Spotify playlist</label>
+              <input type="url" id="music-link" placeholder="Paste a Spotify link" autocomplete="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="actions">
               <button type="button" class="btn solid" id="music-save">Save link</button>
               <button type="button" class="btn" id="music-clear" hidden>Remove</button>
               <span class="note" id="music-result" role="status"></span>
             </div>
-            <h3 class="sub-h">Or pick a reading playlist</h3>
-            <div class="actions" id="music-presets"></div>
             <div id="music-embed"></div>
-            <p class="note">The music note on Discover opens this playlist.</p>
+          </div>
+
+          <div class="sgroup-label">App tones</div>
+          <div class="sgroup pad">
+            <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Soft tones with each swipe</span></label>
+            <p class="note">Use instead of music. They switch off when Spotify starts.</p>
           </div>
         </div>
       </div>
@@ -1365,7 +1373,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.10";
+  var APP_VERSION = "3.11";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -2679,6 +2687,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function ttsUnlock() {
     // iPhone lets an audio element play later only if it first played during a tap
     var a = ttsAudio();
+    try { if (navigator.audioSession) navigator.audioSession.type = sessionType(true); } catch (e) {}
     try {
       a.src = "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
       var pr = a.play();
@@ -2893,7 +2902,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   // iPhones mute web audio when the ring/silent switch is on silent unless the page asks for "playback".
   function audioRoute(on) {
     try {
-      if (navigator.audioSession) { navigator.audioSession.type = on ? "playback" : "auto"; return; }
+      if (navigator.audioSession) { navigator.audioSession.type = sessionType(on); return; }
+      if (musicActive) return; // the silent-loop trick would stop Spotify
     } catch (e) {}
     try {
       if (on) {
@@ -3010,11 +3020,18 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   }
 
   /* ---------- background music: the reader's own Spotify playlist, opened in Spotify ---------- */
+  // public Spotify playlists, grouped by mood
   var PRESETS = [
-    ["Calm background instrumentals", "playlist", "77OpFLSdLy3nC9huQIXlxk"],
-    ["Instrumental calm for reading", "playlist", "3ZhQLmZsCMw6HE8LDwl7oW"],
-    ["Reading at night, no vocals", "playlist", "34xu1Ho7uHzBAKLJ0GqGks"]
+    ["Nature", "Nature Sounds", "playlist", "37i9dQZF1DX4PP3DA4J0N8"],
+    ["Nature", "Calming Nature Music", "playlist", "37i9dQZF1DX1KVBf2zZZ2X"],
+    ["Deep space", "Floating Through Space", "playlist", "37i9dQZF1DX1n9whBbBKoL"],
+    ["Deep space", "Space Ambient", "playlist", "6rBQ1C1qxUeK7Ej7SBCexO"],
+    ["Meditation", "Peaceful Meditation", "playlist", "37i9dQZF1DWZqd5JICZI0u"],
+    ["Reading", "Reading at night, no vocals", "playlist", "34xu1Ho7uHzBAKLJ0GqGks"]
   ];
+  var musicActive = false; // Spotify was started from the app during this visit
+  // With Spotify playing, the app's own audio mixes with it instead of stopping it.
+  function sessionType(on) { return !on ? "auto" : musicActive ? "ambient" : "playback"; }
   function parseSpotify(v) {
     v = String(v || "");
     var m = v.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?(playlist|album|track|artist|show|episode)\/([A-Za-z0-9]{10,40})/i)
@@ -3043,11 +3060,19 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (document.activeElement !== $("music-link")) $("music-link").value = url;
     var box = $("music-presets");
     box.textContent = "";
+    var groups = {};
     PRESETS.forEach(function (p) {
-      var b = el("button", "btn sm" + (m && m.id === p[2] ? " solid" : ""), p[0]);
+      if (!groups[p[0]]) {
+        groups[p[0]] = el("div", "preset-group");
+        groups[p[0]].appendChild(el("span", "preset-label", p[0]));
+        groups[p[0]].appendChild(el("div", "preset-chips"));
+        box.appendChild(groups[p[0]]);
+      }
+      var b = el("button", "chip-btn", p[1]);
       b.type = "button";
-      b.addEventListener("click", function () { setMusic({ type: p[1], id: p[2] }, "Playlist set."); });
-      box.appendChild(b);
+      b.setAttribute("aria-pressed", String(!!(m && m.id === p[3])));
+      b.addEventListener("click", function () { setMusic({ type: p[2], id: p[3] }, p[1] + " is your background music."); });
+      groups[p[0]].lastChild.appendChild(b);
     });
     // a real in-page player only makes sense on a computer: phones get short clips from it
     var wide = false;
@@ -4978,12 +5003,16 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("music-btn").addEventListener("click", function (e) {
       if (!state.settings.music) {
         e.preventDefault();
-        show("prefs");
-        toast("Choose a Spotify playlist in Settings first");
+        show("prefs"); goPage("reading");
+        setTimeout(function () { var g = $("music-box"); if (g) g.scrollIntoView({ block: "start", behavior: "smooth" }); }, 350);
+        toast("Pick your background music first");
         return;
       }
-      // the link itself opens Spotify; the app's own sound steps aside for the music
-      if (state.settings.sound) { setSound(false); toast("Ambient sound paused for your music"); }
+      // the link itself opens Spotify; the app's own tones step aside, and its voice mixes with the music
+      musicActive = true;
+      try { if (navigator.audioSession) navigator.audioSession.type = "ambient"; } catch (err) {}
+      if (state.settings.sound) setSound(false);
+      toast("Spotify plays in the background. Come back and keep reading");
     });
     $("music-save").addEventListener("click", function () {
       var m = parseSpotify($("music-link").value);
