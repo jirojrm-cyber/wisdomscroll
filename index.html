@@ -833,8 +833,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
           <div class="sgroup-label">Background music</div>
           <div class="sgroup pad">
             <div class="seg two" role="radiogroup" aria-label="Music source">
-              <label><input type="radio" name="msrc" value="app"><span>App music</span></label>
               <label><input type="radio" name="msrc" value="spotify"><span>My Spotify</span></label>
+              <label><input type="radio" name="msrc" value="app"><span>Built-in sounds</span></label>
             </div>
 
             <div class="stack" id="msrc-app">
@@ -1608,7 +1608,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       bed: pick(({ calm: "meditation", rain: "rainocean", ocean: "rainocean" })[ui.bed] || ui.bed, ["nature", "space", "meditation", "rainocean", "focus"], "nature"),
       musicVol: typeof ui.musicVol === "number" && ui.musicVol >= 0.1 && ui.musicVol <= 1 ? ui.musicVol : 0.7,
       readMusic: ui.readMusic !== false,
-      musicSrc: pick(ui.musicSrc, ["app", "spotify"], "app"),
+      musicSrc: ui.musicV === 2 ? pick(ui.musicSrc, ["app", "spotify"], "spotify") : "spotify",
+      musicV: 2,
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
       gvoice: typeof ui.gvoice === "string" && ui.gvoice ? ui.gvoice.slice(0, 40) : (ui.voiceGender === "male" ? "Charon" : "Sulafat"),
@@ -2953,10 +2954,17 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     if (liveBed && liveBed.gain && actx) glide(liveBed.gain.gain, musicLevel(), on ? 0.6 : 0.9);
   }
   function spotifyMode() { return state.ui.musicSrc === "spotify" && !!state.settings.music; }
+  function spotifySource() { return state.ui.musicSrc === "spotify"; }
+  // Spotify chosen but no playlist yet: take the listener to where the link is pasted
+  function askSpotifyLink() {
+    show("prefs"); goPage("reading");
+    setTimeout(function () { var f = $("music-link"); if (f) { f.scrollIntoView({ block: "center" }); try { f.focus(); } catch (e) {} } }, 350);
+    toast("Paste your Spotify playlist link here");
+  }
   function renderMusicBtn() {
     var b = $("music-btn");
     if (!b) return;
-    b.classList.toggle("muted", !music.on && !spotifyMode());
+    b.classList.toggle("muted", spotifySource() ? !musicActive : !music.on);
     var sp = spotifyMode();
     b.classList.toggle("set", music.on || (sp && musicActive));
     b.classList.toggle("spotify", sp);
@@ -3215,7 +3223,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       stopSpeaking();
       if (geminiMode()) ttsUnlock();
       // reading starts the background music, unless Spotify is the music or the listener turned this off
-      if (!music.on && state.ui.readMusic !== false && !spotifyMode()) { setMusicOn(true, true); music.bySession = true; }
+      if (!music.on && state.ui.readMusic !== false && !spotifySource()) { setMusicOn(true, true); music.bySession = true; }
+      if (spotifySource() && !musicActive) toast(spotifyMode() ? "Tap \u266b to play your Spotify playlist with the reading" : "Add your Spotify playlist in Settings to read with your music");
       holdScreen(!geminiMode());
       renderListen();
       speakCurrent(); // iPhone only lets sound start from a tap, so it starts right here
@@ -3315,7 +3324,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     $("pl-title").textContent = err ? player.error
       : !reading ? MOOD_NAME[bedKind()] + " music"
       : voiceName;
-    $("pl-sub").textContent = err ? "" : !reading ? "Tap ▶ to read aloud over it" : player.paused ? "Paused" : player.loading ? "Preparing…" : state.ui.speed + "× · " + (music.on ? MOOD_NAME[bedKind()] : "music off");
+    $("pl-sub").textContent = err ? "" : !reading ? "Tap ▶ to read aloud over it" : player.paused ? "Paused" : player.loading ? "Preparing…" : state.ui.speed + "× · " + (spotifySource() ? (musicActive ? "with Spotify" : "Spotify not playing") : music.on ? MOOD_NAME[bedKind()] : "music off");
     $("pl-err").hidden = !err;
     $("pl-fix").hidden = !err;
     $("pl-fix").textContent = player.errKind === "nokey" || player.errKind === "auth" ? "Add key" : "Retry";
@@ -3326,7 +3335,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     var playing = reading && !player.paused && !err;
     $("pl-play").setAttribute("aria-label", playing ? "Pause" : reading ? "Resume" : "Read aloud");
     $("pl-play").classList.toggle("is-playing", playing);
-    $("pl-music").setAttribute("aria-pressed", String(music.on));
+    $("pl-music").setAttribute("aria-pressed", String(spotifySource() ? musicActive : music.on));
     $("pl-music").setAttribute("aria-label", music.on ? "Turn music off" : "Turn music on");
   }
   function wirePlayer() {
@@ -3337,7 +3346,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     $("pl-next").addEventListener("click", function () { stepCard(1); });
     $("pl-stop").addEventListener("click", function () { setListen(false); toast("Listening stopped"); });
     $("pl-music").addEventListener("click", function () {
-      if (spotifyMode()) { toast("Your music is Spotify: open it with ♫ at the top"); return; }
+      if (spotifyMode()) { $("music-btn").click(); return; } // opens the playlist in Spotify
+      if (spotifySource()) { askSpotifyLink(); return; }
       setMusicOn(!music.on, true);
       music.bySession = false; // the listener chose this themselves
       toast(music.on ? MOOD_NAME[bedKind()] + " music on" : "Music off");
@@ -5686,6 +5696,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     $("sound-toggle").addEventListener("change", function () { setSound($("sound-toggle").checked); });
     $("music-btn").addEventListener("click", function (e) {
       if (spotifyMode()) { startSpotify(); return; } // the link opens Spotify
+      if (spotifySource()) { e.preventDefault(); askSpotifyLink(); return; }
       e.preventDefault();
       setMusicOn(!music.on);
     });
