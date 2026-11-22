@@ -488,6 +488,20 @@ html[data-dropcap="on"] .idea.km::first-letter { float: none; font-size: inherit
 @keyframes spspin { to { transform: rotate(360deg); } }
 .topbtn.spotify.set { color: #1ed760; border-color: rgba(30,215,96,.55); }
 
+/* v4: player, moods, cache */
+.seg.six { grid-template-columns: repeat(6, 1fr); }
+.seg.six span { font-size: .74rem; padding-left: 0; padding-right: 0; }
+.moods { display: flex; flex-wrap: wrap; gap: 8px; }
+.moods label { position: relative; }
+.moods input { position: absolute; opacity: 0; pointer-events: none; }
+.moods span { display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.moods input:checked + span { background: var(--gold); border-color: var(--gold); color: #1a1408; }
+.moods input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+input[type="range"]#music-vol { width: 100%; accent-color: var(--gold); }
+.sp-card.warn { border-color: rgba(220,181,108,.55); }
+.sp-card.warn .sp-sub::before { content: "! "; color: var(--gold); font-weight: 700; }
+.spin-dot { display: inline-block; width: 11px; height: 11px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spspin .8s linear infinite; vertical-align: -1px; }
+
 
 /* "Newest" arrow on Discover */
 .newest { position: absolute; z-index: 11; left: 50%; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 6px); display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 5px 15px 5px 12px; border-radius: 999px; overflow: hidden; white-space: nowrap; background: rgba(8,13,24,.74); border: 1px solid rgba(220,181,108,.6); color: var(--gold); font-family: var(--serif); font-size: .92rem; font-style: italic; letter-spacing: .01em; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transform: translate(-50%, 10px) scale(.92); transition: opacity .25s ease, transform .35s cubic-bezier(.2,.8,.3,1.3); }
@@ -571,6 +585,43 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 .share-opts { display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%; }
 .share-row { justify-content: center; flex-wrap: nowrap; gap: 6px; }
 .share-row .chip-btn { padding: 6px 14px; font-size: .8rem; }
+
+/* v4: listening player */
+.player { position: absolute; z-index: 12; left: 12px; right: 12px; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 6px); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 7px 8px 7px 14px; border-radius: 16px; background: rgba(12,18,32,.86); border: 1px solid rgba(220,181,108,.28); box-shadow: 0 10px 30px rgba(0,0,0,.45); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); animation: slide .3s ease both; }
+.player[hidden] { display: none; }
+#app.off-discover .player { display: none; }
+.pl-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.pl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex: none; }
+.player[data-state="reading"] .pl-dot { animation: listenPulse 1.4s ease-in-out infinite; }
+.player[data-state="loading"] .pl-dot { background: transparent; border: 2px solid var(--gold); border-top-color: transparent; width: 10px; height: 10px; animation: spspin .8s linear infinite; }
+.player[data-state="paused"] .pl-dot, .player[data-state="music"] .pl-dot { background: var(--muted); }
+.player[data-state="error"] .pl-dot { background: #e58a78; }
+.pl-text { display: flex; flex-direction: column; min-width: 0; }
+.pl-title { font-size: .86rem; font-weight: 600; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player[data-state="error"] .pl-title { white-space: normal; font-size: .8rem; line-height: 1.3; }
+.pl-sub { font-size: .72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-sub:empty { display: none; }
+.pl-btns { display: flex; align-items: center; gap: 2px; flex: none; }
+.pl-btn { position: relative; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--cream); }
+.pl-btn[hidden] { display: none; }
+.pl-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pl-main { background: var(--gold); color: #1a1408; }
+.pl-main svg { width: 18px; height: 18px; fill: currentColor; }
+.pl-main .i-pause { display: none; } .pl-main.is-playing .i-pause { display: block; } .pl-main.is-playing .i-play { display: none; }
+.pl-mu[aria-pressed="true"] { color: var(--gold); }
+.pl-mu[aria-pressed="false"], .topbtn.muted { color: var(--muted); }
+.pl-mu[aria-pressed="false"]::after, .topbtn.muted::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 1.8px; background: currentColor; transform: translate(-50%, -50%) rotate(-45deg); border-radius: 2px; }
+.topbtn.muted { position: relative; }
+.pl-err { order: 3; width: 100%; display: flex; gap: 14px; padding: 0 0 2px 18px; }
+.pl-err[hidden] { display: none; }
+.pl-link { color: var(--gold); font-size: .8rem; font-weight: 700; min-height: 30px; }
+.pl-link[hidden] { display: none; }
+#listen-btn.loading svg { animation: listenPulse .8s ease-in-out infinite; }
+#app.player-on .card { padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 92px); }
+#app.player-on .newest { bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 74px); }
+@media (prefers-reduced-motion: reduce) { .player, .pl-dot { animation: none !important; } }
+html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { animation: none !important; }
+
 </style>
 </head>
 <body>
@@ -764,11 +815,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <select id="voice-select"></select>
             </div>
             <p class="note small" id="voice-none" hidden>No voice for this language is installed on this device.</p>
-            <div class="seg four" role="radiogroup" aria-label="Speed">
+            <div class="seg six" role="radiogroup" aria-label="Speed">
               <label><input type="radio" name="vspeed" value="0.75"><span>0.75&times;</span></label>
               <label><input type="radio" name="vspeed" value="1"><span>1&times;</span></label>
               <label><input type="radio" name="vspeed" value="1.25"><span>1.25&times;</span></label>
               <label><input type="radio" name="vspeed" value="1.5"><span>1.5&times;</span></label>
+              <label><input type="radio" name="vspeed" value="1.75"><span>1.75&times;</span></label>
+              <label><input type="radio" name="vspeed" value="2"><span>2&times;</span></label>
             </div>
             <div class="actions">
               <button type="button" class="btn" id="voice-preview">Preview</button>
@@ -785,13 +838,19 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
             </div>
 
             <div class="stack" id="msrc-app">
-              <p class="note">Tap &#9835; on Discover to play. Reading aloud turns it on by itself: soft under the voice, fuller in the pauses.</p>
-              <div class="seg four" role="radiogroup" aria-label="Background music">
-                <label><input type="radio" name="vbed" value="calm"><span>Calm</span></label>
-                <label><input type="radio" name="vbed" value="rain"><span>Rain</span></label>
-                <label><input type="radio" name="vbed" value="ocean"><span>Ocean</span></label>
-                <label><input type="radio" name="vbed" value="space"><span>Space</span></label>
+              <p class="note">Tap &#9835; on Discover for music alone. Reading aloud starts it too: soft under the voice, fuller in the pauses.</p>
+              <div class="moods" role="radiogroup" aria-label="Background music">
+                <label><input type="radio" name="vbed" value="nature"><span>Calm Nature</span></label>
+                <label><input type="radio" name="vbed" value="space"><span>Deep Space</span></label>
+                <label><input type="radio" name="vbed" value="meditation"><span>Meditation</span></label>
+                <label><input type="radio" name="vbed" value="rainocean"><span>Rain &amp; Ocean</span></label>
+                <label><input type="radio" name="vbed" value="focus"><span>Focus</span></label>
               </div>
+              <div class="field">
+                <label for="music-vol">Music volume</label>
+                <input type="range" id="music-vol" min="10" max="100" step="5" value="70">
+              </div>
+              <label class="switch" for="read-music"><input type="checkbox" id="read-music"><span>Start the music when reading aloud</span></label>
             </div>
 
             <div class="stack" id="msrc-spotify" hidden>
@@ -1050,6 +1109,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <span class="note" id="export-result" role="status"></span>
             </div>
             <textarea id="export-text" readonly hidden aria-label="Saved ideas as text"></textarea>
+          </div>
+
+          <div class="sgroup-label">Narration cache</div>
+          <div class="sgroup pad">
+            <p class="note" id="audio-cache-line"></p>
+            <p class="note small">Voice clips are kept on this device so the same idea is not made twice. They are never uploaded.</p>
+            <div class="actions"><button type="button" class="btn danger" id="clear-audio">Clear narration cache</button></div>
           </div>
 
           <div class="sgroup-label">Clear</div>
@@ -1408,6 +1474,17 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings
     </button>
   </nav>
+  <div class="player" id="player" hidden data-state="music" role="region" aria-label="Listening">
+    <div class="pl-info"><span class="pl-dot" aria-hidden="true"></span><span class="pl-text"><span class="pl-title" id="pl-title" role="status"></span><span class="pl-sub" id="pl-sub"></span></span></div>
+    <div class="pl-err" id="pl-err" hidden><button type="button" class="pl-link" id="pl-fix">Retry</button><button type="button" class="pl-link" id="pl-alt">Use iPhone voice</button><button type="button" class="pl-link" id="pl-alt-g">Use Gemini voice</button></div>
+    <div class="pl-btns">
+      <button type="button" class="pl-btn" id="pl-prev" aria-label="Previous idea"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20" /> <line x1="5" x2="5" y1="19" y2="5" /></svg></button>
+      <button type="button" class="pl-btn pl-main" id="pl-play" aria-label="Pause"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1" /> <rect x="6" y="4" width="4" height="16" rx="1" /></svg></button>
+      <button type="button" class="pl-btn" id="pl-next" aria-label="Next idea"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4" /> <line x1="19" x2="19" y1="5" y2="19" /></svg></button>
+      <button type="button" class="pl-btn pl-mu" id="pl-music" aria-pressed="false" aria-label="Music"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" /></svg></button>
+      <button type="button" class="pl-btn" id="pl-stop" aria-label="Stop listening"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></svg></button>
+    </div>
+  </div>
   <button type="button" class="newest" id="newest-btn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z" /> <path d="M16 8 2 22" /> <path d="M17.5 15H9" /></svg><span id="newest-text">Fresh quotes</span></button>
 </div>
 
@@ -1415,7 +1492,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.14";
+  var APP_VERSION = "4.0";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1528,13 +1605,15 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
       voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
-      bed: pick(ui.bed, ["calm", "rain", "ocean", "space"], "calm"),
+      bed: pick(({ calm: "meditation", rain: "rainocean", ocean: "rainocean" })[ui.bed] || ui.bed, ["nature", "space", "meditation", "rainocean", "focus"], "nature"),
+      musicVol: typeof ui.musicVol === "number" && ui.musicVol >= 0.1 && ui.musicVol <= 1 ? ui.musicVol : 0.7,
+      readMusic: ui.readMusic !== false,
       musicSrc: pick(ui.musicSrc, ["app", "spotify"], "app"),
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
       gvoice: typeof ui.gvoice === "string" && ui.gvoice ? ui.gvoice.slice(0, 40) : (ui.voiceGender === "male" ? "Charon" : "Sulafat"),
       voiceName: typeof ui.voiceName === "string" ? ui.voiceName.slice(0, 120) : "",
-      speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5"], "1"),
+      speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5", "1.75", "2"], "1"),
       shareStyle: pick(ui.shareStyle, ["midnight", "parchment", "noir"], "midnight"),
       shareSize: pick(ui.shareSize, ["post", "story", "square"], "post"),
       auto: ui.auto !== false,
@@ -2457,7 +2536,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       maybeRefill(false);
     });
     updateNewest(true);
-    if (listen.on && listen.id !== currentId) speakCurrent();
+    if (listen.on && !player.paused && listen.id !== currentId) speakCurrent();
   }
   /* ---------- sharing the app ---------- */
   var APP_URL = "https://jirojrm-cyber.github.io/wisdomscroll/";
@@ -2570,7 +2649,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     list = list.slice().sort(function (a, b) { return voiceQuality(b) - voiceQuality(a) || (b.default ? 1 : 0) - (a.default ? 1 : 0); });
     return list[0];
   }
-  var RATE = { "0.75": 0.72, "1": 0.94, "1.25": 1.15, "1.5": 1.35 };
+  var RATE = { "0.75": 0.72, "1": 0.94, "1.25": 1.15, "1.5": 1.35, "1.75": 1.55, "2": 1.75 };
   function speechRate() { return RATE[state.ui.speed] || 0.94; }
   // Keep the screen on while reading aloud: iPhone pauses web apps when the screen turns off.
   var wakeLock = null;
@@ -2585,6 +2664,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     } catch (e) {}
   }
   function stopSpeaking() {
+    tts.quiet = Date.now();
     clearTimeout(listen.timer);
     listen.id = null;
     try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {}
@@ -2603,7 +2683,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var all = GVOICES.female.concat(GVOICES.male).map(function (v) { return v[0]; });
     return all.indexOf(state.ui.gvoice) >= 0 ? state.ui.gvoice : GVOICES[g][0][0];
   }
-  function geminiMode() { return state.ui.listenMode === "gemini" && !!getKey("gemini") && !tts.failed; }
+  function geminiMode() { return state.ui.listenMode === "gemini"; }
   function ttsAudio() {
     if (!tts.audio) {
       var a = document.createElement("audio");
@@ -2612,8 +2692,19 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       a.id = "tts-audio";
       document.body.appendChild(a);
       a.addEventListener("ended", function () { duck(false); ttsNext(); });
-      a.addEventListener("playing", function () { if (a.src.indexOf("blob:") === 0) duck(true); });
-      a.addEventListener("pause", function () { duck(false); });
+      a.addEventListener("playing", function () {
+        if (a.src.indexOf("blob:") !== 0) return;
+        player.loading = false;
+        if (listen.on) { player.paused = false; duck(true); }
+        renderListen();
+      });
+      a.addEventListener("pause", function () {
+        duck(false);
+        // paused by the system (a call, headphones unplugged, another app): show it as paused
+        if (listen.on && !a.ended && a.src.indexOf("blob:") === 0 && Date.now() - (tts.quiet || 0) > 400 && !player.paused) {
+          player.paused = true; renderListen();
+        }
+      });
       tts.audio = a;
     }
     return tts.audio;
@@ -2663,7 +2754,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     return tryModel(tts.model);
   }
   /* ---------- background sound under the voice ---------- */
-  function bedKind() { return state.ui.bed || "calm"; }
+  function bedKind() { return state.ui.bed || "nature"; }
+  var MOOD_NAME = { nature: "Calm Nature", space: "Deep Space", meditation: "Meditation", rainocean: "Rain & Ocean", focus: "Focus" };
   function seeded(seed) {
     var t = seed >>> 0;
     return function () { t += 0x6D2B79F5; var r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; };
@@ -2705,22 +2797,66 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         });
       });
     };
-    if (kind === "calm") { pad(0.9, 1); pad(0.25, 2); }
-    if (kind === "rain") {
+    var wind = function (level, cutoff) {
+      var w = noise(dur, true), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      lp.type = "lowpass"; lp.frequency.value = cutoff; g.gain.value = level;
+      w.connect(lp); lp.connect(g); g.connect(out); w.start(t0);
+      lfo(0.05 + rnd() * 0.04, level * 0.5, g.gain); lfo(0.03, cutoff * 0.4, lp.frequency);
+    };
+    var rain = function (level) {
       var r = noise(dur, false), bp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter(), rg = ctx.createGain();
       bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = 0.5; hp.type = "highpass"; hp.frequency.value = 700;
-      rg.gain.value = 0.22; r.connect(hp); hp.connect(bp); bp.connect(rg); rg.connect(out); r.start(t0);
-      var low = noise(dur, true), lp2 = ctx.createBiquadFilter(), lg = ctx.createGain();
-      lp2.type = "lowpass"; lp2.frequency.value = 380; lg.gain.value = 0.35; low.connect(lp2); lp2.connect(lg); lg.connect(out); low.start(t0);
-      pad(0.45, 1);
-    }
-    if (kind === "ocean") {
-      var w = noise(dur, true), lp3 = ctx.createBiquadFilter(), wg = ctx.createGain();
-      lp3.type = "lowpass"; lp3.frequency.value = 650; wg.gain.value = 0.35;
-      w.connect(lp3); lp3.connect(wg); wg.connect(out); w.start(t0);
-      lfo(0.085, 0.3, wg.gain); lfo(0.06, 250, lp3.frequency);
-      pad(0.4, 1);
-    }
+      rg.gain.value = level; r.connect(hp); hp.connect(bp); bp.connect(rg); rg.connect(out); r.start(t0);
+    };
+    var waves = function (level) {
+      var w = noise(dur, true), lp = ctx.createBiquadFilter(), wg = ctx.createGain();
+      lp.type = "lowpass"; lp.frequency.value = 650; wg.gain.value = level;
+      w.connect(lp); lp.connect(wg); wg.connect(out); w.start(t0);
+      lfo(0.085, level * 0.85, wg.gain); lfo(0.06, 250, lp.frequency);
+    };
+    // short soft chirps, far away
+    var birds = function () {
+      for (var t = 1 + rnd() * 3; t < dur - 1; t += 3 + rnd() * 5) {
+        var n = 2 + Math.floor(rnd() * 3), base = 2600 + rnd() * 1400;
+        for (var k = 0; k < n; k++) {
+          var at = t0 + t + k * (0.11 + rnd() * 0.06), o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.setValueAtTime(base, at); o.frequency.exponentialRampToValueAtTime(base * (1.25 + rnd() * 0.3), at + 0.07);
+          g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.018, at + 0.015); g.gain.exponentialRampToValueAtTime(0.0005, at + 0.09);
+          o.connect(g); g.connect(out); o.start(at); o.stop(at + 0.1);
+        }
+      }
+    };
+    // a singing bowl now and then: a few inharmonic partials with a long fade
+    var bowls = function () {
+      for (var t = 0.5 + rnd() * 2; t < dur - 2; t += 7 + rnd() * 6) {
+        var f = [196, 220, 261.63, 293.66][Math.floor(rnd() * 4)], at = t0 + t;
+        [[1, 0.05], [2.76, 0.022], [5.4, 0.008]].forEach(function (p) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = "sine"; o.frequency.value = f * p[0];
+          g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(p[1], at + 0.02); g.gain.exponentialRampToValueAtTime(0.0003, at + 6);
+          o.connect(g); g.connect(out); o.start(at); o.stop(at + 6.2);
+        });
+      }
+    };
+    // soft, slow notes from a pentatonic scale, like a quiet keyboard in another room
+    var plucks = function () {
+      var scale = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
+      var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800; lp.connect(out);
+      for (var t = 0.6; t < dur - 1.5; t += 0.9 + rnd() * 0.9) {
+        var f = scale[Math.floor(rnd() * scale.length)], at = t0 + t;
+        [["sine", 0.05], ["triangle", 0.018]].forEach(function (w) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = w[0]; o.frequency.value = f;
+          g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(w[1], at + 0.012); g.gain.exponentialRampToValueAtTime(0.0003, at + 1.8);
+          o.connect(g); g.connect(lp); o.start(at); o.stop(at + 1.9);
+        });
+      }
+    };
+    if (kind === "nature") { wind(0.3, 520); birds(); pad(0.35, 1); }
+    if (kind === "meditation") { pad(0.9, 1); pad(0.22, 2); bowls(); }
+    if (kind === "rainocean") { rain(0.16); waves(0.26); pad(0.3, 1); }
+    if (kind === "focus") { pad(0.4, 1); plucks(); }
     if (kind === "space") {
       [55, 82.41, 110, 164.81].forEach(function (f, k) {
         var o = ctx.createOscillator(), g = ctx.createGain();
@@ -2767,10 +2903,16 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     }).then(wavFrom, function () { return voiceBlob; }); // if mixing fails, the voice still plays
   }
   // The music plays live and keeps going from card to card; it is lowered while the voice speaks.
-  var MUSIC_FULL = 0.42, MUSIC_UNDER = 0.11;
-  var music = { on: false, ducked: false, bed: null };
+  var music = { on: false, ducked: false, bySession: false };
   var liveBed = null;
-  function musicLevel() { return music.ducked ? MUSIC_UNDER : MUSIC_FULL; }
+  function musicFull() { return 0.6 * (state.ui.musicVol || 0.7); }
+  function musicLevel() { return music.ducked ? musicFull() * 0.14 : musicFull(); }
+  // a smooth glide of about 0.7 seconds from wherever the level is now
+  function glide(param, value, secs) {
+    var t = actx.currentTime;
+    try { param.cancelScheduledValues(t); param.setValueAtTime(param.value, t); param.linearRampToValueAtTime(value, t + secs); }
+    catch (e) { param.value = value; }
+  }
   function startLiveBed() {
     var kind = bedKind();
     if (liveBed || !ensureAudio()) return;
@@ -2787,7 +2929,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       if (liveBed !== lb) return;
       var out = actx.createGain();
       out.gain.setValueAtTime(0, actx.currentTime);
-      out.gain.setTargetAtTime(musicLevel(), actx.currentTime, 0.8); // a gentle fade in
+      out.gain.linearRampToValueAtTime(musicLevel(), actx.currentTime + 1.5); // a gentle fade in
       out.connect(actx.destination);
       lb.gain = out;
       // overlapping copies, so the loop never drops out
@@ -2803,19 +2945,18 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (!liveBed) return;
     var lb = liveBed; liveBed = null;
     clearTimeout(lb.timer);
-    try { if (lb.gain) { lb.gain.gain.setTargetAtTime(0, actx.currentTime, 0.4); setTimeout(function () { try { lb.gain.disconnect(); } catch (e) {} }, 2500); } } catch (e) {}
+    try { if (lb.gain) { glide(lb.gain.gain, 0, 0.9); setTimeout(function () { try { lb.gain.disconnect(); } catch (e) {} }, 1500); } } catch (e) {}
   }
   // the voice starts: music goes low and soft; the voice pauses or stops: music returns to normal
   function duck(on) {
     music.ducked = !!on;
-    if (liveBed && liveBed.gain && actx) {
-      try { liveBed.gain.gain.setTargetAtTime(musicLevel(), actx.currentTime, on ? 0.25 : 0.7); } catch (e) {}
-    }
+    if (liveBed && liveBed.gain && actx) glide(liveBed.gain.gain, musicLevel(), on ? 0.6 : 0.9);
   }
   function spotifyMode() { return state.ui.musicSrc === "spotify" && !!state.settings.music; }
   function renderMusicBtn() {
     var b = $("music-btn");
     if (!b) return;
+    b.classList.toggle("muted", !music.on && !spotifyMode());
     var sp = spotifyMode();
     b.classList.toggle("set", music.on || (sp && musicActive));
     b.classList.toggle("spotify", sp);
@@ -2830,7 +2971,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (music.on) setMusicOn(false, true);
     if (state.settings.sound) setSound(false);
     renderMusicBtn();
-    toast("Opening Spotify \u00b7 come back here, it keeps playing");
+    toast("Opening Spotify \u00b7 playback is controlled in the Spotify app");
+    var sub = $("sp-sub");
+    if (sub && !$("sp-card").hidden) sub.textContent = "Opened in Spotify \u00b7 start or stop it there";
   }
   function setMusicOn(on, quiet) {
     music.on = !!on;
@@ -2839,13 +2982,79 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       if (liveBed && liveBed.kind !== bedKind()) stopLiveBed();
       startLiveBed();
       duck(music.ducked);
-      if (!quiet) toast(({ calm: "Calm", rain: "Rain", ocean: "Ocean", space: "Space" })[bedKind()] + " music on");
+      if (!quiet) toast(MOOD_NAME[bedKind()] + " music on");
     } else {
       stopLiveBed();
       if (!quiet) toast("Music off");
     }
+    if (!quiet) music.bySession = false; // the listener chose this themselves
     renderMusicBtn();
+    renderPlayer();
   }
+  /* narration cache: generated voice clips kept on this device, never uploaded */
+  var CACHE_MAX = 80 * 1024 * 1024, CACHE_COUNT = 500;
+  var adb = null;
+  function audioDb() {
+    if (adb) return adb;
+    adb = new Promise(function (res, rej) {
+      if (!window.indexedDB) { rej(new Error("no IndexedDB")); return; }
+      var r = indexedDB.open("wisdomscroll-audio", 1);
+      r.onupgradeneeded = function () { var st = r.result.createObjectStore("clips", { keyPath: "k" }); st.createIndex("t", "t"); };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    }).catch(function (e) { adb = null; throw e; });
+    return adb;
+  }
+  function cacheGet(k) {
+    return audioDb().then(function (db) {
+      return new Promise(function (res) {
+        var tx = db.transaction("clips", "readwrite"), st = tx.objectStore("clips"), g = st.get(k);
+        g.onsuccess = function () { var v = g.result; if (v) { v.t = Date.now(); st.put(v); } res(v ? v.blob : null); };
+        g.onerror = function () { res(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function cachePut(k, blob) {
+    return audioDb().then(function (db) {
+      return new Promise(function (res) {
+        var tx = db.transaction("clips", "readwrite");
+        tx.objectStore("clips").put({ k: k, blob: blob, size: blob.size, t: Date.now() });
+        tx.oncomplete = function () { res(); cacheTrim(); };
+        tx.onerror = tx.onabort = function () { res(); cacheTrim(true); }; // a full disk: make room for next time
+      });
+    }).catch(function () {});
+  }
+  // keep the cache under its limit by removing the clips played longest ago
+  function cacheTrim(hard) {
+    return cacheStats().then(function (st) {
+      if (!st || (st.size <= CACHE_MAX && st.count <= CACHE_COUNT && !hard)) return;
+      return audioDb().then(function (db) {
+        var tx = db.transaction("clips", "readwrite"), idx = tx.objectStore("clips").index("t"), size = st.size, count = st.count;
+        var target = hard ? CACHE_MAX * 0.6 : CACHE_MAX;
+        idx.openCursor().onsuccess = function (e) {
+          var cur = e.target.result;
+          if (!cur || (size <= target && count <= CACHE_COUNT)) return;
+          size -= cur.value.size || 0; count--;
+          cur.delete(); cur.continue();
+        };
+      });
+    }).catch(function () {});
+  }
+  function cacheStats() {
+    return audioDb().then(function (db) {
+      return new Promise(function (res) {
+        var size = 0, count = 0, req = db.transaction("clips").objectStore("clips").openCursor();
+        req.onsuccess = function (e) { var c = e.target.result; if (!c) { res({ size: size, count: count }); return; } size += c.value.size || 0; count++; c.continue(); };
+        req.onerror = function () { res(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function cacheClear() {
+    return audioDb().then(function (db) {
+      return new Promise(function (res) { var tx = db.transaction("clips", "readwrite"); tx.objectStore("clips").clear(); tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); }; });
+    }).catch(function () { return false; });
+  }
+  function clipKey(c) { return "v1|" + gVoice() + "|" + speechLang(c.text) + "|" + c.id + "|" + hashOf(spokenText(c)); }
   function ttsClip(c) {
     // with the screen off the live music stops, so the music goes into the clip itself
     var withBed = document.hidden && music.on;
@@ -2855,7 +3064,12 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       tts.raw = tts.raw || {};
       // the spoken voice is fetched once; the version with music is made from it when needed
       if (!tts.raw[rk]) {
-        tts.raw[rk] = ttsRequest(spokenText(c), gVoice()).catch(function (e) { delete tts.raw[rk]; throw e; });
+        var ck = clipKey(c);
+        // the device cache first; only a missing clip is asked from Gemini, and then kept
+        tts.raw[rk] = cacheGet(ck).then(function (hit) {
+          if (hit) { tts.hits = (tts.hits || 0) + 1; return hit; }
+          return ttsRequest(spokenText(c), gVoice()).then(function (blob) { cachePut(ck, blob); return blob; });
+        }).catch(function (e) { delete tts.raw[rk]; throw e; });
         tts.rawOrder = (tts.rawOrder || []).concat(rk);
         while (tts.rawOrder.length > 16) delete tts.raw[tts.rawOrder.shift()];
       }
@@ -2897,9 +3111,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var a = ttsAudio();
     tts.playing = c.id;
     listen.id = c.id;
+    player.loading = true; renderListen();
     setNowPlaying(c);
     ttsClip(c).then(function (url) {
-      if (!listen.on || tts.playing !== c.id) return;
+      if (!listen.on || tts.playing !== c.id || player.paused) return;
       a.src = url;
       a.playbackRate = parseFloat(state.ui.speed) || 1;
       try { a.preservesPitch = true; } catch (e) {}
@@ -2908,12 +3123,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       // write the next few while this one plays, so the queue keeps going with the screen off
       nextCards(c, 3).forEach(function (n) { ttsClip(n).catch(function () {}); });
     }, function (e) {
-      if (!listen.on) return;
-      toast("Gemini voice unavailable, using the phone's voice: " + (e && e.message ? e.message.slice(0, 70) : "no audio"));
-      tts.failed = true; // for the rest of this visit; the setting itself stays on Gemini
-      renderSettings();
-      listen.id = null;
-      speakCurrent(); // carry on with the phone's own voice
+      if (!listen.on || tts.playing !== c.id) return;
+      playerError(ttsErrorKind(e), e);
     });
   }
   function ttsNext() {
@@ -2922,12 +3133,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var nx = nextCards(cur, 1)[0];
     if (!nx) { listen.id = null; return; } // nothing written yet: wait here
     var go = function () {
-      if (!listen.on || tts.playing !== (cur && cur.id)) return;
+      if (!listen.on || player.paused || tts.playing !== (cur && cur.id)) return;
       var node = feed.querySelector('[data-id="' + nx.id + '"]');
       ttsPlay(nx);
       if (node) { try { feed.scrollTo({ top: node.offsetTop, behavior: document.hidden ? "auto" : "smooth" }); } catch (e) { feed.scrollTop = node.offsetTop; } }
     };
     // a short breath between ideas, where the music comes back up; with the screen off the clip carries its own pause
+    if (player.paused) return;
     if (document.hidden) go(); else listen.timer = setTimeout(go, 1800);
   }
   function ttsUnlock() {
@@ -2941,10 +3153,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     } catch (e) {}
     try {
       if ("mediaSession" in navigator) {
-        navigator.mediaSession.setActionHandler("play", function () { if (tts.audio) tts.audio.play(); });
-        navigator.mediaSession.setActionHandler("pause", function () { if (tts.audio) tts.audio.pause(); });
-        navigator.mediaSession.setActionHandler("nexttrack", function () { ttsNext(); });
-        navigator.mediaSession.setActionHandler("previoustrack", function () { if (tts.audio) tts.audio.currentTime = 0; });
+        navigator.mediaSession.setActionHandler("play", function () { resumeListen(); });
+        navigator.mediaSession.setActionHandler("pause", function () { pauseListen(); });
+        navigator.mediaSession.setActionHandler("nexttrack", function () { stepCard(1); });
+        navigator.mediaSession.setActionHandler("previoustrack", function () { stepCard(-1); });
+        try { navigator.mediaSession.setActionHandler("stop", function () { setListen(false); }); } catch (e) {}
       }
     } catch (e) {}
   }
@@ -2952,9 +3165,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (!listen.on || !c) return;
     if (listen.id === c.id) return;
     if (geminiMode()) { clearTimeout(listen.timer); try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {} ttsPlay(c); return; }
+    if (player.paused) return;
     stopSpeaking();
-    listen.id = c.id;
     var lang = speechLang(c.text);
+    if (!voicesFor(lang).length && /^(km|zh|ja|ko)/.test(lang)) { playerError("novoice"); return; }
+    listen.id = c.id;
     var u = new SpeechSynthesisUtterance(c.text + (lang.indexOf("en") === 0 ? "  —  " + c.book + ", by " + c.author + "." : "  —  " + c.book + ", " + c.author + "."));
     u.lang = lang;
     var v = pickVoice(lang);
@@ -2965,9 +3180,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     u.onstart = function () { duck(true); };
     u.onend = function () {
       duck(false);
-      if (!listen.on || listen.id !== id || currentId !== id) return;
+      if (!listen.on || player.paused || listen.id !== id || currentId !== id) return;
       listen.timer = setTimeout(function () {
-        if (!listen.on || currentId !== id) return;
+        if (!listen.on || player.paused || currentId !== id) return;
         var node = feed.querySelector('[data-id="' + id + '"]'), next = node && node.nextElementSibling;
         while (next && next.classList.contains("parked")) next = next.nextElementSibling;
         if (!next || next === endEl) { listen.id = null; return; } // nothing written yet: wait here
@@ -2986,23 +3201,153 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (!b) return;
     b.hidden = !canSpeak && !window.Audio;
     b.setAttribute("aria-pressed", String(listen.on));
+    b.classList.toggle("loading", listen.on && player.loading);
     b.setAttribute("aria-label", listen.on ? "Stop reading aloud" : "Read aloud, hands-free");
+    renderPlayer();
   }
+  var player = { paused: false, loading: false, error: "", errKind: "" };
   function setListen(on) {
-    listen.on = !!on && (canSpeak || geminiMode());
-    stopSpeaking();
-    if (listen.on && geminiMode()) ttsUnlock();
-    if (listen.on && !music.on && !spotifyMode()) setMusicOn(true, true); // reading starts the background music too
-    if (!listen.on) duck(false); // reading stopped: the music plays on at its normal level
+    if (on) {
+      player.error = ""; player.errKind = ""; player.paused = false;
+      if (geminiMode() && !getKey("gemini")) { listen.on = true; playerError("nokey"); return; }
+      if (!geminiMode() && !canSpeak) { listen.on = true; playerError("nospeech"); return; }
+      listen.on = true;
+      stopSpeaking();
+      if (geminiMode()) ttsUnlock();
+      // reading starts the background music, unless Spotify is the music or the listener turned this off
+      if (!music.on && state.ui.readMusic !== false && !spotifyMode()) { setMusicOn(true, true); music.bySession = true; }
+      holdScreen(!geminiMode());
+      renderListen();
+      speakCurrent(); // iPhone only lets sound start from a tap, so it starts right here
+    } else {
+      listen.on = false;
+      stopSpeaking();
+      tts.playing = null;
+      player.paused = false; player.loading = false; player.error = "";
+      if (music.bySession) setMusicOn(false, true); // the session's music ends with the session
+      music.bySession = false;
+      duck(false);
+      holdScreen(false);
+      renderListen();
+    }
+  }
+  function pauseListen() {
+    if (!listen.on) return;
+    player.paused = true; player.loading = false;
+    clearTimeout(listen.timer);
+    tts.quiet = Date.now();
+    if (geminiMode() && tts.audio) { try { tts.audio.pause(); } catch (e) {} }
+    else { try { speechSynthesis.cancel(); } catch (e) {} listen.id = null; }
+    duck(false);
     renderListen();
-    holdScreen(listen.on && !geminiMode());
-    if (!listen.on) tts.playing = null;
-    if (listen.on) {
-      // iPhone only lets speech start from a tap, so the first words are spoken right here
-      speakCurrent();
-      toast(spotifyMode() ? (geminiMode() ? "Listening" : "Reading aloud") + " \u00b7 tap \u266b to start your Spotify playlist"
-        : (geminiMode() ? "Listening" : "Reading aloud") + " with " + ({ calm: "calm", rain: "rain", ocean: "ocean", space: "space" })[bedKind()] + " music \u00b7 tap \u266b to mute it");
-    } else toast(music.on ? "Reading stopped \u00b7 music plays on" : "Stopped reading aloud");
+  }
+  function resumeListen() {
+    if (!listen.on) { setListen(true); return; }
+    if (player.errKind === "nokey" || player.errKind === "nospeech") { setListen(true); return; }
+    player.paused = false; player.error = ""; player.errKind = "";
+    var a = tts.audio;
+    if (geminiMode() && a && a.src.indexOf("blob:") === 0 && tts.playing === currentId && !a.ended && a.currentTime > 0) {
+      var pr = a.play(); if (pr && pr.catch) pr.catch(function () {});
+    } else { listen.id = null; tts.playing = null; speakCurrent(); }
+    renderListen();
+  }
+  // previous or next idea: the narration follows the card
+  function stepCard(dir) {
+    var cur = currentCard(), node = cur && feed.querySelector('[data-id="' + cur.id + '"]');
+    var t = node;
+    do { t = t && (dir > 0 ? t.nextElementSibling : t.previousElementSibling); } while (t && t.classList.contains("parked"));
+    if (!t || t === endEl || !t.dataset.id) { toast(dir > 0 ? "No more ideas yet" : "This is the first idea"); return; }
+    clearTimeout(listen.timer);
+    tts.quiet = Date.now();
+    if (tts.audio) { try { tts.audio.pause(); } catch (e) {} }
+    try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {}
+    listen.id = null; tts.playing = null; player.paused = false; player.error = ""; player.errKind = "";
+    if (document.hidden && listen.on && geminiMode()) {
+      var card = state.cards.find(function (x) { return x.id === t.dataset.id; });
+      feed.scrollTop = t.offsetTop;
+      if (card) ttsPlay(card);
+    } else {
+      try { feed.scrollTo({ top: t.offsetTop, behavior: "smooth" }); } catch (e) { feed.scrollTop = t.offsetTop; }
+    }
+    renderListen();
+  }
+  var ERRORS = {
+    nokey: "Gemini voices need a Google Gemini key.",
+    nospeech: "This browser cannot read aloud with the phone's voice.",
+    novoice: "No voice on this phone can read this language. Gemini voices can try it.",
+    net: "Could not reach Gemini. Check your connection.",
+    rate: "Gemini's voice limit is reached for now. Try again in a while.",
+    auth: "Your Gemini key was refused. Check it in AI & Generation.",
+    lang: "Gemini could not read this language aloud.",
+    other: "Gemini could not make the audio."
+  };
+  // something went wrong: stop and say so, without switching voices behind the listener's back
+  function playerError(kind, e) {
+    player.errKind = kind;
+    player.error = ERRORS[kind];
+    if (e) try { console.warn("WisdomScroll voice:", e.message || e); } catch (x) {}
+    player.paused = true; player.loading = false;
+    clearTimeout(listen.timer);
+    listen.id = null; tts.playing = null;
+    duck(false);
+    renderListen();
+  }
+  function ttsErrorKind(e) {
+    if (!e) return "other";
+    if (e.nokey) return "nokey";
+    if (e.status === 429 || /quota|exhausted|rate/i.test(e.message || "")) return "rate";
+    if (e.status === 401 || e.status === 403 || /api key/i.test(e.message || "")) return "auth";
+    if (e.status === 400 && /language|locale/i.test(e.message || "")) return "lang";
+    if (!e.status || e instanceof TypeError) return "net";
+    return "other";
+  }
+  function renderPlayer() {
+    var p = $("player");
+    if (!p) return;
+    var show = (listen.on || music.on) && $("view-discover").classList.contains("active");
+    p.hidden = !show;
+    document.getElementById("app").classList.toggle("player-on", show);
+    if (!show) return;
+    var reading = listen.on, err = !!player.error;
+    var voiceName = geminiMode() ? gVoice() : "iPhone voice";
+    var state_ = err ? "error" : !reading ? "music" : player.paused ? "paused" : player.loading ? "loading" : "reading";
+    p.dataset.state = state_;
+    $("pl-title").textContent = err ? player.error
+      : !reading ? MOOD_NAME[bedKind()] + " music"
+      : voiceName;
+    $("pl-sub").textContent = err ? "" : !reading ? "Tap ▶ to read aloud over it" : player.paused ? "Paused" : player.loading ? "Preparing…" : state.ui.speed + "× · " + (music.on ? MOOD_NAME[bedKind()] : "music off");
+    $("pl-err").hidden = !err;
+    $("pl-fix").hidden = !err;
+    $("pl-fix").textContent = player.errKind === "nokey" || player.errKind === "auth" ? "Add key" : "Retry";
+    $("pl-alt").hidden = !err || !geminiMode() || !canSpeak || player.errKind === "novoice";
+    $("pl-alt-g").hidden = !err || geminiMode() || player.errKind !== "novoice";
+    $("pl-prev").hidden = $("pl-next").hidden = !reading || err;
+    $("pl-stop").hidden = !reading;
+    var playing = reading && !player.paused && !err;
+    $("pl-play").setAttribute("aria-label", playing ? "Pause" : reading ? "Resume" : "Read aloud");
+    $("pl-play").classList.toggle("is-playing", playing);
+    $("pl-music").setAttribute("aria-pressed", String(music.on));
+    $("pl-music").setAttribute("aria-label", music.on ? "Turn music off" : "Turn music on");
+  }
+  function wirePlayer() {
+    $("pl-play").addEventListener("click", function () {
+      if (listen.on && !player.paused && !player.error) pauseListen(); else resumeListen();
+    });
+    $("pl-prev").addEventListener("click", function () { stepCard(-1); });
+    $("pl-next").addEventListener("click", function () { stepCard(1); });
+    $("pl-stop").addEventListener("click", function () { setListen(false); toast("Listening stopped"); });
+    $("pl-music").addEventListener("click", function () {
+      if (spotifyMode()) { toast("Your music is Spotify: open it with ♫ at the top"); return; }
+      setMusicOn(!music.on, true);
+      music.bySession = false; // the listener chose this themselves
+      toast(music.on ? MOOD_NAME[bedKind()] + " music on" : "Music off");
+    });
+    $("pl-fix").addEventListener("click", function () {
+      if (player.errKind === "nokey" || player.errKind === "auth") { setListen(false); show("prefs"); goPage("ai"); return; }
+      resumeListen();
+    });
+    $("pl-alt").addEventListener("click", function () { state.ui.listenMode = "device"; persist(); touchSync("prefs"); renderSettings(); resumeListen(); toast("Using the iPhone voice"); });
+    $("pl-alt-g").addEventListener("click", function () { state.ui.listenMode = "gemini"; persist(); touchSync("prefs"); renderSettings(); setListen(true); });
   }
 
   /* ---------- "Newest" arrow: jump to the most recently written unread ideas ---------- */
@@ -3309,28 +3654,30 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (spInfo[key]) { showSpotifyCard(spInfo[key]); return; }
     box.hidden = false;
     box.className = "sp-card loading";
-    $("sp-title").textContent = "Checking the link…";
+    $("sp-title").textContent = "Link saved \u00b7 checking with Spotify\u2026";
     $("sp-sub").textContent = "Spotify " + m.type;
     $("sp-cover").removeAttribute("src");
     var done = false;
-    var timer = setTimeout(function () { if (!done) { done = true; showSpotifyCard({ ok: true, title: "Spotify " + m.type + " linked", sub: "Its name could not be loaded, but the link is saved." }); } }, 6000);
+    var timer = setTimeout(function () { if (!done) { done = true; showSpotifyCard({ warn: true, title: "Link saved, not verified", sub: "Spotify did not answer in time. The link may still work in Spotify." }); } }, 7000);
     fetch("https://open.spotify.com/oembed?url=" + encodeURIComponent("https://open.spotify.com/" + key))
       .then(function (r) { if (!r.ok) throw { status: r.status }; return r.json(); })
       .then(function (d) {
         if (done) return; done = true; clearTimeout(timer);
-        spInfo[key] = { ok: true, title: d.title || ("Spotify " + m.type), sub: "Linked · Spotify " + m.type, img: d.thumbnail_url || "" };
+        spInfo[key] = { ok: true, title: d.title || ("Spotify " + m.type), sub: "Verified on Spotify \u00b7 " + m.type, img: d.thumbnail_url || "" };
         showSpotifyCard(spInfo[key]);
       }, function (e) {
         if (done) return; done = true; clearTimeout(timer);
-        showSpotifyCard(e && (e.status === 404 || e.status === 400)
-          ? { ok: false, title: "Spotify could not find this " + m.type, sub: "Check that the playlist is public, then copy its link again." }
-          : { ok: true, title: "Spotify " + m.type + " linked", sub: "Its name could not be loaded here, but the link is saved." });
+        showSpotifyCard(e && e.status === 404
+          ? { ok: false, title: "Spotify could not find this " + m.type, sub: "Check the link, or that the playlist is public." }
+          : e && (e.status === 400 || e.status === 401 || e.status === 403)
+          ? { ok: false, title: "Private or unsupported link", sub: "Make the playlist public in Spotify, then copy its link again." }
+          : { warn: true, title: "Link saved, not verified", sub: "Spotify could not be reached to check it." });
       });
   }
   function showSpotifyCard(info) {
     var box = $("sp-card");
     box.hidden = false;
-    box.className = "sp-card " + (info.ok ? "ok" : "bad");
+    box.className = "sp-card " + (info.ok ? "ok" : info.warn ? "warn" : "bad");
     $("sp-title").textContent = info.title;
     $("sp-sub").textContent = info.sub;
     if (info.img) $("sp-cover").src = info.img; else $("sp-cover").removeAttribute("src");
@@ -3992,7 +4339,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   // what travels between devices: the saved keys, which one is in use, and the provider and model choice
   function prefsOf() {
     return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name, collections: state.collections,
-      voice: { mode: state.ui.listenMode, gender: state.ui.voiceGender, gvoice: state.ui.gvoice, speed: state.ui.speed, bed: state.ui.bed, src: state.ui.musicSrc } };
+      voice: { mode: state.ui.listenMode, gender: state.ui.voiceGender, gvoice: state.ui.gvoice, speed: state.ui.speed, bed: state.ui.bed, src: state.ui.musicSrc, vol: state.ui.musicVol, readMusic: state.ui.readMusic } };
   }
   // What travels between devices: API keys, saved and liked ideas, removals, preferences, and the lists that prevent repeats.
   function localPayload() {
@@ -4076,8 +4423,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       if (ok(vv.mode, ["device", "gemini"])) state.ui.listenMode = vv.mode;
       if (ok(vv.gender, ["female", "male"])) state.ui.voiceGender = vv.gender;
       if (typeof vv.gvoice === "string" && vv.gvoice) state.ui.gvoice = vv.gvoice.slice(0, 40);
-      if (ok(vv.speed, ["0.75", "1", "1.25", "1.5"])) state.ui.speed = vv.speed;
-      if (ok(vv.bed, ["calm", "rain", "ocean", "space"])) state.ui.bed = vv.bed;
+      if (ok(vv.speed, ["0.75", "1", "1.25", "1.5", "1.75", "2"])) state.ui.speed = vv.speed;
+      if (ok(vv.bed, ["nature", "space", "meditation", "rainocean", "focus"])) state.ui.bed = vv.bed;
+      if (typeof vv.vol === "number" && vv.vol >= 0.1 && vv.vol <= 1) state.ui.musicVol = vv.vol;
+      if (typeof vv.readMusic === "boolean") state.ui.readMusic = vv.readMusic;
       if (ok(vv.src, ["app", "spotify"])) state.ui.musicSrc = vv.src;
     }
   }
@@ -4783,7 +5132,15 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     } catch (e) { return -1; }
     return n;
   }
+  function refreshAudioCache() {
+    var line = $("audio-cache-line");
+    if (!line) return;
+    cacheStats().then(function (st) {
+      line.textContent = !st ? "Narration cache is not available in this browser." : st.count ? "Narration cache: " + st.count + " clips, " + fmtBytes(st.size) + " (limit " + fmtBytes(CACHE_MAX) + ")." : "Narration cache is empty.";
+    });
+  }
   function refreshStorage() {
+    refreshAudioCache();
     var b = storageBytes();
     $("storage-line").textContent = b < 0 ? "This browser does not let the app measure its storage." : "Your WisdomScroll data uses about " + fmtBytes(b) + " on this device.";
     $("storage-counts").textContent = state.cards.length + " ideas in the feed, " + state.saved.length + " saved, " + state.liked.length + " liked.";
@@ -4972,6 +5329,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("dropcap-toggle").checked = u.dropcap;
     renderRemind();
     renderVoices();
+    if (document.activeElement !== $("music-vol")) $("music-vol").value = Math.round((state.ui.musicVol || 0.7) * 100);
+    $("read-music").checked = state.ui.readMusic !== false;
     // contact, only when the developer has set it
     var links = [];
     if (CONTACT.telegram) links.push(["Telegram", "@" + CONTACT.telegram, "https://t.me/" + CONTACT.telegram]);
@@ -5051,7 +5410,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function previewVoice() {
     if (geminiMode()) {
       var a = ttsAudio(), zhs = /^zh/.test(state.ui.lang);
-      $("voice-msg").textContent = "Making a sample\u2026";
+      $("voice-msg").innerHTML = '<span class="spin-dot"></span> Making a sample with ' + gVoice() + "\u2026";
       try { a.pause(); } catch (e) {}
       ttsRequest(zhs ? "\u6ecb\u517b\u4f60\u7684\u5fc3\u7075\u3002\u6bcf\u6b21\u6ed1\u52a8\uff0c\u90fd\u662f\u4e00\u672c\u597d\u4e66\u91cc\u7684\u4e00\u4e2a\u60f3\u6cd5\u3002" : "Feed your mind. One idea from a great book, with every swipe.", gVoice()).then(function (blob) {
         return mixWithBed(blob, bedKind(), 7);
@@ -5152,8 +5511,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     Array.prototype.forEach.call(document.querySelectorAll('input[name="vbed"]'), function (r) {
       r.addEventListener("change", function () {
         state.ui.bed = r.value; persist(); touchSync("prefs");
-        if (music.on) { stopLiveBed(); startLiveBed(); toast(r.parentNode.textContent.trim() + " music"); }
-        else previewVoice();
+        if (music.on) { stopLiveBed(); startLiveBed(); toast(MOOD_NAME[r.value] + " music"); renderPlayer(); }
+        else { setMusicOn(true, true); toast(MOOD_NAME[r.value] + " \u00b7 tap \u266b to stop"); }
       });
     });
     if (canSpeak) { try { speechSynthesis.addEventListener("voiceschanged", function () { loadVoices(); renderVoices(); }); } catch (e) {} }
@@ -5171,6 +5530,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("restore-btn").addEventListener("click", function () { $("restore-file").value = ""; $("restore-file").click(); });
     $("restore-file").addEventListener("change", function () { var f = $("restore-file").files && $("restore-file").files[0]; if (f) restoreFrom(f); });
     $("clear-saved").addEventListener("click", clearSaved);
+    $("clear-audio").addEventListener("click", function () {
+      confirmBox("Clear narration cache?", "Saved voice clips are removed from this device. Your ideas and saved cards stay. Clips are made again when you listen.", "Clear cache").then(function (yes) {
+        if (!yes) return;
+        tts.raw = {}; tts.rawOrder = [];
+        cacheClear().then(function (ok) { toast(ok ? "Narration cache cleared" : "Could not clear the cache"); refreshAudioCache(); });
+      });
+    });
     $("clear-btn").addEventListener("click", function () {
       confirmBox("Clear all app data?", "Every idea, your saved ideas, preferences and API keys are removed from this browser, and this device is signed out of sync. This cannot be undone.", "Clear everything").then(function (yes) { if (yes) { clearData(); toast("All app data cleared"); } });
     });
@@ -5186,6 +5552,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       $("view-" + v).classList.toggle("active", v === name);
     });
     if (name !== "discover" && !geminiMode()) stopSpeaking();
+    if (typeof renderPlayer === "function") setTimeout(renderPlayer, 0);
     else if (listen.on) setTimeout(speakCurrent, 250);
     if (name !== "discover" && $("newest-btn")) { clearTimeout(newestTimer); $("newest-btn").classList.remove("show"); newestFor = null; }
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
@@ -5260,7 +5627,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     Array.prototype.forEach.call(document.querySelectorAll("[data-share-app]"), function (b) { b.addEventListener("click", shareApp); });
     if (canSpeak) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
     renderListen();
-    $("listen-btn").addEventListener("click", function () { setListen(!listen.on); });
+    $("listen-btn").addEventListener("click", function () { setListen(!listen.on); if (!listen.on) toast("Listening stopped"); });
+    wirePlayer();
     // leaving the app pauses reading; coming back carries on from the card on screen
     document.addEventListener("visibilitychange", function () {
       if (!listen.on || geminiMode()) return; // Gemini audio carries on with the screen off
@@ -5321,6 +5689,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       e.preventDefault();
       setMusicOn(!music.on);
     });
+    $("music-vol").addEventListener("input", function () {
+      state.ui.musicVol = Math.max(0.1, Math.min(1, (+$("music-vol").value || 70) / 100));
+      if (liveBed && liveBed.gain && actx) glide(liveBed.gain.gain, musicLevel(), 0.2);
+      persist();
+    });
+    $("music-vol").addEventListener("change", function () { touchSync("prefs"); });
+    $("read-music").addEventListener("change", function () { state.ui.readMusic = $("read-music").checked; persist(); touchSync("prefs"); });
     Array.prototype.forEach.call(document.querySelectorAll('input[name="msrc"]'), function (r) {
       r.addEventListener("change", function () {
         state.ui.musicSrc = r.value;
@@ -5337,7 +5712,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("music-save").addEventListener("click", function () {
       var m = parseSpotify($("music-link").value);
       if (!m) {
-        $("music-result").textContent = $("music-link").value.trim() ? "That is not a Spotify link. In Spotify, tap \u2026 or Share, then Copy link." : "Paste a Spotify link first.";
+        $("music-result").textContent = $("music-link").value.trim() ? "Invalid link: this is not a Spotify playlist, album or track link. In Spotify, tap \u2026 or Share, then Copy link." : "Paste a Spotify link first.";
         $("sp-card").hidden = true;
         return;
       }
