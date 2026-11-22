@@ -473,6 +473,20 @@ html[data-dropcap="on"] .idea.km::first-letter { float: none; font-size: inherit
 .seg.five span { font-size: .78rem; padding-left: 2px; padding-right: 2px; }
 #spotify-open { align-self: flex-start; text-decoration: none; color: #1a1408; }
 #spotify-open[hidden] { display: none; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.stack[hidden] { display: none; }
+.sp-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.18); }
+.sp-card[hidden] { display: none; }
+.sp-card.ok { border-color: rgba(30,215,96,.45); }
+.sp-card.bad { border-color: rgba(229,138,120,.55); }
+.sp-card img { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; flex: none; }
+.sp-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sp-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-sub { font-size: .8rem; color: var(--muted); }
+.sp-card.ok .sp-sub::before { content: "\2713  "; color: #1ed760; }
+.sp-card.loading .sp-title::after { content: ""; display: inline-block; width: 12px; height: 12px; margin-left: 8px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spspin .8s linear infinite; vertical-align: -1px; }
+@keyframes spspin { to { transform: rotate(360deg); } }
+.topbtn.spotify.set { color: #1ed760; border-color: rgba(30,215,96,.55); }
 
 
 /* "Newest" arrow on Discover */
@@ -765,30 +779,42 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Background music</div>
           <div class="sgroup pad">
-            <p class="note">The &#9835; button on Discover plays it. Reading aloud turns it on by itself, soft under the voice and fuller in the pauses.</p>
-            <div class="seg four" role="radiogroup" aria-label="Background music">
-              <label><input type="radio" name="vbed" value="calm"><span>Calm</span></label>
-              <label><input type="radio" name="vbed" value="rain"><span>Rain</span></label>
-              <label><input type="radio" name="vbed" value="ocean"><span>Ocean</span></label>
-              <label><input type="radio" name="vbed" value="space"><span>Space</span></label>
+            <div class="seg two" role="radiogroup" aria-label="Music source">
+              <label><input type="radio" name="msrc" value="app"><span>App music</span></label>
+              <label><input type="radio" name="msrc" value="spotify"><span>My Spotify</span></label>
             </div>
-          </div>
 
-          <div class="sgroup-label">Spotify instead</div>
-          <div class="sgroup pad" id="music-box">
-            <p class="note">Pick a playlist, then open it in Spotify. The app's own music stops while Spotify plays.</p>
-            <div id="music-presets" class="presets"></div>
-            <div class="field">
-              <label for="music-link">Or your own Spotify playlist</label>
-              <input type="url" id="music-link" placeholder="Paste a Spotify link" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="stack" id="msrc-app">
+              <p class="note">Tap &#9835; on Discover to play. Reading aloud turns it on by itself: soft under the voice, fuller in the pauses.</p>
+              <div class="seg four" role="radiogroup" aria-label="Background music">
+                <label><input type="radio" name="vbed" value="calm"><span>Calm</span></label>
+                <label><input type="radio" name="vbed" value="rain"><span>Rain</span></label>
+                <label><input type="radio" name="vbed" value="ocean"><span>Ocean</span></label>
+                <label><input type="radio" name="vbed" value="space"><span>Space</span></label>
+              </div>
             </div>
-            <div class="actions">
-              <button type="button" class="btn solid" id="music-save">Save link</button>
-              <button type="button" class="btn" id="music-clear" hidden>Remove</button>
-              <span class="note" id="music-result" role="status"></span>
+
+            <div class="stack" id="msrc-spotify" hidden>
+              <p class="note">Your playlist plays in the Spotify app while you read here. Tap &#9835; on Discover to open it.</p>
+              <div class="field">
+                <label for="music-link">Paste your Spotify playlist link</label>
+                <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+              </div>
+              <div class="actions">
+                <button type="button" class="btn solid" id="music-save">Link playlist</button>
+                <button type="button" class="btn" id="music-clear" hidden>Remove</button>
+              </div>
+              <p class="note" id="music-result" role="status"></p>
+              <div class="sp-card" id="sp-card" hidden>
+                <img id="sp-cover" alt="" width="56" height="56" hidden>
+                <span class="sp-text"><span class="sp-title" id="sp-title"></span><span class="sp-sub" id="sp-sub"></span></span>
+              </div>
+              <a class="btn solid" id="spotify-open" href="#" target="_blank" rel="noopener" hidden>Open in Spotify</a>
+              <span class="preset-label">Or pick one</span>
+              <div id="music-presets" class="presets"></div>
+              <p class="note small">Spotify cannot be made softer from here, so keep its volume low in Spotify while listening. With Spotify playing, the reading voice stops when the screen locks.</p>
+              <div id="music-embed"></div>
             </div>
-            <a class="btn solid" id="spotify-open" href="#" target="_blank" rel="noopener" hidden>Open in Spotify</a>
-            <div id="music-embed"></div>
           </div>
 
           <div class="sgroup-label">App tones</div>
@@ -1389,7 +1415,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.13";
+  var APP_VERSION = "3.14";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1503,9 +1529,10 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       welcomed: ui.welcomed === true,
       voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
       bed: pick(ui.bed, ["calm", "rain", "ocean", "space"], "calm"),
+      musicSrc: pick(ui.musicSrc, ["app", "spotify"], "app"),
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
-      gvoice: typeof ui.gvoice === "string" ? ui.gvoice.slice(0, 40) : "",
+      gvoice: typeof ui.gvoice === "string" && ui.gvoice ? ui.gvoice.slice(0, 40) : (ui.voiceGender === "male" ? "Charon" : "Sulafat"),
       voiceName: typeof ui.voiceName === "string" ? ui.voiceName.slice(0, 120) : "",
       speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5"], "1"),
       shareStyle: pick(ui.shareStyle, ["midnight", "parchment", "noir"], "midnight"),
@@ -2785,12 +2812,25 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       try { liveBed.gain.gain.setTargetAtTime(musicLevel(), actx.currentTime, on ? 0.25 : 0.7); } catch (e) {}
     }
   }
+  function spotifyMode() { return state.ui.musicSrc === "spotify" && !!state.settings.music; }
   function renderMusicBtn() {
     var b = $("music-btn");
     if (!b) return;
-    b.classList.toggle("set", music.on);
+    var sp = spotifyMode();
+    b.classList.toggle("set", music.on || (sp && musicActive));
+    b.classList.toggle("spotify", sp);
     b.setAttribute("aria-pressed", String(music.on));
-    b.setAttribute("aria-label", music.on ? "Turn background music off" : "Play calm background music");
+    b.setAttribute("href", sp ? musicUrl() : "#");
+    b.setAttribute("aria-label", sp ? "Play my Spotify playlist" : music.on ? "Turn background music off" : "Play calm background music");
+  }
+  // Spotify takes over the music: the app's own music stops and its voice mixes with Spotify
+  function startSpotify() {
+    musicActive = true;
+    try { if (navigator.audioSession) navigator.audioSession.type = "ambient"; } catch (err) {}
+    if (music.on) setMusicOn(false, true);
+    if (state.settings.sound) setSound(false);
+    renderMusicBtn();
+    toast("Opening Spotify \u00b7 come back here, it keeps playing");
   }
   function setMusicOn(on, quiet) {
     music.on = !!on;
@@ -2952,7 +2992,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     listen.on = !!on && (canSpeak || geminiMode());
     stopSpeaking();
     if (listen.on && geminiMode()) ttsUnlock();
-    if (listen.on && !music.on) setMusicOn(true, true); // reading starts the background music too
+    if (listen.on && !music.on && !spotifyMode()) setMusicOn(true, true); // reading starts the background music too
     if (!listen.on) duck(false); // reading stopped: the music plays on at its normal level
     renderListen();
     holdScreen(listen.on && !geminiMode());
@@ -2960,7 +3000,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (listen.on) {
       // iPhone only lets speech start from a tap, so the first words are spoken right here
       speakCurrent();
-      toast((geminiMode() ? "Listening" : "Reading aloud") + " with " + ({ calm: "calm", rain: "rain", ocean: "ocean", space: "space" })[bedKind()] + " music \u00b7 tap \u266b to mute it");
+      toast(spotifyMode() ? (geminiMode() ? "Listening" : "Reading aloud") + " \u00b7 tap \u266b to start your Spotify playlist"
+        : (geminiMode() ? "Listening" : "Reading aloud") + " with " + ({ calm: "calm", rain: "rain", ocean: "ocean", space: "space" })[bedKind()] + " music \u00b7 tap \u266b to mute it");
     } else toast(music.on ? "Reading stopped \u00b7 music plays on" : "Stopped reading aloud");
   }
 
@@ -3254,10 +3295,46 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   }
   function setMusic(m, msg) {
     state.settings.music = m;
+    if (m) state.ui.musicSrc = "spotify"; // a linked playlist becomes the music source
     touchSync("prefs");
     persist();
     $("music-result").textContent = msg || "";
     renderMusic();
+    if (m) checkSpotify(m);
+  }
+  // Spotify's public preview service gives the playlist's name and cover, which shows the link worked.
+  var spInfo = {};
+  function checkSpotify(m) {
+    var key = m.type + "/" + m.id, box = $("sp-card");
+    if (spInfo[key]) { showSpotifyCard(spInfo[key]); return; }
+    box.hidden = false;
+    box.className = "sp-card loading";
+    $("sp-title").textContent = "Checking the link…";
+    $("sp-sub").textContent = "Spotify " + m.type;
+    $("sp-cover").removeAttribute("src");
+    var done = false;
+    var timer = setTimeout(function () { if (!done) { done = true; showSpotifyCard({ ok: true, title: "Spotify " + m.type + " linked", sub: "Its name could not be loaded, but the link is saved." }); } }, 6000);
+    fetch("https://open.spotify.com/oembed?url=" + encodeURIComponent("https://open.spotify.com/" + key))
+      .then(function (r) { if (!r.ok) throw { status: r.status }; return r.json(); })
+      .then(function (d) {
+        if (done) return; done = true; clearTimeout(timer);
+        spInfo[key] = { ok: true, title: d.title || ("Spotify " + m.type), sub: "Linked · Spotify " + m.type, img: d.thumbnail_url || "" };
+        showSpotifyCard(spInfo[key]);
+      }, function (e) {
+        if (done) return; done = true; clearTimeout(timer);
+        showSpotifyCard(e && (e.status === 404 || e.status === 400)
+          ? { ok: false, title: "Spotify could not find this " + m.type, sub: "Check that the playlist is public, then copy its link again." }
+          : { ok: true, title: "Spotify " + m.type + " linked", sub: "Its name could not be loaded here, but the link is saved." });
+      });
+  }
+  function showSpotifyCard(info) {
+    var box = $("sp-card");
+    box.hidden = false;
+    box.className = "sp-card " + (info.ok ? "ok" : "bad");
+    $("sp-title").textContent = info.title;
+    $("sp-sub").textContent = info.sub;
+    if (info.img) $("sp-cover").src = info.img; else $("sp-cover").removeAttribute("src");
+    $("sp-cover").hidden = !info.img;
   }
   function renderMusic() {
     syncSoundUi();
@@ -3265,6 +3342,12 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var sp = $("spotify-open");
     sp.setAttribute("href", url || "#");
     sp.hidden = !m;
+    if (!m) $("sp-card").hidden = true;
+    else if (spInfo[m.type + "/" + m.id]) showSpotifyCard(spInfo[m.type + "/" + m.id]);
+    setRadio("msrc", state.ui.musicSrc);
+    $("msrc-app").hidden = state.ui.musicSrc !== "app";
+    $("msrc-spotify").hidden = state.ui.musicSrc !== "spotify";
+    renderMusicBtn();
     $("music-clear").hidden = !m;
     if (document.activeElement !== $("music-link")) $("music-link").value = url;
     var box = $("music-presets");
@@ -3908,7 +3991,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   }
   // what travels between devices: the saved keys, which one is in use, and the provider and model choice
   function prefsOf() {
-    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name, collections: state.collections };
+    return { limit: state.settings.limit, topics: state.settings.topics, check: state.settings.check !== false, music: state.settings.music || null, lang: state.ui.lang, lean: state.ui.lean !== false, name: state.ui.name, collections: state.collections,
+      voice: { mode: state.ui.listenMode, gender: state.ui.voiceGender, gvoice: state.ui.gvoice, speed: state.ui.speed, bed: state.ui.bed, src: state.ui.musicSrc } };
   }
   // What travels between devices: API keys, saved and liked ideas, removals, preferences, and the lists that prevent repeats.
   function localPayload() {
@@ -3987,6 +4071,15 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (typeof pr.lean === "boolean") state.ui.lean = pr.lean;
     if (typeof pr.name === "string" && pr.name) state.ui.name = pr.name.slice(0, 40);
     if (Array.isArray(pr.collections)) { state.collections = cleanCollections(pr.collections); if (typeof renderSaved === "function") renderSaved(); }
+    if (pr.voice && typeof pr.voice === "object") {
+      var vv = pr.voice, ok = function (v, list) { return list.indexOf(v) >= 0; };
+      if (ok(vv.mode, ["device", "gemini"])) state.ui.listenMode = vv.mode;
+      if (ok(vv.gender, ["female", "male"])) state.ui.voiceGender = vv.gender;
+      if (typeof vv.gvoice === "string" && vv.gvoice) state.ui.gvoice = vv.gvoice.slice(0, 40);
+      if (ok(vv.speed, ["0.75", "1", "1.25", "1.5"])) state.ui.speed = vv.speed;
+      if (ok(vv.bed, ["calm", "rain", "ocean", "space"])) state.ui.bed = vv.bed;
+      if (ok(vv.src, ["app", "spotify"])) state.ui.musicSrc = vv.src;
+    }
   }
   function mergeRemote(p, firstTime) {
     if (!p) return;
@@ -5032,7 +5125,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     ["vgender", "vspeed"].forEach(function (name) {
       Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function (r) {
         r.addEventListener("change", function () {
-          if (name === "vgender") { state.ui.voiceGender = r.value; state.ui.voiceName = ""; state.ui.gvoice = ""; } else state.ui.speed = r.value;
+          if (name === "vgender") { state.ui.voiceGender = r.value; state.ui.voiceName = ""; state.ui.gvoice = r.value === "male" ? "Charon" : "Sulafat"; } else state.ui.speed = r.value;
+          touchSync("prefs");
           if (name === "vspeed" && tts.audio) tts.audio.playbackRate = parseFloat(r.value) || 1;
           persist(); renderVoices(); previewVoice();
         });
@@ -5040,7 +5134,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     });
     $("voice-select").addEventListener("change", function () {
       if (geminiMode()) state.ui.gvoice = $("voice-select").value; else state.ui.voiceName = $("voice-select").value;
-      persist(); previewVoice();
+      persist(); touchSync("prefs"); previewVoice();
+      if (geminiMode()) toast(state.ui.gvoice + " is your reading voice");
     });
     Array.prototype.forEach.call(document.querySelectorAll('input[name="vmode"]'), function (r) {
       r.addEventListener("change", function () {
@@ -5048,7 +5143,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         if (was) setListen(false);
         state.ui.listenMode = r.value;
         tts.failed = false;
-        persist(); renderVoices();
+        persist(); touchSync("prefs"); renderVoices();
         if (r.value === "gemini" && !getKey("gemini")) $("voice-msg").textContent = "This needs a Google Gemini key. Add it in AI & Generation.";
         else $("voice-msg").textContent = "";
       });
@@ -5056,7 +5151,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("voice-preview").addEventListener("click", previewVoice);
     Array.prototype.forEach.call(document.querySelectorAll('input[name="vbed"]'), function (r) {
       r.addEventListener("change", function () {
-        state.ui.bed = r.value; persist();
+        state.ui.bed = r.value; persist(); touchSync("prefs");
         if (music.on) { stopLiveBed(); startLiveBed(); toast(r.parentNode.textContent.trim() + " music"); }
         else previewVoice();
       });
@@ -5222,16 +5317,18 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("sound-btn").addEventListener("click", function () { setSound(!state.settings.sound); });
     $("sound-toggle").addEventListener("change", function () { setSound($("sound-toggle").checked); });
     $("music-btn").addEventListener("click", function (e) {
+      if (spotifyMode()) { startSpotify(); return; } // the link opens Spotify
       e.preventDefault();
       setMusicOn(!music.on);
     });
-    $("spotify-open").addEventListener("click", function () {
-      // Spotify takes over the music: the app's own music stops and its voice mixes with Spotify
-      musicActive = true;
-      try { if (navigator.audioSession) navigator.audioSession.type = "ambient"; } catch (err) {}
-      if (music.on) setMusicOn(false, true);
-      if (state.settings.sound) setSound(false);
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="msrc"]'), function (r) {
+      r.addEventListener("change", function () {
+        state.ui.musicSrc = r.value;
+        if (r.value === "spotify" && music.on) setMusicOn(false, true);
+        persist(); touchSync("prefs"); renderMusic();
+      });
     });
+    $("spotify-open").addEventListener("click", startSpotify);
     renderMusicBtn();
     // the live music pauses with the app; with reading on, the clips carry it while the screen is off
     document.addEventListener("visibilitychange", function () {
@@ -5239,7 +5336,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     });
     $("music-save").addEventListener("click", function () {
       var m = parseSpotify($("music-link").value);
-      if (!m) { $("music-result").textContent = "That is not a Spotify link. In Spotify, use Share, then Copy link."; return; }
+      if (!m) {
+        $("music-result").textContent = $("music-link").value.trim() ? "That is not a Spotify link. In Spotify, tap \u2026 or Share, then Copy link." : "Paste a Spotify link first.";
+        $("sp-card").hidden = true;
+        return;
+      }
       $("music-link").blur();
       setMusic(m, "Playlist saved.");
     });
