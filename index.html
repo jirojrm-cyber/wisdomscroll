@@ -469,6 +469,8 @@ html[data-dropcap="on"] .idea.km::first-letter { float: none; font-size: inherit
 .preset-label { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .preset-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .preset-chips .chip-btn { font-size: .82rem; }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.five span { font-size: .78rem; padding-left: 2px; padding-right: 2px; }
 
 
 /* "Newest" arrow on Discover */
@@ -752,6 +754,14 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <label><input type="radio" name="vspeed" value="1.25"><span>1.25&times;</span></label>
               <label><input type="radio" name="vspeed" value="1.5"><span>1.5&times;</span></label>
             </div>
+            <span class="preset-label">Background sound</span>
+            <div class="seg five" role="radiogroup" aria-label="Background sound">
+              <label><input type="radio" name="vbed" value="calm"><span>Calm</span></label>
+              <label><input type="radio" name="vbed" value="rain"><span>Rain</span></label>
+              <label><input type="radio" name="vbed" value="ocean"><span>Ocean</span></label>
+              <label><input type="radio" name="vbed" value="space"><span>Space</span></label>
+              <label><input type="radio" name="vbed" value="off"><span>Off</span></label>
+            </div>
             <div class="actions">
               <button type="button" class="btn" id="voice-preview">Preview</button>
               <span class="note" id="voice-msg" role="status"></span>
@@ -761,7 +771,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Background music</div>
           <div class="sgroup pad" id="music-box">
-            <p class="note">Plays in Spotify while you read. Tap the &#9835; button on Discover to start it.</p>
+            <p class="note">Prefer Spotify? It plays in the Spotify app; tap &#9835; on Discover to start it. The background sound above steps aside while Spotify plays.</p>
             <div id="music-presets" class="presets"></div>
             <div class="field">
               <label for="music-link">Or your own Spotify playlist</label>
@@ -1373,7 +1383,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.11";
+  var APP_VERSION = "3.12";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1486,6 +1496,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
       voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
+      bed: pick(ui.bed, ["off", "calm", "rain", "ocean", "space"], "calm"),
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
       gvoice: typeof ui.gvoice === "string" ? ui.gvoice.slice(0, 40) : "",
@@ -2616,11 +2627,151 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var tried = 0;
     return tryModel(tts.model);
   }
+  /* ---------- background sound under the voice ---------- */
+  function bedKind() { return musicActive ? "off" : (state.ui.bed || "calm"); }
+  function seeded(seed) {
+    var t = seed >>> 0;
+    return function () { t += 0x6D2B79F5; var r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; };
+  }
+  var BED_CHORDS = [
+    [130.81, 196.0, 246.94, 329.63], [110.0, 164.81, 220.0, 277.18], [146.83, 220.0, 293.66, 369.99],
+    [123.47, 185.0, 246.94, 311.13], [98.0, 146.83, 196.0, 246.94], [116.54, 174.61, 233.08, 293.66]
+  ];
+  // Builds the sound into an (offline) audio context, starting at t0 for dur seconds, through gain node out.
+  function buildBed(ctx, out, kind, t0, dur, seed) {
+    var rnd = seeded(seed), sr = ctx.sampleRate;
+    var noise = function (sec, brown) {
+      var b = ctx.createBuffer(1, Math.max(1, Math.floor(sr * sec)), sr), d = b.getChannelData(0), last = 0;
+      for (var i = 0; i < d.length; i++) {
+        var w = rnd() * 2 - 1;
+        if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w;
+      }
+      var src = ctx.createBufferSource(); src.buffer = b; return src;
+    };
+    var lfo = function (rate, depth, target, base) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = rate; g.gain.value = depth; o.connect(g); g.connect(target);
+      if (base !== undefined) target.value = base;
+      o.start(t0); o.stop(t0 + dur);
+    };
+    var pad = function (level, octave) {
+      var chord = BED_CHORDS[Math.floor(rnd() * BED_CHORDS.length)];
+      var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 950; lp.Q.value = 0.3;
+      var pg = ctx.createGain(); pg.gain.value = 0;
+      pg.gain.setValueAtTime(0, t0); pg.gain.linearRampToValueAtTime(level, t0 + Math.min(3, dur / 3));
+      lp.connect(pg); pg.connect(out);
+      chord.forEach(function (f, k) {
+        [["sine", 0], ["triangle", 5]].forEach(function (w) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = w[0]; o.frequency.value = f * (octave || 1); o.detune.value = w[1] + (rnd() - 0.5) * 6;
+          g.gain.value = (w[0] === "sine" ? 0.16 : 0.05) / (1 + k * 0.35);
+          o.connect(g); g.connect(lp); o.start(t0); o.stop(t0 + dur);
+          lfo(0.05 + rnd() * 0.1, g.gain.value * 0.45, g.gain);
+        });
+      });
+    };
+    if (kind === "calm") { pad(0.9, 1); pad(0.25, 2); }
+    if (kind === "rain") {
+      var r = noise(dur, false), bp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter(), rg = ctx.createGain();
+      bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = 0.5; hp.type = "highpass"; hp.frequency.value = 700;
+      rg.gain.value = 0.22; r.connect(hp); hp.connect(bp); bp.connect(rg); rg.connect(out); r.start(t0);
+      var low = noise(dur, true), lp2 = ctx.createBiquadFilter(), lg = ctx.createGain();
+      lp2.type = "lowpass"; lp2.frequency.value = 380; lg.gain.value = 0.35; low.connect(lp2); lp2.connect(lg); lg.connect(out); low.start(t0);
+      pad(0.45, 1);
+    }
+    if (kind === "ocean") {
+      var w = noise(dur, true), lp3 = ctx.createBiquadFilter(), wg = ctx.createGain();
+      lp3.type = "lowpass"; lp3.frequency.value = 650; wg.gain.value = 0.35;
+      w.connect(lp3); lp3.connect(wg); wg.connect(out); w.start(t0);
+      lfo(0.085, 0.3, wg.gain); lfo(0.06, 250, lp3.frequency);
+      pad(0.4, 1);
+    }
+    if (kind === "space") {
+      [55, 82.41, 110, 164.81].forEach(function (f, k) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = f; o.detune.value = (rnd() - 0.5) * 8;
+        g.gain.value = 0.11 / (1 + k * 0.5);
+        o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + dur);
+        lfo(0.03 + rnd() * 0.05, g.gain.value * 0.5, g.gain);
+      });
+      var sh = noise(dur, false), sb = ctx.createBiquadFilter(), sg = ctx.createGain();
+      sb.type = "bandpass"; sb.frequency.value = 4800; sb.Q.value = 9; sg.gain.value = 0.05;
+      sh.connect(sb); sb.connect(sg); sg.connect(out); sh.start(t0);
+      lfo(0.04, 1800, sb.frequency); lfo(0.07, 0.04, sg.gain);
+      pad(0.3, 2);
+    }
+  }
+  function wavFrom(buf) {
+    var d = buf.getChannelData(0), n = d.length, bytes = new Uint8Array(n * 2), v = new DataView(bytes.buffer);
+    for (var i = 0; i < n; i++) { var x = Math.max(-1, Math.min(1, d[i])); v.setInt16(i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true); }
+    return new Blob([pcmToWav(bytes, buf.sampleRate)], { type: "audio/wav" });
+  }
+  // Puts the voice clip on top of the background sound: a gentle lead-in, the voice, and a short tail.
+  function mixWithBed(voiceBlob, kind, seed) {
+    var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (kind === "off" || !OAC) return Promise.resolve(voiceBlob);
+    return voiceBlob.arrayBuffer().then(function (ab) {
+      var probe = new OAC(1, 1, 24000);
+      return new Promise(function (res, rej) { probe.decodeAudioData(ab, res, rej); });
+    }).then(function (voice) {
+      var sr = 24000, lead = 1.0, tail = 1.8, dur = lead + voice.duration + tail;
+      var ctx = new OAC(1, Math.ceil(dur * sr), sr);
+      var bedGain = ctx.createGain(), comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -12; comp.ratio.value = 4;
+      bedGain.connect(comp); comp.connect(ctx.destination);
+      // swell in, sit quietly under the voice, rise a little after it, fade at the end
+      var under = 0.22, open = 0.42, g = bedGain.gain;
+      g.setValueAtTime(0, 0); g.linearRampToValueAtTime(open, 0.6);
+      g.setValueAtTime(open, lead - 0.3); g.linearRampToValueAtTime(under, lead + 0.2);
+      g.setValueAtTime(under, lead + voice.duration - 0.1); g.linearRampToValueAtTime(open, lead + voice.duration + 0.6);
+      g.setValueAtTime(open, dur - 0.9); g.linearRampToValueAtTime(0, dur);
+      buildBed(ctx, bedGain, kind, 0, dur, seed);
+      var vs = ctx.createBufferSource(), vg = ctx.createGain();
+      vs.buffer = voice; vg.gain.value = 1; vs.connect(vg); vg.connect(ctx.destination); vs.start(lead);
+      return ctx.startRendering();
+    }).then(wavFrom, function () { return voiceBlob; }); // if mixing fails, the voice still plays
+  }
+  // The phone's own voice cannot be mixed into a file, so the same sound loops live underneath it.
+  var liveBed = null;
+  function startLiveBed() {
+    var kind = bedKind();
+    if (kind === "off" || liveBed || !ensureAudio()) return;
+    var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return;
+    wakeSound();
+    var sr = 24000, len = 40, ctx = new OAC(1, sr * len, sr), g = ctx.createGain();
+    g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(1, 3); g.gain.setValueAtTime(1, len - 3); g.gain.linearRampToValueAtTime(0, len);
+    g.connect(ctx.destination);
+    buildBed(ctx, g, kind, 0, len, Date.now() & 0xffff);
+    liveBed = { kind: kind, gain: null, src: null, timer: null };
+    var lb = liveBed;
+    ctx.startRendering().then(function (buf) {
+      if (liveBed !== lb) return;
+      var out = actx.createGain(); out.gain.value = 0.3; out.connect(actx.destination);
+      lb.gain = out;
+      // two copies overlapping by 3 seconds, so the loop never drops out
+      var play = function (at) {
+        if (liveBed !== lb) return;
+        var src = actx.createBufferSource(); src.buffer = buf; src.connect(out); src.start(at);
+        lb.src = src;
+        lb.timer = setTimeout(function () { play(at + len - 3); }, Math.max(0, (at + len - 6 - actx.currentTime) * 1000));
+      };
+      play(actx.currentTime + 0.05);
+    }).catch(function () {});
+  }
+  function stopLiveBed() {
+    if (!liveBed) return;
+    var lb = liveBed; liveBed = null;
+    clearTimeout(lb.timer);
+    try { if (lb.gain) { lb.gain.gain.setTargetAtTime(0, actx.currentTime, 0.4); setTimeout(function () { try { lb.gain.disconnect(); } catch (e) {} }, 2000); } } catch (e) {}
+  }
   function ttsClip(c) {
-    var k = c.id + "|" + gVoice();
+    var k = c.id + "|" + gVoice() + "|" + bedKind();
     if (tts.clips[k]) return Promise.resolve(tts.clips[k]);
     if (!tts.jobs[k]) {
       tts.jobs[k] = ttsRequest(spokenText(c), gVoice()).then(function (blob) {
+        return mixWithBed(blob, bedKind(), hashOf(c.id));
+      }).then(function (blob) {
         var url = URL.createObjectURL(blob);
         tts.clips[k] = url; tts.order.push(k);
         while (tts.order.length > 12) { var old = tts.order.shift(); URL.revokeObjectURL(tts.clips[old]); delete tts.clips[old]; }
@@ -2744,6 +2895,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     listen.on = !!on && (canSpeak || geminiMode());
     stopSpeaking();
     if (listen.on && geminiMode()) ttsUnlock();
+    if (listen.on && !geminiMode()) startLiveBed(); else stopLiveBed();
     renderListen();
     holdScreen(listen.on && !geminiMode());
     if (!listen.on) tts.playing = null;
@@ -4716,6 +4868,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       sel.value = cur;
       setRadio("vgender", state.ui.voiceGender);
       setRadio("vspeed", state.ui.speed);
+      setRadio("vbed", state.ui.bed);
       $("voice-none").hidden = true;
       $("voice-box").hidden = false;
       return;
@@ -4741,6 +4894,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     sel.value = state.ui.voiceName && list.some(function (v) { return v.name === state.ui.voiceName; }) ? state.ui.voiceName : "";
     setRadio("vgender", state.ui.voiceGender);
     setRadio("vspeed", state.ui.speed);
+    setRadio("vbed", state.ui.bed);
     $("voice-none").hidden = list.length > 0 || !canSpeak;
     $("voice-box").hidden = false;
   }
@@ -4750,6 +4904,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       $("voice-msg").textContent = "Making a sample\u2026";
       try { a.pause(); } catch (e) {}
       ttsRequest(zhs ? "\u6ecb\u517b\u4f60\u7684\u5fc3\u7075\u3002\u6bcf\u6b21\u6ed1\u52a8\uff0c\u90fd\u662f\u4e00\u672c\u597d\u4e66\u91cc\u7684\u4e00\u4e2a\u60f3\u6cd5\u3002" : "Feed your mind. One idea from a great book, with every swipe.", gVoice()).then(function (blob) {
+        return mixWithBed(blob, bedKind(), 7);
+      }).then(function (blob) {
         a.src = URL.createObjectURL(blob);
         a.playbackRate = parseFloat(state.ui.speed) || 1;
         var pr = a.play(); if (pr && pr.catch) pr.catch(function () {});
@@ -4768,6 +4924,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       var v = pickVoice(lang);
       if (v) u.voice = v;
       u.rate = speechRate();
+      if (!listen.on) { stopLiveBed(); startLiveBed(); u.onend = function () { if (!listen.on) setTimeout(stopLiveBed, 1500); }; }
       speechSynthesis.speak(u);
       $("voice-msg").textContent = v ? "Voice: " + v.name : "";
     } catch (e) {}
@@ -4840,6 +4997,13 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       });
     });
     $("voice-preview").addEventListener("click", previewVoice);
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="vbed"]'), function (r) {
+      r.addEventListener("change", function () {
+        state.ui.bed = r.value; persist();
+        if (liveBed) { stopLiveBed(); if (listen.on && !geminiMode()) startLiveBed(); }
+        previewVoice();
+      });
+    });
     if (canSpeak) { try { speechSynthesis.addEventListener("voiceschanged", function () { loadVoices(); renderVoices(); }); } catch (e) {} }
     $("dropcap-toggle").addEventListener("change", function () { state.ui.dropcap = $("dropcap-toggle").checked; persist(); applyAppearance(); });
     $("remind-toggle").addEventListener("change", function () { setRemind($("remind-toggle").checked); });
@@ -4869,7 +5033,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     ["discover", "saved", "prefs"].forEach(function (v) {
       $("view-" + v).classList.toggle("active", v === name);
     });
-    if (name !== "discover" && !geminiMode()) stopSpeaking();
+    if (name !== "discover" && !geminiMode()) { stopSpeaking(); stopLiveBed(); }
+    else if (name === "discover" && listen.on && !geminiMode()) startLiveBed();
     else if (listen.on) setTimeout(speakCurrent, 250);
     if (name !== "discover" && $("newest-btn")) { clearTimeout(newestTimer); $("newest-btn").classList.remove("show"); newestFor = null; }
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
