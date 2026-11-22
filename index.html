@@ -725,6 +725,11 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 
           <div class="sgroup-label">Read aloud</div>
           <div class="sgroup pad" id="voice-box">
+            <div class="seg two" role="radiogroup" aria-label="Voice source">
+              <label><input type="radio" name="vmode" value="device"><span>iPhone voices</span></label>
+              <label><input type="radio" name="vmode" value="gemini"><span>Screen off (Gemini)</span></label>
+            </div>
+            <p class="note small" id="voice-mode-note"></p>
             <div class="seg two" role="radiogroup" aria-label="Voice">
               <label><input type="radio" name="vgender" value="female"><span>Female</span></label>
               <label><input type="radio" name="vgender" value="male"><span>Male</span></label>
@@ -744,7 +749,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
               <button type="button" class="btn" id="voice-preview">Preview</button>
               <span class="note" id="voice-msg" role="status"></span>
             </div>
-            <p class="note small">&#9733; marks Enhanced and Premium voices. On iPhone, download more in Settings &rsaquo; Accessibility &rsaquo; Spoken Content &rsaquo; Voices. The screen stays on while the app reads aloud.</p>
+            <p class="note small">&#9733; marks Enhanced and Premium iPhone voices. Download more in iPhone Settings &rsaquo; Accessibility &rsaquo; Spoken Content &rsaquo; Voices.</p>
           </div>
 
           <div class="sgroup-label">Sound and music</div>
@@ -1358,7 +1363,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.8";
+  var APP_VERSION = "3.9";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1471,6 +1476,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
       voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
+      listenMode: pick(ui.listenMode, ["device", "gemini"], "device"),
+      gvoice: typeof ui.gvoice === "string" ? ui.gvoice.slice(0, 40) : "",
       voiceName: typeof ui.voiceName === "string" ? ui.voiceName.slice(0, 120) : "",
       speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5"], "1"),
       shareStyle: pick(ui.shareStyle, ["midnight", "parchment", "noir"], "midnight"),
@@ -2524,10 +2531,166 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     clearTimeout(listen.timer);
     listen.id = null;
     try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {}
+    if (tts.audio) { try { tts.audio.pause(); } catch (e) {} }
+  }
+
+  /* ---------- screen-off listening: Gemini voices played as audio ---------- */
+  var GVOICES = {
+    female: [["Sulafat", "Warm"], ["Aoede", "Breezy"], ["Kore", "Firm"], ["Leda", "Youthful"], ["Zephyr", "Bright"], ["Callirrhoe", "Easy-going"], ["Autonoe", "Bright"], ["Despina", "Smooth"], ["Erinome", "Clear"], ["Laomedeia", "Upbeat"], ["Achernar", "Soft"], ["Gacrux", "Mature"], ["Pulcherrima", "Forward"], ["Vindemiatrix", "Gentle"]],
+    male: [["Charon", "Informative"], ["Sadaltager", "Knowledgeable"], ["Iapetus", "Clear"], ["Schedar", "Even"], ["Algieba", "Smooth"], ["Puck", "Upbeat"], ["Orus", "Firm"], ["Fenrir", "Excitable"], ["Enceladus", "Breathy"], ["Umbriel", "Easy-going"], ["Algenib", "Gravelly"], ["Rasalgethi", "Informative"], ["Alnilam", "Firm"], ["Achird", "Friendly"], ["Zubenelgenubi", "Casual"], ["Sadachbia", "Lively"]]
+  };
+  var TTS_MODELS = ["gemini-3.8-flash-lite-tts", "gemini-3.8-flash-tts", "gemini-3.1-flash-tts-preview"];
+  var tts = { audio: null, clips: {}, order: [], jobs: {}, model: 0, playing: null };
+  function gVoice() {
+    var g = state.ui.voiceGender === "male" ? "male" : "female";
+    var all = GVOICES.female.concat(GVOICES.male).map(function (v) { return v[0]; });
+    return all.indexOf(state.ui.gvoice) >= 0 ? state.ui.gvoice : GVOICES[g][0][0];
+  }
+  function geminiMode() { return state.ui.listenMode === "gemini"; }
+  function ttsAudio() {
+    if (!tts.audio) {
+      var a = document.createElement("audio");
+      a.setAttribute("playsinline", "");
+      a.preload = "auto";
+      a.id = "tts-audio";
+      document.body.appendChild(a);
+      a.addEventListener("ended", function () { ttsNext(); });
+      tts.audio = a;
+    }
+    return tts.audio;
+  }
+  // 24 kHz mono 16-bit PCM wrapped in a WAV header, for models that return raw samples
+  function pcmToWav(bytes, rate) {
+    var len = bytes.length, buf = new ArrayBuffer(44 + len), v = new DataView(buf);
+    var w = function (o, str) { for (var i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + len, true); w(8, "WAVE"); w(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, "data"); v.setUint32(40, len, true);
+    new Uint8Array(buf, 44).set(bytes);
+    return buf;
+  }
+  function spokenText(c) {
+    var lang = speechLang(c.text);
+    return c.text + (lang.indexOf("en") === 0 ? " — " + c.book + ", by " + c.author + "." : " — " + c.book + ", " + c.author + ".");
+  }
+  function ttsRequest(text, voice) {
+    var key = getKey("gemini");
+    if (!key) return Promise.reject({ status: 0, nokey: true, message: "Screen-off listening uses a Google Gemini key. Add one in AI & Generation." });
+    var tryModel = function (i) {
+      var model = TTS_MODELS[i], old = /preview/.test(model);
+      var body = old
+        ? { contents: [{ parts: [{ text: "Read this aloud in a calm, warm, unhurried voice:\n\n" + text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } } }
+        : { contents: [{ role: "user", parts: [{ text: text, speech_metadata: { style: "calm, warm and thoughtful, like reading from a favourite book" } }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { voice: voice } } } };
+      return fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
+        method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: JSON.stringify(body)
+      }).then(okJson).then(function (d) {
+        var parts = d && d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts || [];
+        var p = parts.find(function (x) { return x.inlineData && x.inlineData.data; });
+        if (!p) throw { status: 200, message: "The voice service returned no audio." };
+        tts.model = i;
+        var bin = atob(p.inlineData.data), bytes = new Uint8Array(bin.length);
+        for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+        var isWav = bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70; // "RIFF"
+        var rate = +((/rate=(\d+)/.exec(p.inlineData.mimeType || "") || [])[1]) || 24000;
+        return new Blob([isWav ? bytes : pcmToWav(bytes, rate)], { type: "audio/wav" });
+      }, function (e) {
+        // a model that is not available to this key: try the next one
+        if ((e.status === 404 || e.status === 400 && /model|voice|not found|not supported/i.test(e.message || "")) && ++tried < TTS_MODELS.length) return tryModel((i + 1) % TTS_MODELS.length);
+        throw e;
+      });
+    };
+    var tried = 0;
+    return tryModel(tts.model);
+  }
+  function ttsClip(c) {
+    var k = c.id + "|" + gVoice();
+    if (tts.clips[k]) return Promise.resolve(tts.clips[k]);
+    if (!tts.jobs[k]) {
+      tts.jobs[k] = ttsRequest(spokenText(c), gVoice()).then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        tts.clips[k] = url; tts.order.push(k);
+        while (tts.order.length > 12) { var old = tts.order.shift(); URL.revokeObjectURL(tts.clips[old]); delete tts.clips[old]; }
+        delete tts.jobs[k];
+        return url;
+      }, function (e) { delete tts.jobs[k]; throw e; });
+    }
+    return tts.jobs[k];
+  }
+  function nextCards(c, n) {
+    var out = [], node = c && feed.querySelector('[data-id="' + c.id + '"]');
+    while (node && out.length < n) {
+      node = node.nextElementSibling;
+      while (node && node.classList.contains("parked")) node = node.nextElementSibling;
+      if (!node || node === endEl) break;
+      var cc = state.cards.find(function (x) { return x.id === node.dataset.id; });
+      if (cc) out.push(cc);
+    }
+    return out;
+  }
+  function setNowPlaying(c) {
+    try {
+      if (!("mediaSession" in navigator) || !window.MediaMetadata) return;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: c.text.length > 90 ? c.text.slice(0, 88) + "…" : c.text,
+        artist: c.book + " · " + c.author,
+        album: "WisdomScroll",
+        artwork: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
+      });
+    } catch (e) {}
+  }
+  function ttsPlay(c) {
+    var a = ttsAudio();
+    tts.playing = c.id;
+    listen.id = c.id;
+    setNowPlaying(c);
+    ttsClip(c).then(function (url) {
+      if (!listen.on || tts.playing !== c.id) return;
+      a.src = url;
+      a.playbackRate = parseFloat(state.ui.speed) || 1;
+      try { a.preservesPitch = true; } catch (e) {}
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(function () {});
+      // write the next few while this one plays, so the queue keeps going with the screen off
+      nextCards(c, 3).forEach(function (n) { ttsClip(n).catch(function () {}); });
+    }, function (e) {
+      if (!listen.on) return;
+      toast(e && e.nokey ? "Add a Google Gemini key to listen with the screen off" : "Gemini voice failed: " + (e && e.message ? e.message.slice(0, 80) : "no audio"));
+      state.ui.listenMode = "device"; persist(); renderSettings();
+      listen.id = null;
+      speakCurrent(); // carry on with the phone's own voice
+    });
+  }
+  function ttsNext() {
+    if (!listen.on || !geminiMode()) return;
+    var cur = state.cards.find(function (x) { return x.id === tts.playing; });
+    var nx = nextCards(cur, 1)[0];
+    if (!nx) { listen.id = null; return; } // nothing written yet: wait here
+    var node = feed.querySelector('[data-id="' + nx.id + '"]');
+    ttsPlay(nx);
+    if (node) { try { feed.scrollTo({ top: node.offsetTop, behavior: document.hidden ? "auto" : "smooth" }); } catch (e) { feed.scrollTop = node.offsetTop; } }
+  }
+  function ttsUnlock() {
+    // iPhone lets an audio element play later only if it first played during a tap
+    var a = ttsAudio();
+    try {
+      a.src = "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(function () {});
+    } catch (e) {}
+    try {
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.setActionHandler("play", function () { if (tts.audio) tts.audio.play(); });
+        navigator.mediaSession.setActionHandler("pause", function () { if (tts.audio) tts.audio.pause(); });
+        navigator.mediaSession.setActionHandler("nexttrack", function () { ttsNext(); });
+        navigator.mediaSession.setActionHandler("previoustrack", function () { if (tts.audio) tts.audio.currentTime = 0; });
+      }
+    } catch (e) {}
   }
   function speakCard(c) {
     if (!listen.on || !c) return;
     if (listen.id === c.id) return;
+    if (geminiMode()) { clearTimeout(listen.timer); try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {} ttsPlay(c); return; }
     stopSpeaking();
     listen.id = c.id;
     var lang = speechLang(c.text);
@@ -2558,19 +2721,21 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function renderListen() {
     var b = $("listen-btn");
     if (!b) return;
-    b.hidden = !canSpeak;
+    b.hidden = !canSpeak && !window.Audio;
     b.setAttribute("aria-pressed", String(listen.on));
     b.setAttribute("aria-label", listen.on ? "Stop reading aloud" : "Read aloud, hands-free");
   }
   function setListen(on) {
-    listen.on = !!on && canSpeak;
+    listen.on = !!on && (canSpeak || geminiMode());
     stopSpeaking();
+    if (listen.on && geminiMode()) ttsUnlock();
     renderListen();
-    holdScreen(listen.on);
+    holdScreen(listen.on && !geminiMode());
+    if (!listen.on) tts.playing = null;
     if (listen.on) {
       // iPhone only lets speech start from a tap, so the first words are spoken right here
       speakCurrent();
-      toast("Reading aloud · it moves on by itself");
+      toast(geminiMode() ? "Listening \u00b7 keeps playing with the screen off" : "Reading aloud \u00b7 it moves on by itself");
     } else toast("Stopped reading aloud");
   }
 
@@ -4502,6 +4667,26 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
   function renderVoices() {
     var sel = $("voice-select");
     if (!sel || document.activeElement === sel) return;
+    setRadio("vmode", state.ui.listenMode);
+    $("voice-mode-note").textContent = geminiMode()
+      ? "Keeps playing with the screen off, with lock-screen controls. Uses your Google Gemini key; each idea is one short request."
+      : "Your phone's own voices. Free and instant; the screen stays on while it reads.";
+    if (geminiMode()) {
+      sel.textContent = "";
+      var cur = gVoice();
+      [["female", "Female voices"], ["male", "Male voices"]].forEach(function (grp) {
+        var og = document.createElement("optgroup");
+        og.label = grp[1];
+        GVOICES[grp[0]].forEach(function (v) { var o = el("option", null, v[0] + " \u00b7 " + v[1]); o.value = v[0]; og.appendChild(o); });
+        sel.appendChild(og);
+      });
+      sel.value = cur;
+      setRadio("vgender", state.ui.voiceGender);
+      setRadio("vspeed", state.ui.speed);
+      $("voice-none").hidden = true;
+      $("voice-box").hidden = false;
+      return;
+    }
     var lang = state.ui.lang === "en" ? "en-US" : ({ "zh-Hans": "zh-CN", "zh-Hant": "zh-TW", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US";
     var list = voicesFor(lang).slice().sort(function (a, b) { return voiceQuality(b) - voiceQuality(a) || a.name.localeCompare(b.name); });
     sel.textContent = "";
@@ -4524,9 +4709,21 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     setRadio("vgender", state.ui.voiceGender);
     setRadio("vspeed", state.ui.speed);
     $("voice-none").hidden = list.length > 0 || !canSpeak;
-    $("voice-box").hidden = !canSpeak;
+    $("voice-box").hidden = false;
   }
   function previewVoice() {
+    if (geminiMode()) {
+      var a = ttsAudio(), zhs = /^zh/.test(state.ui.lang);
+      $("voice-msg").textContent = "Making a sample\u2026";
+      try { a.pause(); } catch (e) {}
+      ttsRequest(zhs ? "\u6ecb\u517b\u4f60\u7684\u5fc3\u7075\u3002\u6bcf\u6b21\u6ed1\u52a8\uff0c\u90fd\u662f\u4e00\u672c\u597d\u4e66\u91cc\u7684\u4e00\u4e2a\u60f3\u6cd5\u3002" : "Feed your mind. One idea from a great book, with every swipe.", gVoice()).then(function (blob) {
+        a.src = URL.createObjectURL(blob);
+        a.playbackRate = parseFloat(state.ui.speed) || 1;
+        var pr = a.play(); if (pr && pr.catch) pr.catch(function () {});
+        $("voice-msg").textContent = "Voice: " + gVoice();
+      }, function (e) { $("voice-msg").textContent = e && e.nokey ? "Add a Google Gemini key in AI & Generation first." : "Could not make a sample: " + ((e && e.message) || "no audio").slice(0, 90); });
+      return;
+    }
     if (!canSpeak) return;
     var zh = /^zh/.test(state.ui.lang);
     var lang = zh ? (state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN") : (state.ui.lang === "en" ? "en-US" : ({ es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US");
@@ -4588,12 +4785,26 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     ["vgender", "vspeed"].forEach(function (name) {
       Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]'), function (r) {
         r.addEventListener("change", function () {
-          if (name === "vgender") { state.ui.voiceGender = r.value; state.ui.voiceName = ""; } else state.ui.speed = r.value;
+          if (name === "vgender") { state.ui.voiceGender = r.value; state.ui.voiceName = ""; state.ui.gvoice = ""; } else state.ui.speed = r.value;
+          if (name === "vspeed" && tts.audio) tts.audio.playbackRate = parseFloat(r.value) || 1;
           persist(); renderVoices(); previewVoice();
         });
       });
     });
-    $("voice-select").addEventListener("change", function () { state.ui.voiceName = $("voice-select").value; persist(); previewVoice(); });
+    $("voice-select").addEventListener("change", function () {
+      if (geminiMode()) state.ui.gvoice = $("voice-select").value; else state.ui.voiceName = $("voice-select").value;
+      persist(); previewVoice();
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="vmode"]'), function (r) {
+      r.addEventListener("change", function () {
+        var was = listen.on;
+        if (was) setListen(false);
+        state.ui.listenMode = r.value;
+        persist(); renderVoices();
+        if (r.value === "gemini" && !getKey("gemini")) $("voice-msg").textContent = "This needs a Google Gemini key. Add it in AI & Generation.";
+        else $("voice-msg").textContent = "";
+      });
+    });
     $("voice-preview").addEventListener("click", previewVoice);
     if (canSpeak) { try { speechSynthesis.addEventListener("voiceschanged", function () { loadVoices(); renderVoices(); }); } catch (e) {} }
     $("dropcap-toggle").addEventListener("change", function () { state.ui.dropcap = $("dropcap-toggle").checked; persist(); applyAppearance(); });
@@ -4624,7 +4835,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     ["discover", "saved", "prefs"].forEach(function (v) {
       $("view-" + v).classList.toggle("active", v === name);
     });
-    if (name !== "discover") stopSpeaking();
+    if (name !== "discover" && !geminiMode()) stopSpeaking();
     else if (listen.on) setTimeout(speakCurrent, 250);
     if (name !== "discover" && $("newest-btn")) { clearTimeout(newestTimer); $("newest-btn").classList.remove("show"); newestFor = null; }
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
@@ -4702,7 +4913,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     $("listen-btn").addEventListener("click", function () { setListen(!listen.on); });
     // leaving the app pauses reading; coming back carries on from the card on screen
     document.addEventListener("visibilitychange", function () {
-      if (!listen.on) return;
+      if (!listen.on || geminiMode()) return; // Gemini audio carries on with the screen off
       if (document.hidden) stopSpeaking();
       else { holdScreen(true); setTimeout(speakCurrent, 400); }
     });
