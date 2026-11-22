@@ -502,6 +502,13 @@ input[type="range"]#music-vol { width: 100%; accent-color: var(--gold); }
 .sp-card.warn .sp-sub::before { content: "! "; color: var(--gold); font-weight: 700; }
 .spin-dot { display: inline-block; width: 11px; height: 11px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spspin .8s linear infinite; vertical-align: -1px; }
 
+/* v4.3: music sources */
+.seg.three { grid-template-columns: repeat(3, 1fr); }
+.local-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.local-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: .88rem; }
+.local-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.local-del { color: var(--muted); font-size: .78rem; font-weight: 600; flex: none; }
+
 
 /* "Newest" arrow on Discover */
 .newest { position: absolute; z-index: 11; left: 50%; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 6px); display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 5px 15px 5px 12px; border-radius: 999px; overflow: hidden; white-space: nowrap; background: rgba(8,13,24,.74); border: 1px solid rgba(220,181,108,.6); color: var(--gold); font-family: var(--serif); font-size: .92rem; font-style: italic; letter-spacing: .01em; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transform: translate(-50%, 10px) scale(.92); transition: opacity .25s ease, transform .35s cubic-bezier(.2,.8,.3,1.3); }
@@ -832,13 +839,14 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
 
           <div class="sgroup-label">Background music</div>
           <div class="sgroup pad">
-            <div class="seg two" role="radiogroup" aria-label="Music source">
+            <div class="seg three" role="radiogroup" aria-label="Music source">
+              <label><input type="radio" name="msrc" value="app"><span>Ambient</span></label>
               <label><input type="radio" name="msrc" value="spotify"><span>My Spotify</span></label>
-              <label><input type="radio" name="msrc" value="app"><span>Built-in sounds</span></label>
+              <label><input type="radio" name="msrc" value="local"><span>My music</span></label>
             </div>
+            <p class="note">&#127911; Listen plays the music softly under the voice and fuller between ideas. &#9835; plays the music alone.</p>
 
             <div class="stack" id="msrc-app">
-              <p class="note">Tap &#9835; on Discover for music alone. Reading aloud starts it too: soft under the voice, fuller in the pauses.</p>
               <div class="moods" role="radiogroup" aria-label="Background music">
                 <label><input type="radio" name="vbed" value="nature"><span>Calm Nature</span></label>
                 <label><input type="radio" name="vbed" value="space"><span>Deep Space</span></label>
@@ -846,15 +854,10 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
                 <label><input type="radio" name="vbed" value="rainocean"><span>Rain &amp; Ocean</span></label>
                 <label><input type="radio" name="vbed" value="focus"><span>Focus</span></label>
               </div>
-              <div class="field">
-                <label for="music-vol">Music volume</label>
-                <input type="range" id="music-vol" min="10" max="100" step="5" value="70">
-              </div>
-              <label class="switch" for="read-music"><input type="checkbox" id="read-music"><span>Start the music when reading aloud</span></label>
             </div>
 
             <div class="stack" id="msrc-spotify" hidden>
-              <p class="note">Your playlist plays in the Spotify app while you read here. Tap &#9835; on Discover to open it.</p>
+              <p class="note">&#9835; opens your playlist in the Spotify app. On iPhone, Spotify's volume cannot be lowered under the voice, so &#127911; Listen uses Ambient music instead.</p>
               <div class="field">
                 <label for="music-link">Paste your Spotify playlist link</label>
                 <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -871,9 +874,24 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
               <a class="btn solid" id="spotify-open" href="#" target="_blank" rel="noopener" hidden>Open in Spotify</a>
               <span class="preset-label">Or pick one</span>
               <div id="music-presets" class="presets"></div>
-              <p class="note small">Spotify cannot be made softer from here, so keep its volume low in Spotify while listening. With Spotify playing, the reading voice stops when the screen locks.</p>
+              <p class="note small">To hear Spotify while reading anyway: start it in Spotify, keep its volume low there, then tap &#127911;. With Spotify playing, the reading voice stops when the screen locks.</p>
               <div id="music-embed"></div>
             </div>
+
+            <div class="stack" id="msrc-local" hidden>
+              <p class="note">Your own music files, balanced under the voice like Ambient. They stay on this device.</p>
+              <input type="file" id="local-files" accept="audio/*" multiple hidden>
+              <div class="actions"><button type="button" class="btn solid" id="local-add">Add music files</button></div>
+              <p class="note small" id="local-empty">No songs yet.</p>
+              <ul class="local-list" id="local-list"></ul>
+              <p class="note small">Only add music you own or have the right to use. With the screen off, your songs pause.</p>
+            </div>
+              <div class="field">
+                <label for="music-vol">Music volume</label>
+                <input type="range" id="music-vol" min="10" max="100" step="5" value="70">
+              </div>
+              <label class="switch" for="read-music"><input type="checkbox" id="read-music"><span>Start the music when reading aloud</span></label>
+
           </div>
 
           <div class="sgroup-label" hidden>App tones</div>
@@ -1492,7 +1510,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
 (function () {
   "use strict";
 
-  var APP_VERSION = "4.2";
+  var APP_VERSION = "4.3";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1608,7 +1626,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       bed: pick(({ calm: "meditation", rain: "rainocean", ocean: "rainocean" })[ui.bed] || ui.bed, ["nature", "space", "meditation", "rainocean", "focus"], "nature"),
       musicVol: typeof ui.musicVol === "number" && ui.musicVol >= 0.1 && ui.musicVol <= 1 ? ui.musicVol : 0.7,
       readMusic: ui.readMusic !== false,
-      musicSrc: ui.musicV === 2 ? pick(ui.musicSrc, ["app", "spotify"], "spotify") : "spotify",
+      musicSrc: ui.musicV === 2 ? pick(ui.musicSrc, ["app", "spotify", "local"], "spotify") : "spotify",
       musicV: 2,
       listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
       voiceV: 2,
@@ -2904,10 +2922,12 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     }).then(wavFrom, function () { return voiceBlob; }); // if mixing fails, the voice still plays
   }
   // The music plays live and keeps going from card to card; it is lowered while the voice speaks.
-  var music = { on: false, ducked: false, bySession: false };
+  // music.on: music is playing. music.src: which source is playing (app = Ambient, local = own files).
+  // Narration has its own state (listen.on, player.paused); the two never decide for each other.
+  var music = { on: false, ducked: false, bySession: false, src: "app" };
   var liveBed = null;
   function musicFull() { return 0.6 * (state.ui.musicVol || 0.7); }
-  function musicLevel() { return music.ducked ? musicFull() * 0.14 : musicFull(); }
+  function musicLevel() { var f = musicFull() * (music.src === "local" ? 1.5 : 1); return music.ducked ? f * 0.14 : f; }
   // a smooth glide of about 0.7 seconds from wherever the level is now
   function glide(param, value, secs) {
     var t = actx.currentTime;
@@ -2952,6 +2972,77 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
   function duck(on) {
     music.ducked = !!on;
     if (liveBed && liveBed.gain && actx) glide(liveBed.gain.gain, musicLevel(), on ? 0.6 : 0.9);
+    if (local.gain && music.src === "local" && actx) glide(local.gain.gain, musicLevel(), on ? 0.6 : 0.9);
+  }
+  /* ---------- my music: the listener's own files, kept on this device, played through the same balance ---------- */
+  var local = { el: null, gain: null, tracks: [], idx: 0 };
+  function loadLocalTracks() {
+    return audioDb().then(function (db) {
+      return new Promise(function (res) {
+        var out = [], req = db.transaction("music").objectStore("music").openCursor();
+        req.onsuccess = function (e) { var c = e.target.result; if (!c) { res(out); return; } out.push(c.value); c.continue(); };
+        req.onerror = function () { res([]); };
+      });
+    }).catch(function () { return []; }).then(function (rows) {
+      local.tracks.forEach(function (t) { try { URL.revokeObjectURL(t.url); } catch (e) {} });
+      // object URLs are made ahead of time, so a tap can start the music at once (iPhone needs that)
+      local.tracks = rows.sort(function (a, b) { return a.t - b.t; }).map(function (r) { return { id: r.id, name: r.name, size: r.size, url: URL.createObjectURL(r.blob) }; });
+      if (local.idx >= local.tracks.length) local.idx = 0;
+      renderLocalList();
+      return local.tracks;
+    });
+  }
+  function localEl() {
+    if (local.el) return local.el;
+    if (!ensureAudio()) return null;
+    var a = new Audio();
+    a.preload = "auto"; a.setAttribute("playsinline", "");
+    try {
+      var node = actx.createMediaElementSource(a), g = actx.createGain();
+      g.gain.value = 0; node.connect(g); g.connect(actx.destination);
+      local.gain = g;
+    } catch (e) {}
+    a.addEventListener("ended", function () { localStep(1); });
+    local.el = a;
+    return a;
+  }
+  function playLocal() {
+    var a = localEl(), t = local.tracks[local.idx];
+    if (!a || !t) return false;
+    wakeSound();
+    if (a.getAttribute("data-id") !== String(t.id)) { a.src = t.url; a.setAttribute("data-id", String(t.id)); }
+    if (local.gain) { local.gain.gain.cancelScheduledValues(actx.currentTime); local.gain.gain.setValueAtTime(0, actx.currentTime); glide(local.gain.gain, musicLevel(), 1.2); }
+    var p = a.play(); if (p && p.catch) p.catch(function () {});
+    renderPlayer();
+    return true;
+  }
+  function stopLocal() {
+    var a = local.el;
+    if (!a) return;
+    if (local.gain && actx) { glide(local.gain.gain, 0, 0.8); setTimeout(function () { if (!(music.on && music.src === "local")) try { a.pause(); } catch (e) {} }, 850); }
+    else try { a.pause(); } catch (e) {}
+  }
+  function localStep(dir) {
+    if (!local.tracks.length) return;
+    local.idx = (local.idx + dir + local.tracks.length) % local.tracks.length;
+    if (music.on && music.src === "local") playLocal();
+    renderPlayer();
+  }
+  function askLocalFiles() {
+    show("prefs"); goPage("reading");
+    setTimeout(function () { var b = $("local-add"); if (b) b.scrollIntoView({ block: "center" }); }, 350);
+    toast("Add your own music files here");
+  }
+  // which music Reading Mode can balance under the voice. Spotify cannot be made softer on iPhone,
+  // so Reading Mode uses Ambient in its place.
+  function readingSource() {
+    if (state.ui.musicSrc === "local" && local.tracks.length) return "local";
+    return "app";
+  }
+  function musicLabel() {
+    if (music.on) return music.src === "local" ? ((local.tracks[local.idx] || {}).name || "My music") : MOOD_NAME[bedKind()] + (spotifySource() ? " (for Spotify)" : "");
+    if (spotifySource() && musicActive) return "Spotify, in its own app";
+    return "music off";
   }
   function spotifyMode() { return state.ui.musicSrc === "spotify" && !!state.settings.music; }
   function spotifySource() { return state.ui.musicSrc === "spotify"; }
@@ -2964,12 +3055,12 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
   function renderMusicBtn() {
     var b = $("music-btn");
     if (!b) return;
-    b.classList.toggle("muted", spotifySource() ? !musicActive : !music.on);
+    b.classList.toggle("muted", !(music.on || (spotifySource() && musicActive)));
     var sp = spotifyMode();
     b.classList.toggle("set", music.on || (sp && musicActive));
     b.classList.toggle("spotify", sp);
     b.setAttribute("aria-pressed", String(music.on));
-    b.setAttribute("href", sp ? musicUrl() : "#");
+    b.setAttribute("href", sp && !music.on ? musicUrl() : "#");
     b.setAttribute("aria-label", sp ? "Play my Spotify playlist" : music.on ? "Turn background music off" : "Play calm background music");
   }
   // Spotify takes over the music: the app's own music stops and its voice mixes with Spotify
@@ -2983,16 +3074,17 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     var sub = $("sp-sub");
     if (sub && !$("sp-card").hidden) sub.textContent = "Opened in Spotify \u00b7 start or stop it there";
   }
-  function setMusicOn(on, quiet) {
+  function setMusicOn(on, quiet, src) {
     music.on = !!on;
     if (music.on) {
       if (state.settings.sound) setSound(false); // the per-swipe tones would clash with the music
-      if (liveBed && liveBed.kind !== bedKind()) stopLiveBed();
-      startLiveBed();
+      music.src = src || (state.ui.musicSrc === "local" && local.tracks.length ? "local" : "app");
+      if (music.src === "local") { stopLiveBed(); if (!playLocal()) { music.src = "app"; } }
+      if (music.src === "app") { stopLocal(); if (liveBed && liveBed.kind !== bedKind()) stopLiveBed(); startLiveBed(); }
       duck(music.ducked);
-      if (!quiet) toast(MOOD_NAME[bedKind()] + " music on");
+      if (!quiet) toast(musicLabel() + " on");
     } else {
-      stopLiveBed();
+      stopLiveBed(); stopLocal();
       if (!quiet) toast("Music off");
     }
     if (!quiet) music.bySession = false; // the listener chose this themselves
@@ -3006,8 +3098,12 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     if (adb) return adb;
     adb = new Promise(function (res, rej) {
       if (!window.indexedDB) { rej(new Error("no IndexedDB")); return; }
-      var r = indexedDB.open("wisdomscroll-audio", 1);
-      r.onupgradeneeded = function () { var st = r.result.createObjectStore("clips", { keyPath: "k" }); st.createIndex("t", "t"); };
+      var r = indexedDB.open("wisdomscroll-audio", 2);
+      r.onupgradeneeded = function () {
+        var db = r.result;
+        if (!db.objectStoreNames.contains("clips")) db.createObjectStore("clips", { keyPath: "k" }).createIndex("t", "t");
+        if (!db.objectStoreNames.contains("music")) db.createObjectStore("music", { keyPath: "id" });
+      };
       r.onsuccess = function () { res(r.result); };
       r.onerror = function () { rej(r.error); };
     }).catch(function (e) { adb = null; throw e; });
@@ -3065,7 +3161,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
   function clipKey(c) { return "v1|" + gVoice() + "|" + speechLang(c.text) + "|" + c.id + "|" + hashOf(spokenText(c)); }
   function ttsClip(c) {
     // with the screen off the live music stops, so the music goes into the clip itself
-    var withBed = document.hidden && music.on;
+    var withBed = document.hidden && music.on && music.src === "app";
     var rk = c.id + "|" + gVoice(), k = rk + "|" + (withBed ? bedKind() : "voice");
     if (tts.clips[k]) return Promise.resolve(tts.clips[k]);
     if (!tts.jobs[k]) {
@@ -3223,8 +3319,14 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       stopSpeaking();
       if (geminiMode()) ttsUnlock();
       // reading starts the background music, unless Spotify is the music or the listener turned this off
-      if (!music.on && state.ui.readMusic !== false && !spotifySource()) { setMusicOn(true, true); music.bySession = true; }
-      if (spotifySource() && !musicActive) toast(spotifyMode() ? "Tap \u266b to play your Spotify playlist with the reading" : "Add your Spotify playlist in Settings to read with your music");
+      if (!music.on && state.ui.readMusic !== false) {
+        if (spotifySource() && musicActive) {
+          toast("Spotify keeps playing in its app at its own volume: it cannot be lowered under the voice");
+        } else {
+          setMusicOn(true, true, readingSource()); music.bySession = true;
+          if (spotifySource() && !listen.told) { listen.told = true; toast("Reading uses Ambient music: on iPhone, Spotify's volume cannot be balanced under the voice"); }
+        }
+      }
       holdScreen(!geminiMode());
       renderListen();
       speakCurrent(); // iPhone only lets sound start from a tap, so it starts right here
@@ -3322,35 +3424,39 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     var state_ = err ? "error" : !reading ? "music" : player.paused ? "paused" : player.loading ? "loading" : "reading";
     p.dataset.state = state_;
     $("pl-title").textContent = err ? player.error
-      : !reading ? MOOD_NAME[bedKind()] + " music"
+      : !reading ? musicLabel()
       : voiceName;
-    $("pl-sub").textContent = err ? "" : !reading ? "Tap ▶ to read aloud over it" : player.paused ? "Paused" : player.loading ? "Preparing…" : state.ui.speed + "× · " + (spotifySource() ? (musicActive ? "with Spotify" : "Spotify not playing") : music.on ? MOOD_NAME[bedKind()] : "music off");
+    $("pl-sub").textContent = err ? "" : !reading ? "Tap ▶ to read aloud over it" : player.paused ? "Paused" : player.loading ? "Preparing…" : state.ui.speed + "\u00d7 \u00b7 " + musicLabel();
     $("pl-err").hidden = !err;
     $("pl-fix").hidden = !err;
     $("pl-fix").textContent = player.errKind === "nokey" || player.errKind === "auth" ? "Add key" : "Retry";
     $("pl-alt").hidden = !err || !geminiMode() || !canSpeak || player.errKind === "novoice";
     $("pl-alt-g").hidden = !err || geminiMode() || player.errKind !== "novoice";
-    $("pl-prev").hidden = $("pl-next").hidden = !reading || err;
+    var tracks = !reading && music.on && music.src === "local" && local.tracks.length > 1;
+    $("pl-prev").hidden = $("pl-next").hidden = (!reading || err) && !tracks;
+    $("pl-prev").setAttribute("aria-label", reading ? "Previous idea" : "Previous song");
+    $("pl-next").setAttribute("aria-label", reading ? "Next idea" : "Next song");
     $("pl-stop").hidden = !reading;
     var playing = reading && !player.paused && !err;
     $("pl-play").setAttribute("aria-label", playing ? "Pause" : reading ? "Resume" : "Read aloud");
     $("pl-play").classList.toggle("is-playing", playing);
-    $("pl-music").setAttribute("aria-pressed", String(spotifySource() ? musicActive : music.on));
+    $("pl-music").setAttribute("aria-pressed", String(music.on));
     $("pl-music").setAttribute("aria-label", music.on ? "Turn music off" : "Turn music on");
   }
   function wirePlayer() {
     $("pl-play").addEventListener("click", function () {
       if (listen.on && !player.paused && !player.error) pauseListen(); else resumeListen();
     });
-    $("pl-prev").addEventListener("click", function () { stepCard(-1); });
-    $("pl-next").addEventListener("click", function () { stepCard(1); });
+    $("pl-prev").addEventListener("click", function () { if (!listen.on && music.src === "local") localStep(-1); else stepCard(-1); });
+    $("pl-next").addEventListener("click", function () { if (!listen.on && music.src === "local") localStep(1); else stepCard(1); });
     $("pl-stop").addEventListener("click", function () { setListen(false); toast("Listening stopped"); });
     $("pl-music").addEventListener("click", function () {
-      if (spotifyMode()) { $("music-btn").click(); return; } // opens the playlist in Spotify
-      if (spotifySource()) { askSpotifyLink(); return; }
-      setMusicOn(!music.on, true);
+      // music off never stops the narration, and music on never starts it
+      if (music.on) setMusicOn(false, true);
+      else if (spotifySource() && !listen.on) { if (spotifyMode()) $("music-btn").click(); else askSpotifyLink(); return; }
+      else setMusicOn(true, true, listen.on ? readingSource() : null);
       music.bySession = false; // the listener chose this themselves
-      toast(music.on ? MOOD_NAME[bedKind()] + " music on" : "Music off");
+      toast(music.on ? musicLabel() + " on" : "Music off");
     });
     $("pl-fix").addEventListener("click", function () {
       if (player.errKind === "nokey" || player.errKind === "auth") { setListen(false); show("prefs"); goPage("ai"); return; }
@@ -3706,6 +3812,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     setRadio("msrc", state.ui.musicSrc);
     $("msrc-app").hidden = state.ui.musicSrc !== "app";
     $("msrc-spotify").hidden = state.ui.musicSrc !== "spotify";
+    $("msrc-local").hidden = state.ui.musicSrc !== "local";
     renderMusicBtn();
     $("music-clear").hidden = !m;
     if (document.activeElement !== $("music-link")) $("music-link").value = url;
@@ -4439,7 +4546,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       if (ok(vv.bed, ["nature", "space", "meditation", "rainocean", "focus"])) state.ui.bed = vv.bed;
       if (typeof vv.vol === "number" && vv.vol >= 0.1 && vv.vol <= 1) state.ui.musicVol = vv.vol;
       if (typeof vv.readMusic === "boolean") state.ui.readMusic = vv.readMusic;
-      if (ok(vv.src, ["app", "spotify"])) state.ui.musicSrc = vv.src;
+      if (ok(vv.src, ["app", "spotify", "local"])) state.ui.musicSrc = vv.src;
     }
   }
   function mergeRemote(p, firstTime) {
@@ -5144,6 +5251,18 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     } catch (e) { return -1; }
     return n;
   }
+  function renderLocalList() {
+    var ul = $("local-list");
+    if (!ul) return;
+    ul.innerHTML = "";
+    local.tracks.forEach(function (t) {
+      var li = document.createElement("li");
+      var n = document.createElement("span"); n.textContent = t.name;
+      var x = document.createElement("button"); x.type = "button"; x.className = "local-del"; x.textContent = "Remove"; x.setAttribute("data-del", String(t.id)); x.setAttribute("aria-label", "Remove " + t.name);
+      li.appendChild(n); li.appendChild(x); ul.appendChild(li);
+    });
+    $("local-empty").hidden = local.tracks.length > 0;
+  }
   function refreshAudioCache() {
     var line = $("audio-cache-line");
     if (!line) return;
@@ -5697,10 +5816,12 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     $("sound-btn").addEventListener("click", function () { setSound(!state.settings.sound); });
     $("sound-toggle").addEventListener("change", function () { setSound($("sound-toggle").checked); });
     $("music-btn").addEventListener("click", function (e) {
-      if (spotifyMode()) { startSpotify(); return; } // the link opens Spotify
-      if (spotifySource()) { e.preventDefault(); askSpotifyLink(); return; }
+      if (music.on) { e.preventDefault(); setMusicOn(false); return; }
+      if (spotifyMode()) { startSpotify(); return; } // the link opens the playlist in Spotify
       e.preventDefault();
-      setMusicOn(!music.on);
+      if (spotifySource()) { askSpotifyLink(); return; }
+      if (state.ui.musicSrc === "local" && !local.tracks.length) { askLocalFiles(); return; }
+      setMusicOn(true);
     });
     $("music-vol").addEventListener("input", function () {
       state.ui.musicVol = Math.max(0.1, Math.min(1, (+$("music-vol").value || 70) / 100));
@@ -5712,15 +5833,50 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     Array.prototype.forEach.call(document.querySelectorAll('input[name="msrc"]'), function (r) {
       r.addEventListener("change", function () {
         state.ui.musicSrc = r.value;
-        if (r.value === "spotify" && music.on) setMusicOn(false, true);
+        if (music.on && r.value !== "spotify") setMusicOn(true, true); // switch the playing music to the new source
+        else if (music.on && !listen.on) setMusicOn(false, true);
         persist(); touchSync("prefs"); renderMusic();
       });
     });
     $("spotify-open").addEventListener("click", startSpotify);
+    $("local-add").addEventListener("click", function () { $("local-files").click(); });
+    $("local-files").addEventListener("change", function () {
+      var files = Array.prototype.slice.call($("local-files").files || []).filter(function (f) { return /^audio\//.test(f.type) || /\.(mp3|m4a|aac|wav|ogg|flac)$/i.test(f.name); });
+      $("local-files").value = "";
+      if (!files.length) { toast("Choose audio files, such as MP3 or M4A"); return; }
+      audioDb().then(function (db) {
+        return new Promise(function (res, rej) {
+          var tx = db.transaction("music", "readwrite"), st = tx.objectStore("music"), now = Date.now();
+          files.forEach(function (f, i) { st.put({ id: now + i, name: f.name.replace(/\.[^.]+$/, ""), blob: f, size: f.size, t: now + i }); });
+          tx.oncomplete = res; tx.onerror = tx.onabort = function () { rej(tx.error); };
+        });
+      }).then(function () {
+        toast(files.length === 1 ? "Song added" : files.length + " songs added");
+        return loadLocalTracks();
+      }, function (e) {
+        toast(e && e.name === "QuotaExceededError" ? "Not enough space on this device for these files" : "Could not add these files");
+      });
+    });
+    $("local-list").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-del]");
+      if (!b) return;
+      var id = +b.getAttribute("data-del");
+      audioDb().then(function (db) {
+        return new Promise(function (res) { var tx = db.transaction("music", "readwrite"); tx.objectStore("music").delete(id); tx.oncomplete = res; tx.onerror = res; });
+      }).then(function () {
+        if (music.on && music.src === "local" && local.el && local.el.getAttribute("data-id") === String(id)) { local.el.removeAttribute("data-id"); }
+        return loadLocalTracks();
+      }).then(function () { if (music.on && music.src === "local") { if (local.tracks.length) playLocal(); else setMusicOn(false, true); } });
+    });
+    loadLocalTracks();
     renderMusicBtn();
     // the live music pauses with the app; with reading on, the clips carry it while the screen is off
     document.addEventListener("visibilitychange", function () {
-      if (!document.hidden && music.on && actx) { try { actx.resume(); } catch (e) {} if (!liveBed) startLiveBed(); }
+      if (!document.hidden && music.on && actx) {
+        try { actx.resume(); } catch (e) {}
+        if (music.src === "app" && !liveBed) startLiveBed();
+        if (music.src === "local" && local.el && local.el.paused) playLocal();
+      }
     });
     $("music-save").addEventListener("click", function () {
       var m = parseSpotify($("music-link").value);
