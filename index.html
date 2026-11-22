@@ -876,8 +876,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
             </div>
           </div>
 
-          <div class="sgroup-label">App tones</div>
-          <div class="sgroup pad">
+          <div class="sgroup-label" hidden>App tones</div>
+          <div class="sgroup pad" hidden>
             <label class="switch" for="sound-toggle"><input type="checkbox" id="sound-toggle"><span>Soft tones with each swipe</span></label>
             <p class="note">A short tone on each swipe. Switches off when music plays.</p>
           </div>
@@ -1492,7 +1492,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
 (function () {
   "use strict";
 
-  var APP_VERSION = "4.0";
+  var APP_VERSION = "4.2";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -1646,7 +1646,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
           s.settings.models.gemini = s.settings.models.gemini || FIRST_MODEL.gemini;
           s.settings.provider = PROVIDER[s.settings.provider] ? s.settings.provider : "anthropic";
           PIDS.forEach(function (pp) { if (!s.settings.models[pp]) s.settings.models[pp] = FIRST_MODEL[pp]; });
-          s.settings.sound = s.settings.sound === true;
+          s.settings.sound = false; // swipe tones are retired
           if (!s.settings.music || !s.settings.music.id || !s.settings.music.type) s.settings.music = null;
           if (Array.isArray(s.models)) s.models = { anthropic: s.models };
           else if (!s.models || typeof s.models !== "object") s.models = {};
@@ -3611,12 +3611,14 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     if (r && r.then) r.then(go, function () {}); else go();
   }
   function syncSoundUi() {
+    $("sound-btn").hidden = true; // the swipe tones are retired: music comes from the reader's Spotify
     var on = !!state.settings.sound;
     $("sound-btn").setAttribute("aria-pressed", on ? "true" : "false");
     $("sound-btn").setAttribute("aria-label", on ? "Turn ambient sound off" : "Turn ambient sound on");
     $("sound-toggle").checked = on;
   }
   function setSound(on) {
+    on = false; // retired
     if (on && !ensureAudio()) { toast("This browser cannot play sound"); on = false; }
     state.settings.sound = !!on;
     persist();
