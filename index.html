@@ -462,6 +462,8 @@ html[data-motion="reduced"] .burst { display: none; }
 .guide .sgroup .actions a.btn { text-decoration: none; }
 .guide .sgroup a.btn.solid { color: #1a1408; }
 .guide .sgroup a.btn { display: inline-flex; align-items: center; }
+.idea.km { line-height: 1.7; font-family: "Khmer Sangam MN", "Noto Serif Khmer", var(--serif); }
+html[data-dropcap="on"] .idea.km::first-letter { float: none; font-size: inherit; line-height: inherit; padding: 0; color: inherit; text-shadow: none; }
 
 
 /* "Newest" arrow on Discover */
@@ -726,8 +728,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
           <div class="sgroup-label">Read aloud</div>
           <div class="sgroup pad" id="voice-box">
             <div class="seg two" role="radiogroup" aria-label="Voice source">
+              <label><input type="radio" name="vmode" value="gemini"><span>Gemini voices</span></label>
               <label><input type="radio" name="vmode" value="device"><span>iPhone voices</span></label>
-              <label><input type="radio" name="vmode" value="gemini"><span>Screen off (Gemini)</span></label>
             </div>
             <p class="note small" id="voice-mode-note"></p>
             <div class="seg two" role="radiogroup" aria-label="Voice">
@@ -1363,8 +1365,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
 (function () {
   "use strict";
 
-  var APP_VERSION = "3.9";
-  var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"]];
+  var APP_VERSION = "3.10";
+  var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
   function cleanCollections(list) {
@@ -1476,7 +1478,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       lean: ui.lean !== false,
       welcomed: ui.welcomed === true,
       voiceGender: pick(ui.voiceGender, ["female", "male"], "female"),
-      listenMode: pick(ui.listenMode, ["device", "gemini"], "device"),
+      listenMode: ui.voiceV === 2 ? pick(ui.listenMode, ["device", "gemini"], "gemini") : "gemini",
+      voiceV: 2,
       gvoice: typeof ui.gvoice === "string" ? ui.gvoice.slice(0, 40) : "",
       voiceName: typeof ui.voiceName === "string" ? ui.voiceName.slice(0, 120) : "",
       speed: pick(ui.speed, ["0.75", "1", "1.25", "1.5"], "1"),
@@ -1946,7 +1949,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     chip.addEventListener("click", openTopicSheet);
     top.appendChild(chip);
     var body = el("div", "card-body");
-    body.appendChild(el("p", "idea " + sizeClass(card.text), card.text));
+    body.appendChild(el("p", "idea " + sizeClass(card.text) + (/[\u1780-\u17ff]/.test(card.text) ? " km" : ""), card.text));
     var cap = el("div", "caption");
     cap.appendChild(el("div", "rule"));
     cap.appendChild(el("span", "book", card.book));
@@ -2104,7 +2107,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var cv = document.createElement("canvas");
     cv.width = W; cv.height = H;
     var ctx = cv.getContext("2d");
-    var SERIF = '"IM Fell English", "Iowan Old Style", Georgia, "Songti SC", serif', SANS = 'Manrope, system-ui, -apple-system, "PingFang SC", sans-serif';
+    var SERIF = '"IM Fell English", "Iowan Old Style", Georgia, "Songti SC", "Khmer Sangam MN", "Noto Serif Khmer", serif', SANS = 'Manrope, system-ui, -apple-system, "PingFang SC", "Khmer Sangam MN", "Noto Sans Khmer", sans-serif';
 
     // background
     ctx.fillStyle = st.bg;
@@ -2170,8 +2173,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (H >= 1900) fs = Math.round(fs * 1.4);
     if (H <= 1080) fs = Math.round(fs * 0.92);
     var lh, lines;
+    var kmText = /[\u1780-\u17ff]/.test(text);
     for (;;) {
-      lh = fs * 1.34;
+      lh = fs * (kmText ? 1.7 : 1.34);
       ctx.font = fs + "px " + SERIF;
       lines = wrapLines(ctx, text, function () { return maxW; });
       if (lines.length * lh <= room || fs <= 34) break;
@@ -2480,7 +2484,8 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     if (/[぀-ヿ]/.test(text)) return "ja-JP";
     if (/[가-힯]/.test(text)) return "ko-KR";
     if (/[一-鿿]/.test(text)) return state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN";
-    var map = { en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", id: "id-ID", ja: "ja-JP", ko: "ko-KR", "zh-Hans": "zh-CN", "zh-Hant": "zh-TW" };
+    if (/[\u1780-\u17ff]/.test(text)) return "km-KH";
+    var map = { en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", id: "id-ID", ja: "ja-JP", ko: "ko-KR", "zh-Hans": "zh-CN", "zh-Hant": "zh-TW", km: "km-KH" };
     if (state.ui.lang === "en") return "en-US";
     return map[state.ui.lang] || "en-US";
   }
@@ -2546,7 +2551,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var all = GVOICES.female.concat(GVOICES.male).map(function (v) { return v[0]; });
     return all.indexOf(state.ui.gvoice) >= 0 ? state.ui.gvoice : GVOICES[g][0][0];
   }
-  function geminiMode() { return state.ui.listenMode === "gemini"; }
+  function geminiMode() { return state.ui.listenMode === "gemini" && !!getKey("gemini") && !tts.failed; }
   function ttsAudio() {
     if (!tts.audio) {
       var a = document.createElement("audio");
@@ -2655,8 +2660,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       nextCards(c, 3).forEach(function (n) { ttsClip(n).catch(function () {}); });
     }, function (e) {
       if (!listen.on) return;
-      toast(e && e.nokey ? "Add a Google Gemini key to listen with the screen off" : "Gemini voice failed: " + (e && e.message ? e.message.slice(0, 80) : "no audio"));
-      state.ui.listenMode = "device"; persist(); renderSettings();
+      toast("Gemini voice unavailable, using the phone's voice: " + (e && e.message ? e.message.slice(0, 70) : "no audio"));
+      tts.failed = true; // for the rest of this visit; the setting itself stays on Gemini
+      renderSettings();
       listen.id = null;
       speakCurrent(); // carry on with the phone's own voice
     });
@@ -4668,7 +4674,9 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     var sel = $("voice-select");
     if (!sel || document.activeElement === sel) return;
     setRadio("vmode", state.ui.listenMode);
-    $("voice-mode-note").textContent = geminiMode()
+    $("voice-mode-note").textContent = state.ui.listenMode === "gemini" && !getKey("gemini")
+      ? "Gemini voices need a Google Gemini key (free). Until you add one in AI & Generation, the phone's voice is used."
+      : geminiMode()
       ? "Keeps playing with the screen off, with lock-screen controls. Uses your Google Gemini key; each idea is one short request."
       : "Your phone's own voices. Free and instant; the screen stays on while it reads.";
     if (geminiMode()) {
@@ -4687,7 +4695,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
       $("voice-box").hidden = false;
       return;
     }
-    var lang = state.ui.lang === "en" ? "en-US" : ({ "zh-Hans": "zh-CN", "zh-Hant": "zh-TW", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US";
+    var lang = state.ui.lang === "en" ? "en-US" : ({ "zh-Hans": "zh-CN", "zh-Hant": "zh-TW", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID", km: "km-KH" })[state.ui.lang] || "en-US";
     var list = voicesFor(lang).slice().sort(function (a, b) { return voiceQuality(b) - voiceQuality(a) || a.name.localeCompare(b.name); });
     sel.textContent = "";
     var auto = el("option", null, "Best " + (state.ui.voiceGender === "male" ? "male" : "female") + " voice (automatic)");
@@ -4726,7 +4734,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
     }
     if (!canSpeak) return;
     var zh = /^zh/.test(state.ui.lang);
-    var lang = zh ? (state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN") : (state.ui.lang === "en" ? "en-US" : ({ es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID" })[state.ui.lang] || "en-US");
+    var lang = zh ? (state.ui.lang === "zh-Hant" ? "zh-TW" : "zh-CN") : (state.ui.lang === "en" ? "en-US" : ({ es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", ja: "ja-JP", ko: "ko-KR", id: "id-ID", km: "km-KH" })[state.ui.lang] || "en-US");
     var sample = zh ? "滋养你的心灵。每次滑动，都是一本好书里的一个想法。" : "Feed your mind. One idea from a great book, with every swipe.";
     try {
       speechSynthesis.cancel();
@@ -4800,6 +4808,7 @@ html[data-motion="reduced"] #listen-btn svg { animation: none; }
         var was = listen.on;
         if (was) setListen(false);
         state.ui.listenMode = r.value;
+        tts.failed = false;
         persist(); renderVoices();
         if (r.value === "gemini" && !getKey("gemini")) $("voice-msg").textContent = "This needs a Google Gemini key. Add it in AI & Generation.";
         else $("voice-msg").textContent = "";
