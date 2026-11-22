@@ -857,7 +857,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
             </div>
 
             <div class="stack" id="msrc-spotify" hidden>
-              <p class="note">&#9835; opens your playlist in the Spotify app. On iPhone, Spotify's volume cannot be lowered under the voice, so &#127911; Listen uses Ambient music instead.</p>
+              <p class="note">&#9835; opens your playlist in the Spotify app. &#127911; Listen adds no app music: start your playlist with &#9835; and the voice reads over it. Spotify keeps its own volume.</p>
               <div class="field">
                 <label for="music-link">Paste your Spotify playlist link</label>
                 <input type="url" id="music-link" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -1510,7 +1510,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
 (function () {
   "use strict";
 
-  var APP_VERSION = "4.4";
+  var APP_VERSION = "4.5";
   var LANGS = [["en", "English", "English"], ["zh-Hans", "\u4e2d\u6587\uff08\u7b80\u4f53\uff09", "Simplified Chinese"], ["zh-Hant", "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09", "Traditional Chinese"], ["es", "Espa\u00f1ol", "Spanish"], ["fr", "Fran\u00e7ais", "French"], ["de", "Deutsch", "German"], ["pt", "Portugu\u00eas", "Portuguese"], ["ja", "\u65e5\u672c\u8a9e", "Japanese"], ["ko", "\ud55c\uad6d\uc5b4", "Korean"], ["id", "Bahasa Indonesia", "Indonesian"], ["km", "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a", "Khmer"]];
   // Contact links shown beneath the settings list and in Help & Support.
   var CONTACT = { telegram: "lgl910", instagram: "smey_910" };
@@ -3041,8 +3041,8 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     return "app";
   }
   function musicLabel() {
-    if (music.on) return music.src === "local" ? ((local.tracks[local.idx] || {}).name || "My music") : MOOD_NAME[bedKind()] + (spotifySource() ? " (for Spotify)" : "");
-    if (spotifySource() && musicActive) return "Spotify, in its own app";
+    if (music.on) return music.src === "local" ? ((local.tracks[local.idx] || {}).name || "My music") : MOOD_NAME[bedKind()];
+    if (spotifySource()) return musicActive ? "Spotify, in its own app" : "tap \u266b for Spotify";
     return "music off";
   }
   // the owner's chosen default: Spotify's "Peaceful Meditation"
@@ -3323,12 +3323,10 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
       if (geminiMode()) ttsUnlock();
       // reading starts the background music, unless Spotify is the music or the listener turned this off
       if (!music.on && state.ui.readMusic !== false) {
-        if (spotifySource() && musicActive) {
-          toast("Spotify keeps playing in its app at its own volume: it cannot be lowered under the voice");
-        } else {
-          setMusicOn(true, true, readingSource()); music.bySession = true;
-          if (spotifySource() && !listen.told) { listen.told = true; toast("Reading uses Ambient music: on iPhone, Spotify's volume cannot be balanced under the voice"); }
-        }
+        // with Spotify as the music, the app adds no sound of its own: Spotify plays in its app
+        if (spotifySource()) {
+          if (!musicActive && !listen.told) { listen.told = true; toast("Voice only \u00b7 tap \u266b to play your Spotify playlist with it"); }
+        } else { setMusicOn(true, true, readingSource()); music.bySession = true; }
       }
       holdScreen(!geminiMode());
       renderListen();
@@ -3456,7 +3454,7 @@ html[data-motion="reduced"] .player, html[data-motion="reduced"] .pl-dot { anima
     $("pl-music").addEventListener("click", function () {
       // music off never stops the narration, and music on never starts it
       if (music.on) setMusicOn(false, true);
-      else if (spotifySource() && !listen.on) { if (spotifyMode()) $("music-btn").click(); else askSpotifyLink(); return; }
+      else if (spotifySource()) { if (spotifyMode()) $("music-btn").click(); else askSpotifyLink(); return; }
       else setMusicOn(true, true, listen.on ? readingSource() : null);
       music.bySession = false; // the listener chose this themselves
       toast(music.on ? musicLabel() + " on" : "Music off");
